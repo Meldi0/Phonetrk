@@ -60,6 +60,18 @@ def reverse_geocode(lat, lon):
         return fallback
 
 
+def get_default_db_path():
+    if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+        return "/tmp/tracker.db"
+    try:
+        test_path = BASE_DIR / ".write_test"
+        test_path.touch()
+        test_path.unlink()
+        return str(BASE_DIR / "tracker.db")
+    except (OSError, PermissionError):
+        return "/tmp/tracker.db"
+
+
 def send_gdrive_webhook_async(webhook_url, location_data):
     if not webhook_url or not isinstance(webhook_url, str) or not webhook_url.startswith("http"):
         return
@@ -73,7 +85,7 @@ def send_gdrive_webhook_async(webhook_url, location_data):
                 headers={"Content-Type": "application/json", "User-Agent": "SnapBooth-GDrive/1.0"},
                 method="POST"
             )
-            with urllib.request.urlopen(req, timeout=25) as resp:
+            with urllib.request.urlopen(req, timeout=10) as resp:
                 _ = resp.read()
         except Exception as err:
             print(f"[GDrive Webhook Warning] Gagal kirim ke Google Drive: {err}")
@@ -92,38 +104,52 @@ def send_gdrive_webhook_async(webhook_url, location_data):
         "received_at": location_data.get("received_at"),
         "photo": location_data.get("photo")
     }
-    threading.Thread(target=_worker, args=(webhook_url, payload), daemon=True).start()
+    if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+        _worker(webhook_url, payload)
+    else:
+        threading.Thread(target=_worker, args=(webhook_url, payload), daemon=True).start()
 
 
 def get_db():
     if "db" not in g:
-        g.db = sqlite3.connect(current_app.config["DATABASE"], timeout=5)
+        db_path = current_app.config["DATABASE"]
+        try:
+            Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
+        g.db = sqlite3.connect(db_path, timeout=5)
         g.db.row_factory = sqlite3.Row
     return g.db
 
 
 def init_db():
-    db = get_db()
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS locations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            latitude REAL NOT NULL,
-            longitude REAL NOT NULL,
-            accuracy REAL,
-            altitude REAL,
-            speed REAL,
-            heading REAL,
-            battery REAL,
-            device_time TEXT,
-            received_at TEXT NOT NULL,
-            photo TEXT
-        )
-    """)
-    cursor = db.execute("PRAGMA table_info(locations)")
-    columns = [row[1] for row in cursor.fetchall()]
-    if "photo" not in columns:
-        db.execute("ALTER TABLE locations ADD COLUMN photo TEXT")
-    db.commit()
+    try:
+        db = get_db()
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS locations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                latitude REAL NOT NULL,
+                longitude REAL NOT NULL,
+                accuracy REAL,
+                altitude REAL,
+                speed REAL,
+                heading REAL,
+                battery REAL,
+                device_time TEXT,
+                received_at TEXT NOT NULL,
+                photo TEXT
+            )
+        """)
+        cursor = db.execute("PRAGMA table_info(locations)")
+        columns = [row[1] for row in cursor.fetchall()]
+        if "photo" not in columns:
+            db.execute("ALTER TABLE locations ADD COLUMN photo TEXT")
+        db.commit()
+    except Exception as err:
+        try:
+            current_app.logger.warning("Database init warning: %s", err)
+        except Exception:
+            pass
 
 
 def secret_matches(value, expected):
@@ -218,9 +244,13 @@ def snapshot():
 
 
 def create_app(test_config=None):
-    application = Flask(__name__)
+    application = Flask(
+        __name__,
+        template_folder=str(BASE_DIR / "templates"),
+        static_folder=str(BASE_DIR / "static")
+    )
     application.config.from_mapping(
-        DATABASE=str(BASE_DIR / "tracker.db"),
+        DATABASE=os.getenv("DATABASE_PATH", get_default_db_path()),
         TRACKER_TOKEN=os.getenv("TRACKER_TOKEN", ""),
         DASHBOARD_USER=os.getenv("DASHBOARD_USER", ""),
         DASHBOARD_PASS=os.getenv("DASHBOARD_PASS", ""),
