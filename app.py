@@ -244,10 +244,13 @@ def snapshot():
 
 
 def create_app(test_config=None):
+    static_dir = BASE_DIR / "static"
+    if not static_dir.exists() and (BASE_DIR / "public" / "static").exists():
+        static_dir = BASE_DIR / "public" / "static"
     application = Flask(
         __name__,
         template_folder=str(BASE_DIR / "templates"),
-        static_folder=str(BASE_DIR / "static")
+        static_folder=str(static_dir)
     )
     application.config.from_mapping(
         DATABASE=os.getenv("DATABASE_PATH", get_default_db_path()),
