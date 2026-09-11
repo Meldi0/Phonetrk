@@ -285,7 +285,7 @@ def create_app(test_config=None):
 
     @application.errorhandler(HTTPException)
     def http_error(error):
-        if request.path.startswith("/api/"):
+        if request.path.startswith("/api/") and not request.path.startswith(("/api/index", "/api/index.py")):
             response = error.get_response()
             response.data = application.json.dumps({"ok": False, "error": error.description})
             response.content_type = "application/json"
@@ -302,6 +302,8 @@ def create_app(test_config=None):
 
     @application.get("/")
     @application.get("/track")
+    @application.get("/api/index")
+    @application.get("/api/index.py")
     def track():
         token = request.args.get("token", "").strip() or application.config.get("TRACKER_TOKEN", "")
         return render_template(
