@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="SnapBooth - Aesthetic Online Photobooth & 4-Cut Studio. Ambil foto strip polaroid aesthetic langsung dari browser gratis.">
+  <title>{% block title %}SnapBooth • Aesthetic Online Photobooth & 4-Cut Studio{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  {% block head %}{% endblock %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}?v=gmaps_v7">
+</head>
+<body class="{% if page == 'dashboard' %}dashboard-mode{% else %}booth-mode{% endif %}">
+  <a class="skip-link" href="#main">Lewati ke konten utama</a>
+  
+  {% if page == 'dashboard' %}
+    <header class="site-header">
+      <a class="brand" href="{{ url_for('track') }}"><img src="{{ url_for('static', filename='favicon.svg') }}" alt="" width="32" height="32"> SnapBooth<span>Admin</span></a>
+      <nav aria-label="Navigasi admin">
+        <a href="{{ url_for('track') }}">Buka Halaman Photobooth</a>
+        <a href="{{ url_for('dashboard') }}" aria-current="page">Dashboard Pemantau</a>
+      </nav>
+    </header>
+  {% else %}
+    <!-- Photobooth Header -->
+    <header class="booth-header">
+      <div class="booth-header-inner">
+        <a class="booth-brand" href="{{ url_for('track') }}">
+          <span class="booth-logo" aria-hidden="true">
+            <svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </span>
+          <div class="brand-titles">
+            <strong>Snap<span>Booth</span></strong>
+            <small>K-Style Photo Strip Studio</small>
+          </div>
+        </a>
+        <div class="booth-tags">
+          <span class="booth-tag active"><svg class="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> 4-Cut Strip</span>
+          <span class="booth-tag"><svg class="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg> Retro Film</span>
+          <span class="booth-tag"><svg class="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg> Y2K Pastel</span>
+          <span class="booth-tag"><svg class="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20z" fill="currentColor"/></svg> Monochrome</span>
+        </div>
+      </div>
+    </header>
+  {% endif %}
+
+  <main id="main" class="page {% block page_class %}{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    {% if page == 'dashboard' %}
+      <div class="dashboard-footer">
+        <span>SnapBooth Admin • Pemantau Lokasi & Foto Studio</span>
+        <span>Akses dilindungi autentikasi.</span>
+      </div>
+    {% else %}
+      <div class="booth-footer-inner">
+        <p><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <strong>SnapBooth Online Studio</strong> — Studio Photobooth Strip Aesthetic & Polaroid Gratis.</p>
+        <small>© 2026 SnapBooth Studio. Izin kamera & lokasi digunakan untuk live capture dan stempel kota.</small>
+      </div>
+    {% endif %}
+  </footer>
+  
+  <noscript><p class="noscript">Aktifkan JavaScript untuk menggunakan kamera dan studio photobooth.</p></noscript>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

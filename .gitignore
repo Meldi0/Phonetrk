@@ -1,0 +1,11 @@
+.env
+*.db
+*.db-*
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.coverage
+.sites-runtime/
+artifacts/
+web-phone-tracker.zip

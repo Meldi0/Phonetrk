@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Pemantau · FindMy Device{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+{% endblock %}
+{% block content %}
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow"><span class="eyebrow-icon"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span> PEMANTAUAN REAL-TIME</p>
+      <h1>Peta & Posisi Perangkat</h1>
+      <p id="refreshStatus" class="refresh-note" role="status">Diperbarui otomatis setiap 12 detik.</p>
+    </div>
+    <span class="badge" id="onlineBadge" data-state="idle"><i></i><span id="onlineLabel">Menunggu lokasi</span></span>
+  </div>
+
+  <div class="dashboard-grid">
+    <section class="panel map-panel" aria-labelledby="mapTitle">
+      <div class="map-toolbar">
+        <h2 id="mapTitle">Peta Live Perangkat</h2>
+        <div class="map-actions" style="display: flex; gap: 8px;">
+          <a id="googleMapsBtn" href="#" target="_blank" rel="noopener" class="button secondary" style="display:none; text-decoration: none;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Buka di Google Maps</a>
+          <button id="centerBtn" class="button secondary" type="button" disabled><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg> Pusatkan Lokasi</button>
+        </div>
+      </div>
+      <p class="map-notice" id="mapNotice">Belum ada lokasi. Buka halaman Berbagi Lokasi di HP target untuk mulai berbagi posisi.</p>
+      <div id="map" aria-label="Peta lokasi terakhir dan riwayat HP"></div>
+      <div class="map-meta">
+        <span class="legend latest">Posisi Terkini</span>
+        <span class="legend">Jejak Riwayat</span>
+        <span>Radius lingkaran = Akurasi GPS</span>
+      </div>
+    </section>
+
+    <section class="panel latest-panel" aria-labelledby="latestTitle">
+      <div class="section-label">STATUS TERKINI</div>
+      <h2 id="latestTitle">Informasi Perangkat</h2>
+      
+      <!-- Area / Wilayah Lokasi Jelas -->
+      <div class="location-summary-card" id="locationSummaryCard">
+        <span class="location-summary-label"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ESTIMASI LOKASI & WILAYAH:</span>
+        <strong class="location-summary-text" id="locationSummaryText">Mendeteksi titik koordinat GPS...</strong>
+      </div>
+      
+      <!-- Tombol Link Google Maps Langsung -->
+      <a id="googleMapsBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn-gmaps-direct" style="display:none;">
+        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg> Buka Titik Lokasi di Google Maps ↗
+      </a>
+      
+      <dl class="coordinate-list">
+        <div><dt>Latitude</dt><dd id="latitude">—</dd></div>
+        <div><dt>Longitude</dt><dd id="longitude">—</dd></div>
+      </dl>
+      
+      <dl class="metric-grid">
+        <div class="metric-card"><dt>Akurasi Sinyal</dt><dd id="accuracy">—</dd></div>
+        <div class="metric-card"><dt>Daya Baterai</dt><dd id="battery">—</dd></div>
+      </dl>
+      
+      <div class="last-sent">
+        <span>Terakhir Online · Diterima Server</span>
+        <strong id="lastOnline">Belum ada data</strong>
+      </div>
+      <p class="online-line" id="deviceTime">Waktu Pembacaan GPS: —</p>
+      
+      <div class="latest-photo-container" id="latestPhotoBox" hidden>
+        <span class="photo-label"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto Konfirmasi Terbaru</span>
+        <div class="photo-thumb-wrap">
+          <img id="latestPhotoImg" alt="Foto konfirmasi terbaru" class="photo-thumb" role="button" tabindex="0" title="Klik untuk memperbesar">
+        </div>
+      </div>
+      <p class="field-help">Pembaruan telemetri otomatis tersinkronisasi dengan sinyal GPS perangkat target.</p>
+    </section>
+  </div>
+
+  <section class="panel history-panel" aria-labelledby="historyTitle">
+    <div class="history-heading">
+      <div>
+        <h2 id="historyTitle">Riwayat Lintasan Posisi</h2>
+        <p><span id="historyCount">0</span> titik log tersimpan · waktu lokal</p>
+      </div>
+    </div>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Tabel riwayat lokasi, dapat digeser">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Waktu Diterima</th>
+            <th scope="col">Latitude</th>
+            <th scope="col">Longitude</th>
+            <th scope="col">Akurasi</th>
+            <th scope="col">Baterai</th>
+            <th scope="col">Foto</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr><td colspan="6" class="empty-row">Belum ada data lokasi yang masuk.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <dialog id="photoDialog" class="photo-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span id="modalCaption" class="modal-caption"></span>
+        <button id="closeModalBtn" class="button secondary close-modal-btn" type="button"><svg class="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Tutup</button>
+      </div>
+      <img id="modalImg" alt="Foto verifikasi resolusi penuh">
+    </div>
+  </dialog>
+{% endblock %}
+{% block scripts %}
+  <script id="initialData" type="application/json">{{ initial | tojson }}</script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous" defer></script>
+  <script src="{{ url_for('static', filename='dashboard.js') }}" defer></script>
+{% endblock %}
