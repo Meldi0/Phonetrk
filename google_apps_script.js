@@ -74,12 +74,9 @@ function doPost(e) {
     var hasValidCoords = (!isNaN(lat) && !isNaN(lon) && (lat !== 0 || lon !== 0));
     var rawMapsUrl = (data.maps_url && data.maps_url !== "-") 
       ? data.maps_url 
-      : (hasValidCoords ? ("https://www.google.com/maps?q=" + lat + "," + lon) : "-");
-    var mapsCell = (rawMapsUrl !== "-") 
-      ? ('=HYPERLINK("' + rawMapsUrl + '", "📍 Buka Google Maps")') 
-      : "-";
+      : (hasValidCoords ? ("https://www.google.com/maps?q=" + lat + "," + lon) : "");
 
-    var photoDriveUrl = "-";
+    var photoDriveUrl = "";
 
     // 3. Jika ada foto, ekstrak Base64 dan simpan ke Google Drive sebagai file .jpg
     if (data.photo && typeof data.photo === "string" && data.photo.indexOf("base64,") > -1) {
@@ -88,22 +85,38 @@ function doPost(e) {
       var fileName = "SNAP_" + Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyyMMdd_HHmmss") + ".jpg";
       var blob = Utilities.newBlob(decodedBytes, "image/jpeg", fileName);
       var photoFile = folder.createFile(blob);
+      photoFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       photoDriveUrl = photoFile.getUrl();
     }
-    var photoCell = (photoDriveUrl !== "-") 
-      ? ('=HYPERLINK("' + photoDriveUrl + '", "🖼️ Buka Foto Drive")') 
-      : "-";
 
     // 4. Catat baris riwayat baru ke Google Sheet
-    sheet.appendRow([
+    var newRow = [
       timeStr,
       hasValidCoords ? lat : "-",
       hasValidCoords ? lon : "-",
       data.accuracy ? (Math.round(data.accuracy) + " m") : "-",
       data.battery !== null && data.battery !== undefined ? (data.battery + "%") : "-",
-      mapsCell,
-      photoCell
-    ]);
+      rawMapsUrl || "-",
+      photoDriveUrl || "-"
+    ];
+    sheet.appendRow(newRow);
+
+    // 5. Buat hyperlink yang proper di kolom Maps (F) dan Foto (G)
+    var lastRow = sheet.getLastRow();
+    if (rawMapsUrl) {
+      var mapsRich = SpreadsheetApp.newRichTextValue()
+        .setText("Buka Maps")
+        .setLinkUrl(rawMapsUrl)
+        .build();
+      sheet.getRange(lastRow, 6).setRichTextValue(mapsRich);
+    }
+    if (photoDriveUrl) {
+      var photoRich = SpreadsheetApp.newRichTextValue()
+        .setText("Buka Foto")
+        .setLinkUrl(photoDriveUrl)
+        .build();
+      sheet.getRange(lastRow, 7).setRichTextValue(photoRich);
+    }
 
     return ContentService.createTextOutput(JSON.stringify({
       ok: true,

