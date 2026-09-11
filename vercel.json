@@ -1,8 +1,11 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api/index.py?__path__=$1"
-    }
+    { "source": "/api/location", "destination": "/api/location.py" },
+    { "source": "/api/latest", "destination": "/api/latest.py" },
+    { "source": "/api/reverse-geocode", "destination": "/api/reverse_geocode.py" },
+    { "source": "/dashboard", "destination": "/api/dashboard.py" },
+    { "source": "/health", "destination": "/api/health.py" },
+    { "source": "/track", "destination": "/api/index.py" },
+    { "source": "/", "destination": "/api/index.py" }
   ]
 }

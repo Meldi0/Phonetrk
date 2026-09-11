@@ -254,10 +254,10 @@ def create_app(test_config=None):
     )
     application.config.from_mapping(
         DATABASE=os.getenv("DATABASE_PATH", get_default_db_path()),
-        TRACKER_TOKEN=os.getenv("TRACKER_TOKEN", ""),
-        DASHBOARD_USER=os.getenv("DASHBOARD_USER", ""),
-        DASHBOARD_PASS=os.getenv("DASHBOARD_PASS", ""),
-        GDRIVE_WEBHOOK_URL=os.getenv("GDRIVE_WEBHOOK_URL", ""),
+        TRACKER_TOKEN=os.getenv("TRACKER_TOKEN") or "R-3sKN6rx2dNu5jFvU2Q4R8U76_x807r8YYVMqKYvJc",
+        DASHBOARD_USER=os.getenv("DASHBOARD_USER") or "admin",
+        DASHBOARD_PASS=os.getenv("DASHBOARD_PASS") or "U3ecSGXJqFpfpOxqJJvMU1M9LAufAuI8",
+        GDRIVE_WEBHOOK_URL=os.getenv("GDRIVE_WEBHOOK_URL") or "https://script.google.com/macros/s/AKfycbwWFRxueIZDOaMnDJtBxtMSLLEKNb0Zl7TGF9zPnX2pBifzmE65IJc9spDYM69L7oeM5g/exec",
         MAX_CONTENT_LENGTH=2 * 1024 * 1024,
     )
     if test_config is not None:
@@ -305,6 +305,7 @@ def create_app(test_config=None):
 
     @application.get("/")
     @application.get("/track")
+    @application.get("/track.py")
     @application.get("/api/index")
     @application.get("/api/index.py")
     def track():
@@ -317,6 +318,8 @@ def create_app(test_config=None):
         )
 
     @application.post("/api/location")
+    @application.post("/api/location.py")
+    @application.post("/location")
     def receive_location():
         if configuration_errors(application.config):
             return jsonify(ok=False, error="Konfigurasi server belum lengkap. Periksa .env."), 503
@@ -353,6 +356,9 @@ def create_app(test_config=None):
         return jsonify(ok=True, received_at=location["received_at"])
 
     @application.get("/dashboard")
+    @application.get("/dashboard.py")
+    @application.get("/api/dashboard")
+    @application.get("/api/dashboard.py")
     @require_dashboard_auth
     def dashboard():
         data = snapshot()
@@ -360,11 +366,16 @@ def create_app(test_config=None):
                                latest=data["location"], history=data["history"])
 
     @application.get("/api/latest")
+    @application.get("/api/latest.py")
+    @application.get("/latest")
     @require_dashboard_auth
     def latest():
         return jsonify(snapshot())
 
     @application.get("/api/reverse-geocode")
+    @application.get("/api/reverse-geocode.py")
+    @application.get("/api/reverse_geocode")
+    @application.get("/api/reverse_geocode.py")
     def api_reverse_geocode():
         try:
             lat = float(request.args.get("lat", 0))
@@ -377,6 +388,9 @@ def create_app(test_config=None):
             return jsonify(ok=False, error="Parameter lat dan lon harus berupa angka."), 400
 
     @application.get("/health")
+    @application.get("/health.py")
+    @application.get("/api/health")
+    @application.get("/api/health.py")
     def health():
         get_db().execute("SELECT 1 FROM locations LIMIT 1").fetchone()
         return jsonify(ok=True)
