@@ -308,6 +308,11 @@ def create_app(test_config=None):
     @application.get("/api/index")
     @application.get("/api/index.py")
     def track():
+        if request.args.get("debug"):
+            return jsonify({
+                "headers": dict(request.headers),
+                "environ": {k: str(v) for k, v in request.environ.items() if any(x in k.lower() for x in ["path", "uri", "url", "vercel", "forwarded", "matched", "now"])}
+            })
         token = request.args.get("token", "").strip() or application.config.get("TRACKER_TOKEN", "")
         return render_template(
             "track.html",
