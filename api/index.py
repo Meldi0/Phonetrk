@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from urllib.parse import parse_qs, urlencode
 
 # Add project root directory to sys.path so app can be imported
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -13,23 +14,25 @@ from app import app
 class VercelPathMiddleware:
     """
     Ensures that rewritten URLs in Vercel preserve the original request path,
-    and maps /api/index or /api/index.py back to / for root requests.
+    by inspecting __path__ passed via rewrite query parameters.
     """
     def __init__(self, wsgi_app):
         self.wsgi_app = wsgi_app
 
     def __call__(self, environ, start_response):
-        # 1. Respect X-Forwarded-Uri from Vercel edge if present
-        fwd_uri = environ.get("HTTP_X_FORWARDED_URI")
-        if fwd_uri:
-            environ["PATH_INFO"] = fwd_uri.split("?")[0]
-        # 2. If Vercel rewrote directly to the function entry point
+        query_string = environ.get("QUERY_STRING", "")
+        if "__path__" in query_string:
+            params = parse_qs(query_string, keep_blank_values=True)
+            if "__path__" in params:
+                raw_path = params.pop("__path__")[0]
+                environ["QUERY_STRING"] = urlencode(params, doseq=True)
+                if not raw_path.startswith("/"):
+                    raw_path = "/" + raw_path
+                environ["PATH_INFO"] = raw_path
+        elif environ.get("HTTP_X_FORWARDED_URI"):
+            environ["PATH_INFO"] = environ["HTTP_X_FORWARDED_URI"].split("?")[0]
         elif environ.get("PATH_INFO") in ("/api/index", "/api/index.py"):
             environ["PATH_INFO"] = "/"
-        elif environ.get("PATH_INFO", "").startswith("/api/index.py/"):
-            environ["PATH_INFO"] = environ["PATH_INFO"][len("/api/index.py"):]
-        elif environ.get("PATH_INFO", "").startswith("/api/index/"):
-            environ["PATH_INFO"] = environ["PATH_INFO"][len("/api/index"):]
 
         return self.wsgi_app(environ, start_response)
 
