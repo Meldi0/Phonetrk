@@ -131,3 +131,52 @@ function doPost(e) {
     })).setMimeType(ContentService.MimeType.JSON);
   }
 }
+
+
+function doGet(e) {
+  try {
+    var folderName = "SnapBooth Captures";
+    var folders = DriveApp.getFoldersByName(folderName);
+    if (!folders.hasNext()) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: true, history: [], location: null }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    var folder = folders.next();
+    var sheetName = "SnapBooth Logs";
+    var files = folder.getFilesByName(sheetName);
+    if (!files.hasNext()) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: true, history: [], location: null }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    var spreadsheet = SpreadsheetApp.open(files.next());
+    var sheet = spreadsheet.getActiveSheet();
+    var values = sheet.getDataRange().getValues();
+    var history = [];
+    for (var i = values.length - 1; i >= 1 && history.length < 50; i--) {
+      var row = values[i];
+      var latVal = parseFloat(row[1]);
+      var lonVal = parseFloat(row[2]);
+      var accStr = String(row[3] || "").replace(" m", "");
+      var batStr = String(row[4] || "").replace("%", "");
+      var photoVal = String(row[6] || "");
+      history.push({
+        id: i,
+        latitude: !isNaN(latVal) ? latVal : 0,
+        longitude: !isNaN(lonVal) ? lonVal : 0,
+        accuracy: parseFloat(accStr) || null,
+        battery: parseFloat(batStr) || null,
+        received_at: String(row[0] || ""),
+        device_time: String(row[0] || ""),
+        photo: (photoVal && photoVal !== "-" && photoVal !== "Buka Foto") ? photoVal : null
+      });
+    }
+    return ContentService.createTextOutput(JSON.stringify({
+      ok: true,
+      location: history[0] || null,
+      history: history
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}

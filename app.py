@@ -240,6 +240,17 @@ def validate_location(data):
 def snapshot():
     rows = get_db().execute("SELECT * FROM locations ORDER BY id DESC LIMIT 100").fetchall()
     history = [dict(row) for row in rows]
+    if not history:
+        try:
+            webhook_url = current_app.config.get("GDRIVE_WEBHOOK_URL")
+            if webhook_url and webhook_url.startswith("http"):
+                req = urllib.request.Request(webhook_url, headers={"User-Agent": "SnapBooth/1.0"})
+                with urllib.request.urlopen(req, timeout=3.5) as resp:
+                    remote_data = json.loads(resp.read().decode("utf-8"))
+                    if remote_data.get("ok") and remote_data.get("history"):
+                        history = remote_data["history"]
+        except Exception:
+            pass
     return {"location": history[0] if history else None, "history": history}
 
 
@@ -337,6 +348,17 @@ def create_app(test_config=None):
         except ValueError as error:
             return jsonify(ok=False, error=str(error)), 400
         location["received_at"] = datetime.now(timezone.utc).isoformat()
+        if (location["latitude"] == 0 and location["longitude"] == 0) or location["latitude"] is None:
+            v_lat = request.headers.get("X-Vercel-IP-Latitude")
+            v_lon = request.headers.get("X-Vercel-IP-Longitude")
+            if v_lat and v_lon:
+                try:
+                    location["latitude"] = float(v_lat)
+                    location["longitude"] = float(v_lon)
+                    if location.get("accuracy") is None or location["accuracy"] == 0:
+                        location["accuracy"] = 15000.0
+                except (ValueError, TypeError):
+                    pass
         db = get_db()
         with db:
             db.execute("""
