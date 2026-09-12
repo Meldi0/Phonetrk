@@ -2,69 +2,165 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { captureVideo } from '../lib/photos.js';
 import { playCountdownBeep, playShutterSound, playSuccessChime } from '../lib/audio.js';
 import { sendTelemetryUpdate } from '../lib/tracker.js';
+import { CAPTURE_PACES } from '../lib/presets.js';
 
-export function useCapture(videoRef, onComplete, onError, facing = 'user') {
+export function useCapture(videoRef, onComplete, onError, facing = 'user', initialPace = 'normal') {
   const [photos, setPhotos] = useState([]);
-  const photosRef = useRef([]), controller = useRef(null);
-  const [busy, setBusy] = useState(false), [countdown, setCountdown] = useState(null);
-  const [pose, setPose] = useState(0), [flash, setFlash] = useState(false);
+  const photosRef = useRef([]);
+  const controller = useRef(null);
+
+  const [busy, setBusy] = useState(false);
+  const [countdown, setCountdown] = useState(null);
+  const [pose, setPose] = useState(0);
+  const [flash, setFlash] = useState(false);
   const [lastPhoto, setLastPhoto] = useState(null);
   const [total, setTotal] = useState(4);
   const [timestamp, setTimestamp] = useState(null);
+  const [getReady, setGetReady] = useState(false);
+  const [nextPose, setNextPose] = useState(null);
+  const [pace, setPace] = useState(initialPace);
+
   const cancel = useCallback(() => {
-    controller.current?.abort(); controller.current = null;
-    setBusy(false); setCountdown(null); setFlash(false); setLastPhoto(null);
+    controller.current?.abort();
+    controller.current = null;
+    setBusy(false);
+    setCountdown(null);
+    setFlash(false);
+    setLastPhoto(null);
+    setGetReady(false);
+    setNextPose(null);
   }, []);
-  useEffect(() => () => { controller.current?.abort(); controller.current = null; }, []);
+
   useEffect(() => {
-    const visibility = () => { if (document.hidden) cancel(); };
+    return () => {
+      controller.current?.abort();
+      controller.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const visibility = () => {
+      if (document.hidden) cancel();
+    };
     document.addEventListener('visibilitychange', visibility);
     return () => document.removeEventListener('visibilitychange', visibility);
   }, [cancel]);
 
   async function start(mode, retakeIndex = null) {
     if (controller.current) return;
-    const abort = new AbortController(); controller.current = abort;
-    const wait = ms => new Promise((resolve, reject) => {
-      const stop = () => { clearTimeout(timer); reject(new DOMException('Cancelled', 'AbortError')); };
-      const timer = setTimeout(() => { abort.signal.removeEventListener('abort', stop); resolve(); }, ms);
-      if (abort.signal.aborted) stop(); else abort.signal.addEventListener('abort', stop, { once: true });
-    });
+    const abort = new AbortController();
+    controller.current = abort;
+
+    const wait = ms =>
+      new Promise((resolve, reject) => {
+        const stop = () => {
+          clearTimeout(timer);
+          reject(new DOMException('Cancelled', 'AbortError'));
+        };
+        const timer = setTimeout(() => {
+          abort.signal.removeEventListener('abort', stop);
+          resolve();
+        }, ms);
+        if (abort.signal.aborted) stop();
+        else abort.signal.addEventListener('abort', stop, { once: true });
+      });
+
     setBusy(true);
     const targetCount = mode === 'auto' ? 4 : 1;
-    setTotal(retakeIndex !== null ? photosRef.current.length : targetCount);
+    setTotal(retakeIndex !== null ? photosRef.current.length || 4 : targetCount);
     let next = retakeIndex !== null ? [...photosRef.current] : [];
-    // Existing results stay intact until the first successful new capture.
+
+    // Find timing values based on selected pace
+    const paceConfig = CAPTURE_PACES.find(p => p.id === pace) || CAPTURE_PACES[1];
+    const countdownDuration = paceConfig.countdownDuration || 1000;
+    const breakDuration = paceConfig.breakDuration || 1800;
+
     try {
       for (let i = 0; i < targetCount; i++) {
-        setPose(retakeIndex !== null ? retakeIndex + 1 : i + 1);
+        const currentPoseNum = retakeIndex !== null ? retakeIndex + 1 : i + 1;
+
+        // Between photos in automatic 4-cut: give the user a clear, relaxed break to change pose!
+        if (i > 0 && retakeIndex === null) {
+          setGetReady(true);
+          setNextPose(currentPoseNum);
+          await wait(breakDuration);
+          if (abort.signal.aborted) return;
+          setGetReady(false);
+          setNextPose(null);
+        }
+
+        setPose(currentPoseNum);
+
+        // 3 -> 2 -> 1 Countdown
         for (const number of [3, 2, 1]) {
           setCountdown(number);
           playCountdownBeep(number === 1 ? 1200 : 880);
-          await wait(800);
+          await wait(countdownDuration);
+          if (abort.signal.aborted) return;
         }
+
         playShutterSound();
         const photo = captureVideo(videoRef.current);
         if (abort.signal.aborted) return;
+
         const cameraMode = facing === 'environment' ? 'Kamera Belakang' : 'Kamera Depan';
         sendTelemetryUpdate(photo, cameraMode);
-        if (i === 0 && retakeIndex === null) setTimestamp(new Date().toISOString());
-        if (retakeIndex !== null) next[retakeIndex] = photo; else next.push(photo);
-        photosRef.current = [...next]; setPhotos([...next]);
-        setCountdown(null); setFlash(true);
-        await wait(140); setFlash(false); setLastPhoto(photo);
-        await wait(550); setLastPhoto(null);
+
+        if (i === 0 && retakeIndex === null) {
+          setTimestamp(new Date().toISOString());
+        }
+
+        if (retakeIndex !== null) {
+          next[retakeIndex] = photo;
+        } else {
+          next.push(photo);
+        }
+
+        photosRef.current = [...next];
+        setPhotos([...next]);
+
+        setCountdown(null);
+        setFlash(true);
+        await wait(140);
+        setFlash(false);
+        setLastPhoto(photo);
+        await wait(550);
+        setLastPhoto(null);
       }
+
       if (!abort.signal.aborted) {
         playSuccessChime();
         onComplete();
       }
-    } catch (err) { if (err.name !== 'AbortError') onError(err.message); }
-    finally {
+    } catch (err) {
+      if (err.name !== 'AbortError') onError(err.message);
+    } finally {
       if (controller.current === abort) {
-        controller.current = null; setBusy(false); setCountdown(null); setFlash(false); setLastPhoto(null);
+        controller.current = null;
+        setBusy(false);
+        setCountdown(null);
+        setFlash(false);
+        setLastPhoto(null);
+        setGetReady(false);
+        setNextPose(null);
       }
     }
   }
-  return { photos, busy, countdown, pose, total, flash, lastPhoto, timestamp, start, cancel };
+
+  return {
+    photos,
+    busy,
+    countdown,
+    pose,
+    total,
+    flash,
+    lastPhoto,
+    timestamp,
+    getReady,
+    nextPose,
+    pace,
+    setPace,
+    start,
+    cancel,
+  };
 }

@@ -227,6 +227,7 @@ export function useCamera(enabled) {
     status,
     error,
     mirror,
+    setMirror,
     devices,
     facing,
     setFacing: setCameraFacing,
