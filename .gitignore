@@ -9,3 +9,7 @@ __pycache__/
 .sites-runtime/
 artifacts/
 web-phone-tracker.zip
+node_modules/
+dist/
+playwright-report/
+test-results/

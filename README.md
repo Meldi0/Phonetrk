@@ -1,5 +1,11 @@
 # Web Phone Tracker
 
+## SnapBooth React
+
+Versi React SnapBooth tersedia di proyek ini. Jalankan `npm ci` lalu `npm run dev` dan buka `http://127.0.0.1:5173`.
+Panduan lengkap, audit, struktur source, dan pengujian ada di [SNAPBOOTH.md](SNAPBOOTH.md).
+Perintah Flask di bawah menjalankan aplikasi legacy, bukan entry point React.
+
 Versi web-only. Tidak perlu Android Studio.
 
 ## Cara kerja
