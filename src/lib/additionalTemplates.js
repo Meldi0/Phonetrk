@@ -1318,4 +1318,420 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.restore();
     },
   },
+
+  // ==========================================
+  // 13. SNAP DAYS DESKTOP DIARY (Y2K / Aesthetic Reference)
+  // ==========================================
+  {
+    id: 'blue-desktop-diary-4',
+    family: 'blue-desktop-diary',
+    name: 'Snap Days Desktop Diary',
+    variantLabel: '4 Cut Classic',
+    category: 'Y2K',
+    description: 'Early-2000s desktop photo booth with retro window bars, doodles, and baby blue diary aesthetic',
+    background: ['#BFD7E8'],
+    textColor: '#20252A',
+    supportedPhotoCounts: [4],
+    recommendedFor: 4,
+    canvas: { width: 800, height: 1800 },
+    photoSlots: [
+      { id: 1, x: 80, y: 230, width: 640, height: 260, borderRadius: 4, frameStyle: 'classic' },
+      { id: 2, x: 80, y: 560, width: 640, height: 260, borderRadius: 4, frameStyle: 'classic' },
+      { id: 3, x: 80, y: 890, width: 640, height: 260, borderRadius: 4, frameStyle: 'classic' },
+      { id: 4, x: 80, y: 1220, width: 640, height: 260, borderRadius: 4, frameStyle: 'classic' },
+    ],
+    renderBackground(ctx, canvas) {
+      const { width, height } = canvas;
+      // Powder baby blue canvas
+      ctx.fillStyle = '#BFD7E8';
+      ctx.fillRect(0, 0, width, height);
+
+      // Status Bar at very top
+      ctx.fillStyle = '#AEC7DA';
+      ctx.fillRect(0, 0, width, 40);
+      ctx.fillStyle = '#20252A';
+      ctx.font = '500 16px "DM Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('SnapBooth Studio  •  Wifi  ••••', 30, 26);
+      ctx.textAlign = 'right';
+      ctx.fillText('100% [=] 12:00', width - 30, 26);
+
+      // Top Editorial Masthead
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#33495D';
+      ctx.font = '600 14px "DM Mono", monospace';
+      ctx.fillText('A SNAPBOOTH ORIGINAL / K-STYLE SELF PHOTO STUDIO', 80, 80);
+
+      ctx.font = 'italic 700 76px "Libre Caslon Display", Georgia, serif';
+      ctx.fillStyle = '#20252A';
+      ctx.fillText('SNAP DAYS', 80, 150);
+
+      ctx.font = '500 15px "DM Mono", monospace';
+      ctx.fillStyle = '#4D606C';
+      ctx.fillText('VOL. 01 — YOUR EVERYDAY ARCHIVE', 80, 180);
+
+      // Horizontal double rule
+      ctx.strokeStyle = '#20252A';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(80, 195);
+      ctx.lineTo(width - 80, 195);
+      ctx.moveTo(80, 199);
+      ctx.lineTo(width - 80, 199);
+      ctx.stroke();
+
+      // Draw Retro Window Bars for each slot
+      const slotsY = [230, 560, 890, 1220];
+      const slotTitles = ['live_pose_01.jpg', 'favorite_moment.png', 'strike_a_pose.jpg', 'keepsake_final.png'];
+      slotsY.forEach((sy, idx) => {
+        // Window title bar
+        ctx.fillStyle = '#D8DCD9';
+        ctx.fillRect(80, sy - 30, 640, 30);
+        ctx.strokeStyle = '#20252A';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(80, sy - 30, 640, 30);
+
+        // Three window control dots
+        const dots = ['#C88F83', '#D6C58C', '#A0B8A6'];
+        dots.forEach((dotColor, di) => {
+          ctx.beginPath();
+          ctx.arc(95 + di * 14, sy - 15, 4, 0, Math.PI * 2);
+          ctx.fillStyle = dotColor;
+          ctx.fill();
+          ctx.strokeStyle = '#6D6A66';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+
+        // Window title
+        ctx.fillStyle = '#293A45';
+        ctx.font = '500 13px "DM Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(slotTitles[idx], 145, sy - 10);
+
+        // Photo slot outline
+        ctx.strokeStyle = '#20252A';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(80, sy, 640, 260);
+      });
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width, height } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const dateFormatted = `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
+
+      ctx.save();
+      // Whimsical Line Sun doodle
+      ctx.strokeStyle = '#33495D';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(width - 120, 120, 16, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+        ctx.beginPath();
+        ctx.moveTo(width - 120 + Math.cos(a) * 20, 120 + Math.sin(a) * 20);
+        ctx.lineTo(width - 120 + Math.cos(a) * 27, 120 + Math.sin(a) * 27);
+        ctx.stroke();
+      }
+
+      // Cloud doodle with rain at bottom
+      ctx.beginPath();
+      ctx.arc(120, 1560, 18, 0, Math.PI * 2);
+      ctx.arc(142, 1550, 24, 0, Math.PI * 2);
+      ctx.arc(168, 1560, 16, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Editorial Footer
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#20252A';
+      ctx.font = 'italic 26px Georgia, serif';
+      ctx.fillText(style.header || 'stay a little. strike a pose.', width / 2, 1560);
+
+      ctx.font = '500 16px "DM Mono", monospace';
+      ctx.fillStyle = '#4D606C';
+      ctx.fillText(`${style.text || 'PERSONAL PHOTO DIARY'}  •  ${dateFormatted}`, width / 2, 1610);
+
+      // Bottom rule & copyright
+      ctx.strokeStyle = '#20252A';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(80, 1650);
+      ctx.lineTo(width - 80, 1650);
+      ctx.stroke();
+
+      ctx.font = '13px "DM Mono", monospace';
+      ctx.fillStyle = '#657D8E';
+      ctx.fillText('END OF PAGE — KEEP THE MEMORIES / SNAPBOOTH', width / 2, 1685);
+      ctx.restore();
+    },
+  },
+
+  // ==========================================
+  // 14. DIGITAL CRUSH COLLAGE (Y2K / Scrapbook)
+  // ==========================================
+  {
+    id: 'digital-crush-4',
+    family: 'digital-crush',
+    name: 'Digital Crush Collage',
+    variantLabel: '4 Cut Collage',
+    category: 'Y2K',
+    description: 'Playful desktop collage with speech bubbles, orbit circles, sticker stamps, and pastel blue aesthetic',
+    background: ['#B8D0E3'],
+    textColor: '#1A2E40',
+    supportedPhotoCounts: [4],
+    recommendedFor: 4,
+    canvas: { width: 800, height: 1800 },
+    photoSlots: [
+      { id: 1, x: 90, y: 220, width: 620, height: 260, borderRadius: 2, frameStyle: 'classic' },
+      { id: 2, x: 90, y: 540, width: 620, height: 260, borderRadius: 2, frameStyle: 'classic' },
+      { id: 3, x: 90, y: 860, width: 620, height: 260, borderRadius: 2, frameStyle: 'classic' },
+      { id: 4, x: 90, y: 1180, width: 620, height: 260, borderRadius: 2, frameStyle: 'classic' },
+    ],
+    renderBackground(ctx, canvas) {
+      const { width, height } = canvas;
+      ctx.fillStyle = '#B8D0E3';
+      ctx.fillRect(0, 0, width, height);
+
+      // Subtle desktop grid lines
+      ctx.strokeStyle = '#CADDEB';
+      ctx.lineWidth = 1;
+      for (let x = 40; x < width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 40; y < height; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // Top title
+      ctx.fillStyle = '#1A2E40';
+      ctx.font = 'italic 700 68px "Libre Caslon Display", Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('PHOTO DIARY', width / 2, 130);
+
+      ctx.font = '500 14px "DM Mono", monospace';
+      ctx.fillStyle = '#3E576B';
+      ctx.fillText('MEMORY FILES / VOL. 01', width / 2, 165);
+
+      // Photo Frames
+      [220, 540, 860, 1180].forEach(sy => {
+        ctx.fillStyle = '#F4F3EF';
+        ctx.fillRect(80, sy - 10, 640, 280);
+        ctx.strokeStyle = '#223647';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(80, sy - 10, 640, 280);
+      });
+    },
+    renderForeground(ctx, canvas, style) {
+      const { width } = canvas;
+      ctx.save();
+
+      // Speech bubble 1: "i want you"
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.roundRect(100, 180, 120, 34, 12);
+      ctx.fill();
+      ctx.strokeStyle = '#223647';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = '#223647';
+      ctx.font = 'italic bold 15px Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('i want you', 160, 203);
+
+      // Speech bubble 2: "i love you"
+      ctx.fillStyle = '#C4DCED';
+      ctx.beginPath();
+      ctx.roundRect(width - 240, 500, 130, 34, 12);
+      ctx.fill();
+      ctx.strokeStyle = '#223647';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = '#203344';
+      ctx.fillText('i love you', width - 175, 523);
+
+      // Speech bubble 3: "i need you"
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.roundRect(100, 820, 120, 34, 12);
+      ctx.fill();
+      ctx.strokeStyle = '#223647';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = '#223647';
+      ctx.fillText('i need you', 160, 843);
+
+      // Editorial quote below photos
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#1A2E40';
+      ctx.font = 'italic 700 36px "Libre Caslon Display", Georgia, serif';
+      ctx.fillText('little things, big feelings.', width / 2, 1540);
+
+      // Mini Desktop Dock Representation
+      const dockW = 260;
+      const dockX = (width - dockW) / 2;
+      const dockY = 1600;
+      ctx.fillStyle = '#FFFFFF99';
+      ctx.beginPath();
+      ctx.roundRect(dockX, dockY, dockW, 44, 12);
+      ctx.fill();
+      ctx.strokeStyle = '#223647';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Mini colorful dock icons
+      const dockColors = ['#4686B8', '#73C991', '#E74C3C', '#F39C12', '#9B59B6', '#3498DB'];
+      dockColors.forEach((color, i) => {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(dockX + 16 + i * 40, dockY + 8, 28, 28, 6);
+        ctx.fill();
+        ctx.strokeStyle = '#223647';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      // Keepsake text
+      ctx.font = '500 14px "DM Mono", monospace';
+      ctx.fillStyle = '#3E576B';
+      ctx.fillText(style.text || 'SELF PHOTO CLUB  •  OPEN EVERY DAY', width / 2, 1700);
+
+      ctx.restore();
+    },
+  },
+
+  // ==========================================
+  // 15. PHOTO ARCHIVE 2004 (Vintage Desktop / Retro Browser)
+  // ==========================================
+  {
+    id: 'photo-archive-2004-4',
+    family: 'photo-archive-2004',
+    name: 'Photo Archive 2004',
+    variantLabel: '4 Cut File Window',
+    category: 'Vintage',
+    description: 'Retro file explorer window with title bar, folder tabs, timestamps, and nostalgic desktop palette',
+    background: ['#CBD8E2'],
+    textColor: '#1D2A35',
+    supportedPhotoCounts: [4],
+    recommendedFor: 4,
+    canvas: { width: 800, height: 1800 },
+    photoSlots: [
+      { id: 1, x: 80, y: 270, width: 640, height: 260, borderRadius: 0, frameStyle: 'classic' },
+      { id: 2, x: 80, y: 590, width: 640, height: 260, borderRadius: 0, frameStyle: 'classic' },
+      { id: 3, x: 80, y: 910, width: 640, height: 260, borderRadius: 0, frameStyle: 'classic' },
+      { id: 4, x: 80, y: 1230, width: 640, height: 260, borderRadius: 0, frameStyle: 'classic' },
+    ],
+    renderBackground(ctx, canvas) {
+      const { width, height } = canvas;
+      ctx.fillStyle = '#CBD8E2';
+      ctx.fillRect(0, 0, width, height);
+
+      // Main Explorer Window Card
+      const winX = 50;
+      const winY = 60;
+      const winW = width - 100;
+      const winH = height - 120;
+
+      ctx.fillStyle = '#F4F3EF';
+      ctx.fillRect(winX, winY, winW, winH);
+      ctx.strokeStyle = '#1D2A35';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(winX, winY, winW, winH);
+
+      // Window Title Bar (Windows 2000 / XP Classic style)
+      ctx.fillStyle = '#33495D';
+      ctx.fillRect(winX, winY, winW, 40);
+      ctx.strokeStyle = '#1D2A35';
+      ctx.strokeRect(winX, winY, winW, 40);
+
+      // Window title
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 16px "DM Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('📁 C:\\SnapBooth\\Memories\\Archive_2004', winX + 16, winY + 26);
+
+      // Window controls [ _ ] [ □ ] [ X ]
+      const cx = winX + winW - 90;
+      ctx.fillStyle = '#DFE7EB';
+      ctx.fillRect(cx, winY + 6, 24, 26);
+      ctx.fillRect(cx + 28, winY + 6, 24, 26);
+      ctx.fillRect(cx + 56, winY + 6, 24, 26);
+      ctx.strokeStyle = '#1D2A35';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(cx, winY + 6, 24, 26);
+      ctx.strokeRect(cx + 28, winY + 6, 24, 26);
+      ctx.strokeRect(cx + 56, winY + 6, 24, 26);
+
+      ctx.fillStyle = '#1D2A35';
+      ctx.font = 'bold 14px "DM Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('_', cx + 12, winY + 22);
+      ctx.fillText('□', cx + 40, winY + 22);
+      ctx.fillText('×', cx + 68, winY + 24);
+
+      // Address bar
+      ctx.fillStyle = '#E8ECEE';
+      ctx.fillRect(winX, winY + 40, winW, 36);
+      ctx.strokeStyle = '#1D2A35';
+      ctx.strokeRect(winX, winY + 40, winW, 36);
+
+      ctx.fillStyle = '#1D2A35';
+      ctx.font = '14px "DM Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('Address: https://diary.snapbooth.app/archive/2004', winX + 16, winY + 64);
+
+      // Photo slot borders
+      [270, 590, 910, 1230].forEach(sy => {
+        ctx.strokeStyle = '#1D2A35';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(80, sy, 640, 260);
+      });
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width, height } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const dateFormatted = `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
+
+      ctx.save();
+      // Photo labels
+      const labels = ['FILE_001.RAW', 'FILE_002.RAW', 'FILE_003.RAW', 'FILE_004.RAW'];
+      [270, 590, 910, 1230].forEach((sy, i) => {
+        ctx.fillStyle = '#33495D';
+        ctx.fillRect(80, sy - 24, 180, 24);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '500 13px "DM Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(labels[i], 90, sy - 7);
+      });
+
+      // Bottom Status Bar
+      const winX = 50;
+      const winW = width - 100;
+      const winH = height - 120;
+      const bottomBarY = winX + winH - 60;
+
+      ctx.fillStyle = '#DFE7EB';
+      ctx.fillRect(winX, bottomBarY, winW, 30);
+      ctx.strokeStyle = '#1D2A35';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(winX, bottomBarY, winW, 30);
+
+      ctx.fillStyle = '#1D2A35';
+      ctx.font = '13px "DM Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`4 object(s)  •  ${dateFormatted}  •  ${style.text || 'SnapBooth Memory System'}`, winX + 16, bottomBarY + 20);
+
+      ctx.textAlign = 'right';
+      ctx.fillText('Local Intranet', winX + winW - 16, bottomBarY + 20);
+
+      ctx.restore();
+    },
+  },
 ];

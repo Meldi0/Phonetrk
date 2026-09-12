@@ -31,8 +31,9 @@ export default function StudioCamera({
     <section className="camera-card" aria-label="Camera studio">
       <div className="camera-heading">
         <div>
+          <span className="window-dots" aria-hidden="true"><i /><i /><i /></span>
           <span className={`live-dot ${camera.status === 'ready' ? 'on' : ''}`} />
-          <span className="eyebrow">Live studio</span>
+          <span className="eyebrow">SnapBooth Camera</span>
           <span className="camera-filter-name">{activeFilterObj.name}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -239,7 +240,7 @@ export default function StudioCamera({
       </div>
 
       <div className="filter-heading">
-        <span>Find your tone</span>
+        <span>Contact sheet / choose a filter</span>
         <span>{FILTERS.length} studio presets</span>
       </div>
       <FilterSelector value={filter} onChange={onFilter} disabled={capture.busy} sample={capture.photos[0]} />
