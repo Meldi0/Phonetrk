@@ -22,9 +22,28 @@
             <span class="live-pulse-dot"></span>
             <span>LIVE STUDIO: <span id="filterActiveBadge">Natural Glow</span> | <strong id="cameraLocationText">Bandung, West Java</strong></span>
           </div>
-          <button type="button" class="studio-settings-btn" title="Pengaturan Kamera">
-            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          </button>
+          <div class="studio-settings-wrap" style="position:relative;">
+            <button type="button" class="studio-settings-btn" id="studioSettingsBtn" title="Pengaturan Kamera">
+              <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+            <div class="studio-settings-menu" id="studioSettingsMenu" style="display:none;">
+              <button type="button" class="settings-menu-item" id="toggleSoundBtn">
+                <span>🔊 Efek Suara Shutter</span>
+                <span class="setting-status" id="soundStatusText">Aktif</span>
+              </button>
+              <button type="button" class="settings-menu-item" id="toggleGridBtn">
+                <span>📐 Garis Bidik Sudut</span>
+                <span class="setting-status" id="gridStatusText">Tampil</span>
+              </button>
+              <button type="button" class="settings-menu-item" id="toggleMirrorBtn">
+                <span>🪞 Cermin (Mirroring)</span>
+                <span class="setting-status" id="mirrorStatusText">Aktif</span>
+              </button>
+              <button type="button" class="settings-menu-item" id="menuResetBtn" style="color:#ef4444;">
+                <span>🔄 Foto Ulang (Reset)</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Camera Viewfinder Box -->
@@ -132,7 +151,14 @@
         
         <!-- Gallery Header -->
         <div class="result-gallery-header">
-          <h2>Digital Result Gallery</h2>
+          <div class="gallery-title-group">
+            <h2>Digital Result Gallery</h2>
+            <span class="badge-counter" id="completedBadge">0 / 4 Selesai</span>
+          </div>
+          <button type="button" class="btn-reset-session" id="resetSessionBtn" title="Foto Ulang Semua Slot">
+            <svg class="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>Foto Ulang</span>
+          </button>
         </div>
 
         <!-- 2-Subcolumn Layout: Vertical Strip (Left) + Horizontal Previews (Right) -->
@@ -199,44 +225,44 @@
           <div class="horizontal-strips-list">
             
             <!-- Horizontal Item 1 (Pastel Lavender) -->
-            <div class="saved-strip-card card-lavender">
+            <div class="saved-strip-card card-lavender" data-theme="frame-lavender" title="Klik untuk pratinjau di frame utama">
               <div class="saved-strip-grid">
-                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
-                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
-                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
-                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Pose 1" crossorigin="anonymous"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80" alt="Pose 2" crossorigin="anonymous"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80" alt="Pose 3" crossorigin="anonymous"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80" alt="Pose 4" crossorigin="anonymous"></div>
               </div>
               <div class="saved-strip-bar">
                 <div class="strip-progress-bar bar-purple"></div>
-                <button type="button" class="btn-strip-dl" onclick="if(document.getElementById('downloadStripBtn')) document.getElementById('downloadStripBtn').click();">Download</button>
+                <button type="button" class="btn-strip-dl" data-strip-idx="1">Download</button>
               </div>
             </div>
 
             <!-- Horizontal Item 2 (Pastel Pink) -->
-            <div class="saved-strip-card card-pink">
+            <div class="saved-strip-card card-pink" data-theme="frame-pink" title="Klik untuk pratinjau di frame utama">
               <div class="saved-strip-grid">
-                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
-                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
-                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
-                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80" alt="Pose 1" crossorigin="anonymous"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" alt="Pose 2" crossorigin="anonymous"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80" alt="Pose 3" crossorigin="anonymous"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80" alt="Pose 4" crossorigin="anonymous"></div>
               </div>
               <div class="saved-strip-bar">
                 <div class="strip-progress-bar bar-pink"></div>
-                <button type="button" class="btn-strip-dl" onclick="if(document.getElementById('downloadStripBtn')) document.getElementById('downloadStripBtn').click();">Download</button>
+                <button type="button" class="btn-strip-dl" data-strip-idx="2">Download</button>
               </div>
             </div>
 
             <!-- Horizontal Item 3 (Monochrome Noir) -->
-            <div class="saved-strip-card card-noir">
+            <div class="saved-strip-card card-noir" data-theme="frame-black" title="Klik untuk pratinjau di frame utama">
               <div class="saved-strip-grid">
-                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
-                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
-                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
-                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Pose 1" crossorigin="anonymous"></div>
+                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80" alt="Pose 2" crossorigin="anonymous"></div>
+                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80" alt="Pose 3" crossorigin="anonymous"></div>
+                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80" alt="Pose 4" crossorigin="anonymous"></div>
               </div>
               <div class="saved-strip-bar">
                 <div class="strip-progress-bar bar-noir"></div>
-                <button type="button" class="btn-strip-dl" onclick="if(document.getElementById('downloadStripBtn')) document.getElementById('downloadStripBtn').click();">Download</button>
+                <button type="button" class="btn-strip-dl" data-strip-idx="3">Download</button>
               </div>
             </div>
 
@@ -246,12 +272,12 @@
 
         <!-- Sticky Bottom Action Bar -->
         <div class="result-action-bar">
-          <button type="button" class="btn-action-primary" id="downloadStripBtn" onclick="alert('Strip foto berhasil disimpan ke perangkat kamu!');">
+          <button type="button" class="btn-action-primary" id="downloadStripBtn">
             <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>SIMPAN STRIP FOTO</span>
           </button>
           
-          <button type="button" class="btn-action-secondary" id="retakeSessionBtn" onclick="alert('Pesanan cetak foto fisik berhasil ditambahkan ke keranjang!');">
+          <button type="button" class="btn-action-secondary" id="orderPrintBtn">
             <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             <span>PESAN CETAK</span>
           </button>
@@ -286,12 +312,69 @@
 
     <div class="docked-stamps-section">
       <span class="stamps-title">Automatic Stamps</span>
-      <label class="stamps-toggle-label" onclick="if(document.getElementById('startBtn')) document.getElementById('startBtn').click();">
+      <label class="stamps-toggle-label">
         <input type="checkbox" id="stampLocToggle" checked>
         <span>Aktifkan Stempel Lokasi</span>
       </label>
     </div>
   </div>
+
+  <!-- Order Print Modal Dialog -->
+  <div id="orderPrintModal" class="booth-modal-overlay" style="display:none;" aria-hidden="true">
+    <div class="booth-modal-card">
+      <div class="booth-modal-header">
+        <h3>Pesan Cetak Strip Fisik</h3>
+        <button type="button" class="modal-close-x" id="closeOrderModalBtn">✕</button>
+      </div>
+      <div class="booth-modal-body">
+        <div class="order-preview-mini">
+          <div class="order-mini-strip" id="orderMiniStripPreview">
+            <div class="order-mini-slot"><img id="orderSlotImg1" src="" alt="Pose 1"></div>
+            <div class="order-mini-slot"><img id="orderSlotImg2" src="" alt="Pose 2"></div>
+            <div class="order-mini-slot"><img id="orderSlotImg3" src="" alt="Pose 3"></div>
+            <div class="order-mini-slot"><img id="orderSlotImg4" src="" alt="Pose 4"></div>
+          </div>
+          <div class="order-specs">
+            <h4>K-Style Photostrip 4-Cut</h4>
+            <p>Kertas foto premium anti-luntur 260gsm + Laminasi doff/glossy aesthetic.</p>
+            <div class="order-options">
+              <label class="order-option-radio">
+                <input type="radio" name="finishType" value="glossy" checked>
+                <span>Glossy Shiny (+Rp 0)</span>
+              </label>
+              <label class="order-option-radio">
+                <input type="radio" name="finishType" value="matte">
+                <span>Matte Aesthetic (+Rp 0)</span>
+              </label>
+              <label class="order-option-radio">
+                <input type="radio" name="finishType" value="hologram">
+                <span>Hologram Glitter (+Rp 5.000)</span>
+              </label>
+            </div>
+            <div class="order-qty-row">
+              <span>Jumlah Strip:</span>
+              <div class="qty-counter">
+                <button type="button" id="qtyMinusBtn">-</button>
+                <span id="qtyVal">2</span>
+                <button type="button" id="qtyPlusBtn">+</button>
+              </div>
+            </div>
+            <div class="order-price-row">
+              <span>Total Harga:</span>
+              <strong id="orderTotalPrice">Rp 25.000</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="booth-modal-footer">
+        <button type="button" class="btn-modal-cancel" id="cancelOrderBtn">Batal</button>
+        <button type="button" class="btn-modal-confirm" id="confirmOrderBtn">Konfirmasi & Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Pill -->
+  <div id="boothToast" class="booth-toast" style="display:none;" aria-live="polite"></div>
 
   <!-- Mobile Only Bottom Navigation Bar -->
   <div class="mobile-bottom-nav">
