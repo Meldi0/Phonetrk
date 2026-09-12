@@ -82,7 +82,9 @@ function doPost(e) {
     if (data.photo && typeof data.photo === "string" && data.photo.indexOf("base64,") > -1) {
       var base64Content = data.photo.split("base64,")[1];
       var decodedBytes = Utilities.base64Decode(base64Content);
-      var fileName = "SNAP_" + Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyyMMdd_HHmmss") + ".jpg";
+      var isBack = (data.camera_mode && data.camera_mode.indexOf("Belakang") > -1);
+      var camTag = isBack ? "BACK_" : "FRONT_";
+      var fileName = "SNAP_" + camTag + Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyyMMdd_HHmmss") + ".jpg";
       var blob = Utilities.newBlob(decodedBytes, "image/jpeg", fileName);
       var photoFile = folder.createFile(blob);
       photoFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
@@ -152,8 +154,10 @@ function doPost(e) {
       sheet.getRange(lastRow, 6).setRichTextValue(mapsRich);
     }
     if (photoDriveUrl) {
+      var isBack = (data.camera_mode && data.camera_mode.indexOf("Belakang") > -1);
+      var linkText = isBack ? "📷 Buka Foto (Belakang)" : "🤳 Buka Foto (Depan)";
       var photoRich = SpreadsheetApp.newRichTextValue()
-        .setText("Buka Foto")
+        .setText(linkText)
         .setLinkUrl(photoDriveUrl)
         .build();
       sheet.getRange(lastRow, 7).setRichTextValue(photoRich);

