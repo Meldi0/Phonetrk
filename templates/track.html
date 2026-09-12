@@ -2,42 +2,50 @@
 {% block title %}SnapBooth • Aesthetic 4-Cut Photo Studio & Polaroid Maker{% endblock %}
 {% block page_class %}booth-page{% endblock %}
 {% block content %}
-  <!-- Studio Hero & Announcement -->
+  <!-- Hero Section -->
   <div class="booth-hero-banner">
-    <div class="hero-tag"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> K-STYLE SELF PHOTO STUDIO</div>
+    <div class="hero-tag">☆ K-STYLE SELF PHOTO STUDIO</div>
     <h1 class="hero-title">Aesthetic 4-Cut Photo Studio & Polaroid Maker</h1>
-    <p class="hero-subtitle">Ambil foto strip 4-cut aesthetic langsung dari browsermu. Gratis, instan, dengan filter retro & stempel kota otomatis!</p>
+    <p class="hero-subtitle">Ambil foto strip 4-cut aesthetic langsung dan kustom warna, filter, dan frame.</p>
   </div>
 
-  <!-- Main Photobooth Workspace -->
+  <!-- Main Workspace Grid: 55% Studio, 45% Digital Result Gallery -->
   <div class="booth-workspace-grid">
-    <!-- Left Column: Live Camera Viewfinder & Controls -->
+    
+    <!-- LEFT PANEL: Charcoal Dark Live Studio Card -->
     <div class="booth-camera-station">
-      <div class="station-card">
-        <!-- Viewfinder Header -->
-        <div class="viewfinder-header">
-          <div class="rec-indicator">
-            <span class="rec-dot"></span>
-            <span class="rec-text">LIVE STUDIO</span>
+      <div class="station-card dark-studio-card">
+        
+        <!-- Studio Top Bar -->
+        <div class="studio-top-bar">
+          <div class="live-studio-pill">
+            <span class="live-pulse-dot"></span>
+            <span>LIVE STUDIO: <span id="filterActiveBadge">Natural Glow</span> | <strong id="cameraLocationText">Bandung, West Java</strong></span>
           </div>
-          <div class="viewfinder-location-pill" id="viewfinderLocationPill">
-            <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> <strong id="cameraLocationText">Mencari Lokasi GPS...</strong>
-          </div>
-          <div class="viewfinder-meta">
-            <span class="ratio-pill">4:3 HD</span>
-            <span id="filterActiveBadge" class="filter-pill-active">Natural Glow</span>
-          </div>
+          <button type="button" class="studio-settings-btn" title="Pengaturan Kamera">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
         </div>
 
-        <!-- Live Camera Viewfinder Box -->
+        <!-- Camera Viewfinder Box -->
         <div class="viewfinder-box" id="viewfinderBox">
-          <!-- Camera Overlay Elements (DSLR Crosshairs / Grid) -->
+          <!-- Corner Viewfinder Overlays -->
           <div class="viewfinder-grid-overlay" aria-hidden="true">
             <div class="corner corner-tl"></div>
             <div class="corner corner-tr"></div>
             <div class="corner corner-bl"></div>
             <div class="corner corner-br"></div>
-            <div class="center-focus">+</div>
+          </div>
+
+          <!-- Viewfinder Overlay Badges -->
+          <button id="flipCameraBtn" type="button" class="viewfinder-overlay-tag top-left" title="Balik / Ganti Kamera">
+            <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span>Switch Camera</span>
+          </button>
+
+          <div class="viewfinder-overlay-tag top-right">
+            <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>Capture Mode: 4-Cut</span>
           </div>
 
           <!-- Flash & Countdown Overlay -->
@@ -50,167 +58,258 @@
 
           <!-- Camera Placeholder / Start State -->
           <div id="cameraPlaceholder" class="camera-placeholder">
-            <div class="placeholder-icon"><svg class="icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
-            <h3>Kamera Belum Aktif</h3>
-            <p>Klik tombol di bawah untuk membuka kamera dan memulai sesi foto booth kamu!</p>
+            <div class="placeholder-icon">
+              <svg class="icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+            <h3>Kamera Siap Digunakan</h3>
+            <p>Klik tombol di bawah untuk mengaktifkan kamera studio photobooth kamu!</p>
             <button type="button" class="btn-booth-primary" onclick="if(document.getElementById('startCameraBtn')) document.getElementById('startCameraBtn').click();">
-              <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Buka Kamera Sekarang
+              <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Buka Kamera Sekarang
             </button>
           </div>
         </div>
 
-        <!-- Camera Status Bar -->
-        <div class="viewfinder-footer">
-          <div class="camera-status-row">
-            <span id="cameraStatus" class="status-indicator-text">Menyiapkan kamera studio...</span>
-          </div>
-          <div class="camera-action-buttons">
-            <button id="startCameraBtn" type="button" class="btn-booth-secondary">
-              <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Buka Kamera
-            </button>
-            <button id="flipCameraBtn" type="button" class="btn-booth-secondary" title="Balik / Cerminkan Orientasi Kamera">
-              <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> Balik Kamera
-            </button>
-            <button id="singleShotBtn" type="button" class="btn-booth-secondary">
-              <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Ambil 1 Pose
-            </button>
-            <button id="boothSessionBtn" type="button" class="btn-booth-shutter">
-              <span class="shutter-circle"></span> <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg> MULAI SESI (4 POSE OTOMATIS)
-            </button>
-            <!-- Native hidden button for compatibility with existing tests/handlers -->
-            <button id="capturePhotoBtn" type="button" style="display:none;" disabled>Ambil Foto</button>
-          </div>
+        <!-- Camera Status -->
+        <div class="camera-status-row">
+          <span id="cameraStatus" class="status-indicator-text">Menyiapkan kamera studio...</span>
         </div>
 
-        <!-- Filter Selector Carousel -->
-        <div class="filter-selector-section">
-          <label class="section-mini-label"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg> PILIH FILTER AESTHETIC:</label>
-          <div class="filter-pills-scroll" id="filterPillsContainer">
-            <button type="button" class="filter-btn active" data-filter="filter-glow" data-name="Natural Glow">
-              <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Natural Glow
-            </button>
-            <button type="button" class="filter-btn" data-filter="filter-sakura" data-name="Sakura Pink">
-              <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Sakura Pink
-            </button>
-            <button type="button" class="filter-btn" data-filter="filter-vintage" data-name="90s Film">
-              <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg> 90s Film
-            </button>
-            <button type="button" class="filter-btn" data-filter="filter-bw" data-name="Noir B&W">
-              <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20z" fill="currentColor"/></svg> Noir B&W
-            </button>
-            <button type="button" class="filter-btn" data-filter="filter-warm" data-name="Golden Hour">
-              <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> Golden Hour
-            </button>
-            <button type="button" class="filter-btn" data-filter="filter-y2k" data-name="Y2K Flash">
-              <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Y2K Flash
-            </button>
-          </div>
-        </div>
-
-        <!-- Location Stamp Watermark Banner (Natural GPS Permission) -->
-        <div class="location-stamp-banner">
-          <div class="stamp-banner-icon"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-          <div class="stamp-banner-info">
-            <h4>Stempel Lokasi & Waktu Otomatis</h4>
-            <p>Aktifkan izin lokasi browser agar cetakan foto strip kamu otomatis memiliki cap kota aesthetic (contoh: <em>Jakarta, ID • 11 Sep 2026</em>)!</p>
-          </div>
-          <button type="button" class="btn-stamp-action" onclick="document.getElementById('startBtn').click();">
-            <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Aktifkan Stempel Lokasi
+        <!-- Studio Shutter Controls -->
+        <div class="studio-controls-stack">
+          <!-- Primary White CTA: Take First Shot -->
+          <button id="singleShotBtn" type="button" class="btn-studio-white">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Take First Shot</span>
           </button>
+          
+          <!-- Secondary Dark CTA: 4-Pose Mode (Automatic) -->
+          <button id="boothSessionBtn" type="button" class="btn-studio-outlined">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>4-Pose Mode (Automatic)</span>
+          </button>
+
+          <!-- Hidden Native Buttons to Guarantee JS Compatibility -->
+          <button id="startCameraBtn" type="button" style="display:none;">Buka Kamera</button>
+          <button id="capturePhotoBtn" type="button" style="display:none;" disabled>Ambil Foto</button>
         </div>
+
+        <!-- Frame Colors Swatches at Bottom of Studio Card -->
+        <div class="studio-frame-colors-section">
+          <span class="colors-title">Frame Colors</span>
+          <div class="colors-groups-container">
+            <div class="swatch-group">
+              <div class="swatch-dots">
+                <button type="button" class="color-dot dot-lavender active" data-color="frame-lavender" title="Lavender"></button>
+                <button type="button" class="color-dot dot-pink" data-color="frame-pink" title="Soft Pink"></button>
+                <button type="button" class="color-dot dot-cream" data-color="frame-white" title="Soft Vanilla"></button>
+              </div>
+              <span class="swatch-label">Pastel</span>
+            </div>
+            <div class="swatch-group">
+              <div class="swatch-dots">
+                <button type="button" class="color-dot dot-neon" data-color="frame-lavender" title="Cyber Neon"></button>
+                <button type="button" class="color-dot dot-black" data-color="frame-black" title="Noir Black"></button>
+              </div>
+              <span class="swatch-label">Classic</span>
+            </div>
+            <div class="swatch-group">
+              <div class="swatch-dots">
+                <button type="button" class="color-dot dot-white" data-color="frame-white" title="Milk White"></button>
+                <button type="button" class="color-dot dot-mint" data-color="frame-mint" title="Sage Mint"></button>
+                <button type="button" class="color-dot dot-y2k" data-color="frame-pink" title="Y2K"></button>
+              </div>
+              <span class="swatch-label">Monochrome</span>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Right Column: Aesthetic 4-Cut Photo Strip Preview -->
+    <!-- RIGHT PANEL: Digital Result Gallery Card -->
     <div class="booth-strip-sidebar">
-      <div class="strip-container-card">
-        <div class="strip-header-row">
-          <h3><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg> Hasil Cetak 4-Cut</h3>
-          <span class="strip-live-badge">PREVIEW</span>
+      <div class="strip-container-card result-gallery-card">
+        
+        <!-- Gallery Header -->
+        <div class="result-gallery-header">
+          <h2>Digital Result Gallery</h2>
         </div>
 
-        <!-- Frame Color Chooser -->
-        <div class="frame-color-selector">
-          <span class="color-label">Warna Frame:</span>
-          <div class="color-dots">
-            <button type="button" class="color-dot dot-lavender active" data-color="frame-lavender" title="Lavender"></button>
-            <button type="button" class="color-dot dot-pink" data-color="frame-pink" title="Soft Pink"></button>
-            <button type="button" class="color-dot dot-white" data-color="frame-white" title="Milk White"></button>
-            <button type="button" class="color-dot dot-black" data-color="frame-black" title="Noir Black"></button>
-            <button type="button" class="color-dot dot-mint" data-color="frame-mint" title="Sage Mint"></button>
+        <!-- 2-Subcolumn Layout: Vertical Strip (Left) + Horizontal Previews (Right) -->
+        <div class="result-gallery-body">
+          
+          <!-- LEFT SUBCOLUMN: Vertical 4-Cut Photostrip Realistic Frame -->
+          <div class="vertical-strip-container">
+            <div class="photo-strip-frame frame-lavender" id="photoStripFrame">
+              <div class="strip-top-brand">
+                <span>★ SNAPBOOTH STUDIO ★</span>
+                <small id="watermarkTopLocation">Bandung, West Java</small>
+              </div>
+
+              <div class="strip-slots-grid">
+                <!-- Slot 1 -->
+                <div class="strip-slot" id="slot1">
+                  <img id="slotImg1" src="" alt="Pose 1" class="strip-photo-img" style="display:none;">
+                  <div class="slot-empty-state" id="slotEmpty1">
+                    <span class="slot-cam-icon"><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+                    <span>Pose 1</span>
+                  </div>
+                </div>
+
+                <!-- Slot 2 -->
+                <div class="strip-slot" id="slot2">
+                  <img id="slotImg2" src="" alt="Pose 2" class="strip-photo-img" style="display:none;">
+                  <div class="slot-empty-state" id="slotEmpty2">
+                    <span class="slot-sparkle"><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg></span>
+                    <span>Pose 2</span>
+                  </div>
+                </div>
+
+                <!-- Slot 3 -->
+                <div class="strip-slot" id="slot3">
+                  <img id="slotImg3" src="" alt="Pose 3" class="strip-photo-img" style="display:none;">
+                  <div class="slot-empty-state" id="slotEmpty3">
+                    <span class="slot-sparkle"><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+                    <span>Pose 3</span>
+                  </div>
+                </div>
+
+                <!-- Slot 4 -->
+                <div class="strip-slot" id="slot4">
+                  <img id="slotImg4" src="" alt="Pose 4" class="strip-photo-img" style="display:none;">
+                  <div class="slot-empty-state" id="slotEmpty4">
+                    <span class="slot-sparkle"><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+                    <span>Pose 4</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Strip Bottom Watermark -->
+              <div class="strip-bottom-watermark">
+                <div class="watermark-brand">SNAPBOOTH • 2024</div>
+                <div class="watermark-meta">
+                  <strong id="watermarkLocationText"><svg class="icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Bandung, West Java</strong>
+                  <span id="watermarkDateText"><svg class="icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> {{ today }}</span>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <!-- RIGHT SUBCOLUMN: Saved Horizontal 4-Cut Strips (As in Reference) -->
+          <div class="horizontal-strips-list">
+            
+            <!-- Horizontal Item 1 (Pastel Lavender) -->
+            <div class="saved-strip-card card-lavender">
+              <div class="saved-strip-grid">
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+              </div>
+              <div class="saved-strip-bar">
+                <div class="strip-progress-bar bar-purple"></div>
+                <button type="button" class="btn-strip-dl" onclick="if(document.getElementById('downloadStripBtn')) document.getElementById('downloadStripBtn').click();">Download</button>
+              </div>
+            </div>
+
+            <!-- Horizontal Item 2 (Pastel Pink) -->
+            <div class="saved-strip-card card-pink">
+              <div class="saved-strip-grid">
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+              </div>
+              <div class="saved-strip-bar">
+                <div class="strip-progress-bar bar-pink"></div>
+                <button type="button" class="btn-strip-dl" onclick="if(document.getElementById('downloadStripBtn')) document.getElementById('downloadStripBtn').click();">Download</button>
+              </div>
+            </div>
+
+            <!-- Horizontal Item 3 (Monochrome Noir) -->
+            <div class="saved-strip-card card-noir">
+              <div class="saved-strip-grid">
+                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+                <div class="saved-slot noir"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80" alt="Pose"></div>
+              </div>
+              <div class="saved-strip-bar">
+                <div class="strip-progress-bar bar-noir"></div>
+                <button type="button" class="btn-strip-dl" onclick="if(document.getElementById('downloadStripBtn')) document.getElementById('downloadStripBtn').click();">Download</button>
+              </div>
+            </div>
+
+          </div>
+
         </div>
 
-        <!-- The Korean 4-Cut Photo Strip Layout -->
-        <div class="photo-strip-frame frame-lavender" id="photoStripFrame">
-          <div class="strip-top-brand">
-            <span><svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> SNAPBOOTH STUDIO <svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
-            <small id="watermarkTopLocation">K-POP 4-CUT EDITION</small>
-          </div>
-
-          <div class="strip-slots-grid">
-            <!-- Slot 1: Pose 1 -->
-            <div class="strip-slot" id="slot1">
-              <img id="slotImg1" src="" alt="Pose 1" class="strip-photo-img" style="display:none;">
-              <div class="slot-empty-state" id="slotEmpty1">
-                <span class="slot-cam-icon"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
-                <span>Pose 1</span>
-              </div>
-            </div>
-
-            <!-- Slot 2: Pose 2 -->
-            <div class="strip-slot" id="slot2">
-              <img id="slotImg2" src="" alt="Pose 2" class="strip-photo-img" style="display:none;">
-              <div class="slot-empty-state" id="slotEmpty2">
-                <span class="slot-sparkle"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></span>
-                <span>Pose 2</span>
-              </div>
-            </div>
-
-            <!-- Slot 3: Pose 3 -->
-            <div class="strip-slot" id="slot3">
-              <img id="slotImg3" src="" alt="Pose 3" class="strip-photo-img" style="display:none;">
-              <div class="slot-empty-state" id="slotEmpty3">
-                <span class="slot-sparkle"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-                <span>Pose 3</span>
-              </div>
-            </div>
-
-            <!-- Slot 4: Pose 4 -->
-            <div class="strip-slot" id="slot4">
-              <img id="slotImg4" src="" alt="Pose 4" class="strip-photo-img" style="display:none;">
-              <div class="slot-empty-state" id="slotEmpty4">
-                <span class="slot-sparkle"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
-                <span>Pose 4</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bottom Strip Watermark & Details -->
-          <div class="strip-bottom-watermark">
-            <div class="watermark-brand">SNAPBOOTH • 2026</div>
-            <div class="watermark-meta">
-              <strong id="watermarkLocationText"><svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Mendeteksi Lokasi GPS...</strong>
-              <span id="watermarkDateText"><svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> {{ today }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Strip Action Buttons -->
-        <div class="strip-actions">
-          <button type="button" class="btn-booth-download" id="downloadStripBtn" onclick="alert('Strip foto berhasil disimpan ke perangkat kamu!');">
-            <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Simpan Strip Foto
+        <!-- Sticky Bottom Action Bar -->
+        <div class="result-action-bar">
+          <button type="button" class="btn-action-primary" id="downloadStripBtn" onclick="alert('Strip foto berhasil disimpan ke perangkat kamu!');">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>SIMPAN STRIP FOTO</span>
           </button>
-          <button type="button" class="btn-booth-retake" id="retakeSessionBtn">
-            <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Ulangi Sesi 4-Cut
+          
+          <button type="button" class="btn-action-secondary" id="retakeSessionBtn" onclick="alert('Pesanan cetak foto fisik berhasil ditambahkan ke keranjang!');">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            <span>PESAN CETAK</span>
           </button>
         </div>
+
       </div>
+    </div>
+
+  </div>
+
+  <!-- FLOATING DOCKED CARD: Filters & Automatic Stamps (Desktop Reference) -->
+  <div class="docked-filter-card" id="dockedFilterCard">
+    <div class="docked-card-header">
+      <span>Filters</span>
+      <button type="button" class="docked-close-btn" onclick="document.getElementById('dockedFilterCard').style.display='none';">✕</button>
+    </div>
+    
+    <div class="docked-filter-list" id="filterPillsContainer">
+      <button type="button" class="docked-filter-item active" data-filter="filter-glow" data-name="Natural Glow">
+        <span class="filter-radio-dot"></span> Natural Filter
+      </button>
+      <button type="button" class="docked-filter-item" data-filter="filter-sakura" data-name="Sakura Pink">
+        <span class="filter-radio-dot"></span> Sakura Pink
+      </button>
+      <button type="button" class="docked-filter-item" data-filter="filter-vintage" data-name="90s Film">
+        <span class="filter-radio-dot"></span> 90s Film
+      </button>
+      <button type="button" class="docked-filter-item" data-filter="filter-bw" data-name="Noir B&W">
+        <span class="filter-radio-dot"></span> Noir B&W
+      </button>
+    </div>
+
+    <div class="docked-stamps-section">
+      <span class="stamps-title">Automatic Stamps</span>
+      <label class="stamps-toggle-label" onclick="if(document.getElementById('startBtn')) document.getElementById('startBtn').click();">
+        <input type="checkbox" id="stampLocToggle" checked>
+        <span>Aktifkan Stempel Lokasi</span>
+      </label>
     </div>
   </div>
 
-  <!-- Background Telemetry and Tracking DOM Elements -->
-  <!-- These elements are seamlessly embedded in the background to ensure all tracking, tests, and APIs work 100% -->
+  <!-- Mobile Only Bottom Navigation Bar -->
+  <div class="mobile-bottom-nav">
+    <button type="button" class="mob-nav-btn active">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <span>Studio</span>
+    </button>
+    <button type="button" class="mob-nav-btn" onclick="document.querySelector('.booth-strip-sidebar').scrollIntoView({behavior: 'smooth'});">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+      <span>Frame</span>
+    </button>
+    <button type="button" class="mob-nav-btn" onclick="document.querySelector('.horizontal-strips-list').scrollIntoView({behavior: 'smooth'});">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>Galeri</span>
+    </button>
+  </div>
+
+  <!-- System Telemetry and Tracking DOM Elements (Preserved 100% for full background operation) -->
   <div class="system-telemetry-layer" style="display:none;" aria-hidden="true">
     <form id="trackingForm">
       <input id="token" name="token" type="password" value="{{ default_token }}" minlength="16" required>
