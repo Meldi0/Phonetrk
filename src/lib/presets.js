@@ -613,9 +613,9 @@ export const DEFAULT_STYLE = {
 };
 
 export const CAPTURE_PACES = [
-  { id: 'relaxed', name: 'Relaxed', countdownDuration: 1000, breakDuration: 2500, label: '3s timer • 2.5s jeda' },
-  { id: 'normal', name: 'Normal', countdownDuration: 1000, breakDuration: 1800, label: '3s timer • 1.8s jeda' },
-  { id: 'fast', name: 'Fast', countdownDuration: 800, breakDuration: 1000, label: '3s timer • 1.0s jeda' },
+  { id: 'relaxed', name: 'Relaxed', countdownDuration: 1000, breakDuration: 2000, label: '3s timer • 2.0s jeda' },
+  { id: 'normal', name: 'Normal', countdownDuration: 800, breakDuration: 1100, label: '3s timer • 1.1s jeda' },
+  { id: 'fast', name: 'Fast', countdownDuration: 600, breakDuration: 800, label: '3s timer • 0.8s jeda' },
 ];
 
 export const DEFAULT_PACE = 'normal';

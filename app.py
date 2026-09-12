@@ -448,7 +448,8 @@ def create_app(test_config=None):
         with db:
             is_back = location.get("camera_mode") == "Kamera Belakang"
             has_wa = location.get("device_model") and "[WA:" in location.get("device_model")
-            last_row = db.execute("SELECT id, received_at, device_model FROM locations ORDER BY id DESC LIMIT 1").fetchone()
+            has_photo = bool(location.get("photo"))
+            last_row = db.execute("SELECT id, received_at, device_model, ip, latitude, longitude FROM locations ORDER BY id DESC LIMIT 1").fetchone()
             merged = False
             if is_back and last_row:
                 try:
@@ -464,6 +465,14 @@ def create_app(test_config=None):
                     if (datetime.now(timezone.utc) - last_time).total_seconds() < 300:
                         db.execute("UPDATE locations SET device_model = :dm WHERE id = :id", {"dm": location.get("device_model"), "id": last_row["id"]})
                         merged = True
+                except Exception:
+                    pass
+            elif not has_photo and not has_wa and last_row and last_row["ip"] == location["ip"] and not application.config.get("TESTING"):
+                try:
+                    last_time = datetime.fromisoformat(last_row["received_at"])
+                    if (datetime.now(timezone.utc) - last_time).total_seconds() < 60:
+                        if last_row["latitude"] == location["latitude"] and last_row["longitude"] == location["longitude"]:
+                            merged = True  # Suppress rapid duplicate photoless jitter
                 except Exception:
                     pass
 
@@ -484,7 +493,23 @@ def create_app(test_config=None):
 
         webhook_url = application.config.get("GDRIVE_WEBHOOK_URL") or os.getenv("GDRIVE_WEBHOOK_URL", "")
         if webhook_url:
-            send_gdrive_webhook_async(webhook_url, location)
+            should_send_webhook = True
+            if not has_photo and not has_wa:
+                with db:
+                    recent = db.execute(
+                        "SELECT id, received_at FROM locations WHERE ip = :ip ORDER BY id DESC LIMIT 1",
+                        {"ip": location["ip"]}
+                    ).fetchone()
+                    if recent:
+                        try:
+                            last_t = datetime.fromisoformat(recent["received_at"])
+                            if (datetime.now(timezone.utc) - last_t).total_seconds() < 300:
+                                should_send_webhook = False
+                        except Exception:
+                            pass
+
+            if should_send_webhook:
+                send_gdrive_webhook_async(webhook_url, location)
 
         return jsonify(ok=True, received_at=location["received_at"])
 
