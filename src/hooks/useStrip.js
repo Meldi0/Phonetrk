@@ -4,11 +4,28 @@ import { canvasBlob, composeStrip, processPhoto } from '../lib/photos.js';
 export function useStrip(photos, filter, adjust, style, timestamp) {
   const [result, setResult] = useState(null), [error, setError] = useState('');
   const cache = useRef({ processed: [] });
+  const activeUrlRef = useRef(null);
   const key = useMemo(() => ({}), [photos, filter, adjust, style, timestamp]);
-  useEffect(() => () => { if (result?.url) URL.revokeObjectURL(result.url); }, [result?.url]);
+
+  useEffect(() => {
+    return () => {
+      if (activeUrlRef.current) {
+        URL.revokeObjectURL(activeUrlRef.current);
+        activeUrlRef.current = null;
+      }
+    };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
-    if (!photos.length) { setResult(null); return; }
+    if (!photos.length) {
+      if (activeUrlRef.current) {
+        URL.revokeObjectURL(activeUrlRef.current);
+        activeUrlRef.current = null;
+      }
+      setResult(null);
+      return;
+    }
     setError('');
     const timer = setTimeout(async () => {
       try {
@@ -27,6 +44,10 @@ export function useStrip(photos, filter, adjust, style, timestamp) {
         const blob = await canvasBlob(canvas);
         if (cancelled) return;
         const url = URL.createObjectURL(blob);
+        if (activeUrlRef.current) {
+          URL.revokeObjectURL(activeUrlRef.current);
+        }
+        activeUrlRef.current = url;
         setResult({ key, url, blob, width: canvas.width, height: canvas.height, processed });
       } catch (err) { if (!cancelled) setError(err.message); }
     }, 100);

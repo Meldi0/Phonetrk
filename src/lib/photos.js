@@ -84,7 +84,7 @@ export function composeStrip(processed, style, timestamp) {
   y += 41;
   if (style.showLocation) fitText(ctx, style.location, width / 2, y, width - pad * 2, 23);
   y += 34;
-  const date = new Date(timestamp);
+  const date = timestamp ? new Date(timestamp) : new Date();
   const stamp = [style.showDate && date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), style.showTime && date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })].filter(Boolean).join(' • ');
   fitText(ctx, stamp, width / 2, y, width - pad * 2, 21);
   if (style.showBrand) fitText(ctx, `SNAPBOOTH • ${date.getFullYear()}`, width / 2, height - 25, width - pad * 2, 17, '700');
