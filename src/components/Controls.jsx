@@ -25,6 +25,7 @@ import {
   LAYOUT_OPTIONS,
   STRIP_TEMPLATES,
   TEMPLATE_CATEGORIES,
+  RECOMMENDED_TEMPLATES,
   colorMatrix,
 } from '../lib/presets.js';
 import { STICKER_CATEGORIES, STICKER_LIBRARY } from '../lib/stickers.js';
@@ -78,10 +79,35 @@ export function FilterSelector({ value, onChange, disabled, sample }) {
   );
 }
 
-export function TemplateSelector({ value, onChange, onToggleFavorite, favorites = [] }) {
+export function TemplateSelector({ value, onChange, onToggleFavorite, favorites = [], photoCount = 4 }) {
+  const [countFilter, setCountFilter] = useState(photoCount || 4);
   const [activeCategory, setActiveCategory] = useState('All');
 
+  // Sync count filter when photoCount changes externally
+  useEffect(() => {
+    if (photoCount) {
+      setCountFilter(photoCount);
+    }
+  }, [photoCount]);
+
+  const COUNT_TABS = [
+    { value: 1, label: '1 Foto' },
+    { value: 2, label: '2 Cut' },
+    { value: 4, label: '4 Cut' },
+    { value: 6, label: '6 Cut' },
+    { value: 'all', label: 'Semua' },
+  ];
+
   const filteredTemplates = STRIP_TEMPLATES.filter(t => {
+    // 1. Photo Count matching
+    if (countFilter !== 'all') {
+      const supported = t.supportedPhotoCounts || [t.photoSlots?.length || t.recommendedPoses || 4];
+      if (!supported.includes(Number(countFilter))) {
+        return false;
+      }
+    }
+
+    // 2. Category matching
     if (activeCategory === 'All') return true;
     if (activeCategory === 'Favorites') return favorites.includes(t.id);
     return t.category === activeCategory;
@@ -89,7 +115,31 @@ export function TemplateSelector({ value, onChange, onToggleFavorite, favorites 
 
   return (
     <div className="template-selector-container">
-      {/* Category Pills Navigation */}
+      {/* Level 1: Photo Count Tabs */}
+      <div className="template-filter-header">
+        <div className="count-pill-rail" role="tablist" aria-label="Photo count filters">
+          {COUNT_TABS.map(tab => (
+            <button
+              key={tab.value}
+              role="tab"
+              aria-selected={countFilter === tab.value}
+              className={`count-pill ${countFilter === tab.value ? 'active' : ''}`}
+              onClick={() => setCountFilter(tab.value)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className="template-matching-info">
+          <span>
+            {countFilter === 'all'
+              ? `Semua template (${filteredTemplates.length} desain)`
+              : `Khusus ${countFilter} foto (${filteredTemplates.length} desain siap pakai)`}
+          </span>
+        </div>
+      </div>
+
+      {/* Level 2: Category Pills Navigation */}
       <div className="category-pill-rail" role="tablist" aria-label="Template categories">
         {TEMPLATE_CATEGORIES.map(cat => (
           <button
@@ -104,11 +154,29 @@ export function TemplateSelector({ value, onChange, onToggleFavorite, favorites 
         ))}
       </div>
 
-      {filteredTemplates.length === 0 && activeCategory === 'Favorites' ? (
+      {filteredTemplates.length === 0 ? (
         <div className="empty-favorites-hint">
-          <Heart size={24} />
-          <p>Belum ada template favorit.</p>
-          <small>Klik ikon hati pada template untuk menyimpannya di sini!</small>
+          {activeCategory === 'Favorites' ? (
+            <>
+              <Heart size={24} />
+              <p>Belum ada template favorit untuk pilihan ini.</p>
+              <small>Klik ikon hati pada template untuk menyimpannya di sini!</small>
+            </>
+          ) : (
+            <>
+              <p>Tidak ada template yang cocok dengan kombinasi filter ini.</p>
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => {
+                  setCountFilter('all');
+                  setActiveCategory('All');
+                }}
+              >
+                Tampilkan Semua Template
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <div className="template-grid" role="radiogroup" aria-label="Strip templates">
@@ -116,6 +184,7 @@ export function TemplateSelector({ value, onChange, onToggleFavorite, favorites 
             const isSelected = value === t.id;
             const isFav = favorites.includes(t.id);
             const thumb = getTemplateThumbnail(t.id);
+            const cuts = t.supportedPhotoCounts || [t.photoSlots?.length || t.recommendedPoses || 4];
 
             return (
               <div
@@ -161,10 +230,12 @@ export function TemplateSelector({ value, onChange, onToggleFavorite, favorites 
 
                 <div className="template-card-info">
                   <strong className="template-card-name">{t.name}</strong>
-                  <span className="template-card-category">{t.category}</span>
-                  {t.recommendedPoses && (
-                    <span className="template-poses-tag">{t.recommendedPoses} Foto</span>
-                  )}
+                  <div className="template-card-meta">
+                    <span className="template-card-category">{t.category}</span>
+                    <span className="template-poses-tag">
+                      {cuts.length === 1 ? `${cuts[0]} Cut` : `${cuts.join('/')} Cut`}
+                    </span>
+                  </div>
                 </div>
               </div>
             );
@@ -382,6 +453,7 @@ export function Customizer({
   onUndoStickers,
   onRedoStickers,
   onClearStickers,
+  photoCount,
 }) {
   const [activeTab, setActiveTab] = useState('templates');
   const [stickerCategory, setStickerCategory] = useState('All');
@@ -478,16 +550,15 @@ export function Customizer({
       <div className="edit-nav-tabs" role="tablist" aria-label="Editing sections">
         {tabs.map(tab => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               role="tab"
-              aria-selected={isActive}
-              className={`edit-tab-button ${isActive ? 'active' : ''}`}
+              aria-selected={activeTab === tab.id}
+              className={`edit-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
             >
-              <Icon size={15} />
+              <Icon size={16} />
               <span>{tab.label}</span>
             </button>
           );
@@ -506,6 +577,7 @@ export function Customizer({
             {/* Atomic update of both template and frame */}
             <TemplateSelector
               value={style.template || style.frame}
+              photoCount={photoCount || style.poseCount || 4}
               onChange={tplId => {
                 onChange({ ...style, template: tplId, frame: tplId, customBg: '' });
               }}
@@ -532,10 +604,23 @@ export function Customizer({
                     type="button"
                     className={`layout-card ${isSelected ? 'selected' : ''}`}
                     onClick={() => {
+                      const newPoseCount = opt.poses;
+                      let nextTemplate = style.template;
+                      const curTpl = STRIP_TEMPLATES.find(t => t.id === style.template);
+                      if (curTpl && curTpl.supportedPhotoCounts && !curTpl.supportedPhotoCounts.includes(newPoseCount)) {
+                        const family = curTpl.family || curTpl.id.replace(/-\d+$/, '');
+                        const famMatch = STRIP_TEMPLATES.find(
+                          t => (t.family === family || t.id.startsWith(family)) &&
+                               t.supportedPhotoCounts?.includes(newPoseCount)
+                        );
+                        nextTemplate = famMatch?.id || RECOMMENDED_TEMPLATES[newPoseCount] || style.template;
+                      }
                       onChange({
                         ...style,
                         layout: opt.id,
-                        poseCount: opt.poses,
+                        poseCount: newPoseCount,
+                        template: nextTemplate,
+                        frame: nextTemplate,
                       });
                     }}
                   >

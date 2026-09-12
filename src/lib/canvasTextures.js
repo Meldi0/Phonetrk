@@ -1199,3 +1199,358 @@ export function drawMusicPlayerCard(ctx, x, y, width, height, title = 'For You M
 
   ctx.restore();
 }
+
+/**
+ * Draws Denim & White Lace with Burgundy Polka Dots background (Ref Image 3)
+ */
+export function drawLaceDenimBackground(ctx, width, height) {
+  ctx.save();
+
+  // 1. Right area: Deep Burgundy Red with White Polka Dots
+  ctx.fillStyle = '#6B101E'; // rich velvety burgundy red
+  ctx.fillRect(0, 0, width, height);
+
+  // White polka dot grid
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+  const dotSpacing = 38;
+  for (let dy = -dotSpacing; dy < height + dotSpacing; dy += dotSpacing) {
+    const rowIdx = Math.floor(dy / dotSpacing);
+    const offsetX = (rowIdx % 2 === 0) ? 0 : dotSpacing / 2;
+    for (let dx = 180 + offsetX; dx < width + dotSpacing; dx += dotSpacing) {
+      ctx.beginPath();
+      ctx.arc(dx, dy, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // 2. Left side: Authentic Denim Strip (~210px)
+  const denimW = 195;
+  const denimPattern = createDenimPattern(ctx, 'navy');
+  ctx.fillStyle = denimPattern;
+  ctx.fillRect(0, 0, denimW, height);
+
+  // Denim edge seam shadow
+  const grad = ctx.createLinearGradient(denimW - 10, 0, denimW + 15, 0);
+  grad.addColorStop(0, 'rgba(0, 0, 0, 0.45)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(denimW - 10, 0, 25, height);
+
+  // Golden copper seam stitches on denim edge
+  drawStitches(ctx, [{ x: denimW - 22, y: 0 }, { x: denimW - 22, y: height }], '#C8963E', 2.5, [10, 6]);
+  drawStitches(ctx, [{ x: denimW - 32, y: 0 }, { x: denimW - 32, y: height }], '#DDB055', 1.8, [8, 5]);
+
+  // 3. Intricate White Lace Trim along the seam
+  ctx.save();
+  ctx.translate(denimW - 20, 0);
+  // Scalloped lace border
+  const scallopR = 14;
+  for (let ly = 0; ly < height; ly += scallopR * 2) {
+    // Semi-transparent lace background
+    ctx.fillStyle = 'rgba(253, 250, 244, 0.88)';
+    ctx.beginPath();
+    ctx.arc(15, ly + scallopR, scallopR, -Math.PI / 2, Math.PI / 2);
+    ctx.fill();
+
+    // Floral lace loops & picots
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(15, ly + scallopR, scallopR, -Math.PI / 2, Math.PI / 2);
+    ctx.stroke();
+
+    // Inner eyelet dots
+    ctx.fillStyle = '#6B101E';
+    ctx.beginPath();
+    ctx.arc(15 + scallopR * 0.45, ly + scallopR, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Small lace decorative dots
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(6, ly + scallopR - 5, 1.8, 0, Math.PI * 2);
+    ctx.arc(6, ly + scallopR + 5, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  ctx.restore();
+}
+
+/**
+ * Draws Vintage Silver Canon Digicam Frame (Ref Image 4)
+ * Places a silver compact digital camera with LCD screen cutout at [x, y]
+ */
+export function drawVintageDigicam(ctx, x, y, width, height, options = {}) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (options.rotation) {
+    ctx.rotate(options.rotation);
+  }
+
+  const w = width;
+  const h = height;
+
+  // Camera drop shadow
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+  ctx.shadowBlur = 24;
+  ctx.shadowOffsetY = 12;
+
+  // Outer camera body (Champagne silver metallic rounded rectangle)
+  const bodyRadius = 24;
+  const bodyGrad = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
+  bodyGrad.addColorStop(0, '#E4E3DE');
+  bodyGrad.addColorStop(0.3, '#C7C5BD');
+  bodyGrad.addColorStop(0.7, '#DEDCD6');
+  bodyGrad.addColorStop(1, '#B0AEA6');
+
+  ctx.fillStyle = bodyGrad;
+  if (ctx.roundRect) {
+    ctx.beginPath();
+    ctx.roundRect(-w / 2, -h / 2, w, h, bodyRadius);
+    ctx.fill();
+  } else {
+    ctx.fillRect(-w / 2, -h / 2, w, h);
+  }
+  ctx.shadowColor = 'transparent';
+
+  // Inner beveled highlight edge
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.lineWidth = 3;
+  if (ctx.roundRect) {
+    ctx.beginPath();
+    ctx.roundRect(-w / 2 + 3, -h / 2 + 3, w - 6, h - 6, bodyRadius - 2);
+    ctx.stroke();
+  }
+
+  // Top camera details (flash, optical viewfinder window, red LED)
+  // Optical viewfinder
+  ctx.fillStyle = '#222';
+  ctx.beginPath();
+  ctx.arc(-w / 2 + 230, -h / 2 + 38, 14, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#999';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Glass reflection on viewfinder
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.beginPath();
+  ctx.arc(-w / 2 + 226, -h / 2 + 34, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Mode / Flash window
+  ctx.fillStyle = '#333';
+  if (ctx.roundRect) {
+    ctx.beginPath();
+    ctx.roundRect(w / 2 - 250, -h / 2 + 22, 95, 30, 6);
+    ctx.fill();
+  }
+  // Flash grooves
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 1;
+  for (let fx = w / 2 - 245; fx < w / 2 - 160; fx += 8) {
+    ctx.beginPath();
+    ctx.moveTo(fx, -h / 2 + 24);
+    ctx.lineTo(fx, -h / 2 + 50);
+    ctx.stroke();
+  }
+
+  // Canon Logo above LCD
+  ctx.fillStyle = '#242220';
+  ctx.font = 'bold italic 22px "Times New Roman", serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('Canon', -w / 2 + 80, -h / 2 + 96);
+
+  // Right-hand side circular Control Wheel (Jog dial)
+  const dialX = w / 2 - 125;
+  const dialY = 0;
+  const dialR = 70;
+
+  // Dial outer ring
+  const dialGrad = ctx.createRadialGradient(dialX, dialY, 20, dialX, dialY, dialR);
+  dialGrad.addColorStop(0, '#E8E7E2');
+  dialGrad.addColorStop(0.8, '#BEBCB4');
+  dialGrad.addColorStop(1, '#9C9A92');
+  ctx.fillStyle = dialGrad;
+  ctx.beginPath();
+  ctx.arc(dialX, dialY, dialR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#777';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Dial center button (FUNC SET)
+  ctx.fillStyle = '#333';
+  ctx.font = 'bold 9px "DM Sans", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('JUMP', dialX, dialY - 50);
+  ctx.fillText('FUNC', dialX, dialY - 6);
+  ctx.fillText('SET', dialX, dialY + 6);
+
+  // Small playback and menu buttons
+  const btnY = dialY - dialR - 35;
+  ctx.fillStyle = '#CFCDBF';
+  ctx.beginPath();
+  ctx.arc(dialX - 35, btnY, 14, 0, Math.PI * 2);
+  ctx.arc(dialX + 35, btnY, 14, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/**
+ * Draws cute fabric ribbon bow (for Cute templates)
+ */
+export function drawFabricBow(ctx, cx, cy, size = 60, color = '#E63946') {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 3;
+
+  ctx.fillStyle = color;
+
+  // Left Loop
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(-size * 0.6, -size * 0.5, -size, -size * 0.2, -size * 0.8, size * 0.2);
+  ctx.bezierCurveTo(-size * 0.6, size * 0.4, -size * 0.2, size * 0.2, 0, 0);
+  ctx.fill();
+
+  // Right Loop
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(size * 0.6, -size * 0.5, size, -size * 0.2, size * 0.8, size * 0.2);
+  ctx.bezierCurveTo(size * 0.6, size * 0.4, size * 0.2, size * 0.2, 0, 0);
+  ctx.fill();
+
+  // Left Ribbon Tail
+  ctx.beginPath();
+  ctx.moveTo(-4, 4);
+  ctx.lineTo(-size * 0.5, size * 0.8);
+  ctx.lineTo(-size * 0.35, size * 0.7);
+  ctx.lineTo(-size * 0.2, size * 0.8);
+  ctx.lineTo(0, 4);
+  ctx.fill();
+
+  // Right Ribbon Tail
+  ctx.beginPath();
+  ctx.moveTo(4, 4);
+  ctx.lineTo(size * 0.5, size * 0.8);
+  ctx.lineTo(size * 0.35, size * 0.7);
+  ctx.lineTo(size * 0.2, size * 0.8);
+  ctx.lineTo(0, 4);
+  ctx.fill();
+
+  // Center knot
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, size * 0.16, size * 0.14, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/**
+ * Draws cute twin cherries with leaf
+ */
+export function drawCuteCherries(ctx, cx, cy, size = 50) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+  ctx.shadowBlur = 6;
+  ctx.shadowOffsetY = 3;
+
+  // Stems (curved brown-green lines meeting at top)
+  ctx.strokeStyle = '#4A6B3A';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(-size * 0.3, size * 0.3);
+  ctx.quadraticCurveTo(-size * 0.1, -size * 0.4, 0, -size * 0.6);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(size * 0.3, size * 0.4);
+  ctx.quadraticCurveTo(size * 0.1, -size * 0.3, 0, -size * 0.6);
+  ctx.stroke();
+
+  // Leaf
+  ctx.fillStyle = '#588157';
+  ctx.beginPath();
+  ctx.ellipse(size * 0.2, -size * 0.65, size * 0.25, size * 0.12, 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cherries (glossy deep red spheres)
+  // Left cherry
+  const grad1 = ctx.createRadialGradient(-size * 0.3 - 4, size * 0.3 - 4, 2, -size * 0.3, size * 0.3, size * 0.3);
+  grad1.addColorStop(0, '#FF4D6D');
+  grad1.addColorStop(0.7, '#C9184A');
+  grad1.addColorStop(1, '#800F2F');
+  ctx.fillStyle = grad1;
+  ctx.beginPath();
+  ctx.arc(-size * 0.3, size * 0.3, size * 0.28, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Right cherry
+  const grad2 = ctx.createRadialGradient(size * 0.3 - 4, size * 0.4 - 4, 2, size * 0.3, size * 0.4, size * 0.3);
+  grad2.addColorStop(0, '#FF4D6D');
+  grad2.addColorStop(0.7, '#C9184A');
+  grad2.addColorStop(1, '#800F2F');
+  ctx.fillStyle = grad2;
+  ctx.beginPath();
+  ctx.arc(size * 0.3, size * 0.4, size * 0.28, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Highlights
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.beginPath();
+  ctx.arc(-size * 0.38, size * 0.22, size * 0.07, 0, Math.PI * 2);
+  ctx.arc(size * 0.22, size * 0.32, size * 0.07, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Draws translucent Washi Tape strip with jagged torn ends
+ */
+export function drawWashiTapeStrip(ctx, x, y, width, height, color = 'rgba(240, 225, 200, 0.8)', angle = 0) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (angle) ctx.rotate(angle);
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(-width / 2, -height / 2);
+  // Top edge
+  ctx.lineTo(width / 2, -height / 2);
+  // Right jagged edge
+  for (let step = 0; step < 5; step++) {
+    const jy = -height / 2 + ((step + 0.5) * height) / 5;
+    const jx = width / 2 + (step % 2 === 0 ? 5 : -4);
+    ctx.lineTo(jx, jy);
+  }
+  ctx.lineTo(width / 2, height / 2);
+  // Bottom edge
+  ctx.lineTo(-width / 2, height / 2);
+  // Left jagged edge
+  for (let step = 0; step < 5; step++) {
+    const jy = height / 2 - ((step + 0.5) * height) / 5;
+    const jx = -width / 2 + (step % 2 === 0 ? -5 : 4);
+    ctx.lineTo(jx, jy);
+  }
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}

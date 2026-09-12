@@ -22,6 +22,7 @@ function createSamplePhotos() {
     { bg: '#E2F0D9', hair: '#4A3525', skin: '#FDE3D2', eyes: '#222' }, // smile 3
     { bg: '#FFF0D4', hair: '#201A15', skin: '#FAD7A0', eyes: '#222' }, // wink 4
     { bg: '#E8D7F1', hair: '#1A1A24', skin: '#F5C6A5', eyes: '#222' }, // pose 5
+    { bg: '#FFE4E1', hair: '#2E1A1A', skin: '#FDE0D0', eyes: '#222' }, // blush pose 6
   ];
 
   for (let p of poses) {
@@ -90,7 +91,9 @@ export function getTemplateThumbnail(templateId) {
 
   try {
     const tpl = ARTISTIC_TEMPLATES.find(t => t.id === templateId) || ARTISTIC_TEMPLATES[0];
-    const fullCanvas = renderArtworkStrip(samplePhotos, { template: tpl.id }, new Date());
+    const needed = tpl.supportedPhotoCounts?.[0] || tpl.photoSlots?.length || 4;
+    const currentSamplePhotos = samplePhotos.slice(0, needed);
+    const fullCanvas = renderArtworkStrip(currentSamplePhotos, { template: tpl.id }, new Date());
 
     // Scale down to thumbnail size (width: 140px, keeping aspect ratio)
     const thumbW = 140;

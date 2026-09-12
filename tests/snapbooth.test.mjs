@@ -214,3 +214,58 @@ test('sticker normalized coordinate mapping guarantees canvas parity', () => {
   assert.equal(domTopPct, '25%');
   assert.equal(domWidthPct, '20%');
 });
+
+import { RECOMMENDED_TEMPLATES, getCompatibleTemplates } from '../src/lib/presets.js';
+
+test('dedicated reference adaptations exist with exactly 2 photo slots', () => {
+  // Reference 3: Denim Lace Duo
+  const denimLace = ARTISTIC_TEMPLATES.find(t => t.id === 'denim-lace-2');
+  assert.ok(denimLace, 'denim-lace-2 must exist');
+  assert.equal(denimLace.photoSlots.length, 2);
+  assert.deepEqual(denimLace.supportedPhotoCounts, [2]);
+  assert.equal(denimLace.photoSlots[0].frameStyle, 'polaroid-maroon');
+  assert.equal(denimLace.photoSlots[1].frameStyle, 'polaroid-maroon');
+
+  // Reference 4: Digicam Duo
+  const digicam = ARTISTIC_TEMPLATES.find(t => t.id === 'digicam-duo-2');
+  assert.ok(digicam, 'digicam-duo-2 must exist');
+  assert.equal(digicam.photoSlots.length, 2);
+  assert.deepEqual(digicam.supportedPhotoCounts, [2]);
+});
+
+test('multi-cut template suites cover 1, 2, 4, and 6 photo counts with zero mismatch', () => {
+  const counts = [1, 2, 4, 6];
+  for (const count of counts) {
+    const recommendedId = RECOMMENDED_TEMPLATES[count];
+    assert.ok(recommendedId, `RECOMMENDED_TEMPLATES must have entry for ${count} photo(s)`);
+    const recommendedTpl = ARTISTIC_TEMPLATES.find(t => t.id === recommendedId);
+    assert.ok(recommendedTpl, `Recommended template ${recommendedId} must exist`);
+    assert.equal(recommendedTpl.photoSlots.length, count, `Recommended template ${recommendedId} slots must equal ${count}`);
+
+    const compatible = getCompatibleTemplates(count, 'All');
+    assert.ok(compatible.length >= 4, `Must have at least 4 compatible templates for ${count} photos, found ${compatible.length}`);
+    for (const tpl of compatible) {
+      const supports = tpl.supportedPhotoCounts || [tpl.photoSlots?.length || 4];
+      assert.ok(supports.includes(count), `Template ${tpl.id} must support ${count} photos`);
+    }
+  }
+});
+
+test('cute and clean aesthetic categories have dedicated templates', () => {
+  const cuteTemplates = ARTISTIC_TEMPLATES.filter(t => t.category === 'Cute');
+  assert.ok(cuteTemplates.length >= 6, `Must have at least 6 Cute templates, found ${cuteTemplates.length}`);
+  const cuteIds = cuteTemplates.map(t => t.id);
+  assert.ok(cuteIds.includes('ribbon-diary-2'));
+  assert.ok(cuteIds.includes('cherry-picnic-2'));
+  assert.ok(cuteIds.includes('strawberry-milk-2'));
+  assert.ok(cuteIds.includes('cloud-diary-2'));
+
+  const cleanTemplates = ARTISTIC_TEMPLATES.filter(t => t.category === 'Clean' || t.category === 'Minimal');
+  assert.ok(cleanTemplates.length >= 6, `Must have at least 6 Clean/Minimal templates, found ${cleanTemplates.length}`);
+  const cleanIds = cleanTemplates.map(t => t.id);
+  assert.ok(cleanIds.includes('studio-white-1'));
+  assert.ok(cleanIds.includes('studio-white-2'));
+  assert.ok(cleanIds.includes('studio-white-4'));
+  assert.ok(cleanIds.includes('studio-white-6'));
+});
+

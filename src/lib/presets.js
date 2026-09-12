@@ -547,19 +547,35 @@ export const STRIP_TEMPLATES = Array.from(
 
 export const TEMPLATE_CATEGORIES = [
   'All',
+  'Cute',
+  'Clean',
   'Scrapbook',
   'Denim',
   'Vintage',
   'Film',
   'Polaroid',
   'Minimal',
-  'Clean',
-  'Cute',
   'Playful',
   'Retro',
   'Y2K',
   'Favorites',
 ];
+
+export const RECOMMENDED_TEMPLATES = {
+  1: 'polaroid-hero-1',
+  2: 'denim-lace-2',
+  4: 'airmail-love-4',
+  6: 'contact-sheet-6',
+};
+
+export function getCompatibleTemplates(count = 4, category = 'All') {
+  return STRIP_TEMPLATES.filter(tpl => {
+    const supports = tpl.supportedPhotoCounts || [tpl.photoSlots?.length || 4];
+    const matchesCount = count ? supports.includes(count) : true;
+    const matchesCategory = !category || category === 'All' || tpl.category === category;
+    return matchesCount && matchesCategory;
+  });
+}
 
 // Backward compatibility for FRAMES
 export const FRAMES = STRIP_TEMPLATES.map(t => ({

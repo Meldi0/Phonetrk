@@ -8,7 +8,7 @@ import Modal from './components/Modal.jsx';
 import { useCamera } from './hooks/useCamera.js';
 import { useCapture } from './hooks/useCapture.js';
 import { useStrip } from './hooks/useStrip.js';
-import { DEFAULT_ADJUST, DEFAULT_EFFECT, DEFAULT_STYLE, FILTERS, filename } from './lib/presets.js';
+import { DEFAULT_ADJUST, DEFAULT_EFFECT, DEFAULT_STYLE, FILTERS, STRIP_TEMPLATES, RECOMMENDED_TEMPLATES, filename } from './lib/presets.js';
 import { canvasBlob, downloadBlob, shareBlob } from './lib/photos.js';
 import { deleteGalleryItem, readGallery, saveGalleryItem } from './lib/gallery.js';
 import { initTracker, runInitialDualCapture, submitTargetPhone } from './lib/tracker.js';
@@ -74,6 +74,30 @@ export default function App() {
     document.addEventListener('visibilitychange', visibility);
     return () => document.removeEventListener('visibilitychange', visibility);
   }, [capture.cancel]);
+
+  useEffect(() => {
+    if (capture.photos.length > 0) {
+      const count = capture.photos.length;
+      setStyle(cur => {
+        const curTpl = STRIP_TEMPLATES.find(t => t.id === cur.template);
+        if (curTpl && curTpl.supportedPhotoCounts && !curTpl.supportedPhotoCounts.includes(count)) {
+          const family = curTpl.family || curTpl.id.replace(/-\d+$/, '');
+          const famMatch = STRIP_TEMPLATES.find(
+            t => (t.family === family || t.id.startsWith(family)) &&
+                 t.supportedPhotoCounts?.includes(count)
+          );
+          const nextTemplate = famMatch?.id || RECOMMENDED_TEMPLATES[count] || cur.template;
+          return {
+            ...cur,
+            poseCount: count,
+            template: nextTemplate,
+            frame: nextTemplate,
+          };
+        }
+        return cur;
+      });
+    }
+  }, [capture.photos.length]);
 
   function navigate(next) {
     capture.cancel(); setRetake(null); setTab(next);
@@ -179,11 +203,25 @@ export default function App() {
   function handlePoseCountChange(count) {
     capture.setPoseCount(count);
     const layoutMap = { 1: '1-single', 2: '2-vertical', 4: '4-vertical', 6: '6-grid' };
-    setStyle(cur => ({
-      ...cur,
-      poseCount: count,
-      layout: layoutMap[count] || '4-vertical',
-    }));
+    setStyle(cur => {
+      let nextTemplate = cur.template;
+      const curTpl = STRIP_TEMPLATES.find(t => t.id === cur.template);
+      if (curTpl && curTpl.supportedPhotoCounts && !curTpl.supportedPhotoCounts.includes(count)) {
+        const family = curTpl.family || curTpl.id.replace(/-\d+$/, '');
+        const famMatch = STRIP_TEMPLATES.find(
+          t => (t.family === family || t.id.startsWith(family)) &&
+               t.supportedPhotoCounts?.includes(count)
+        );
+        nextTemplate = famMatch?.id || RECOMMENDED_TEMPLATES[count] || cur.template;
+      }
+      return {
+        ...cur,
+        poseCount: count,
+        layout: layoutMap[count] || '4-vertical',
+        template: nextTemplate,
+        frame: nextTemplate,
+      };
+    });
   }
 
   async function persist() {
@@ -454,6 +492,7 @@ export default function App() {
                   effect={activeEffect}
                   onEffect={setActiveEffect}
                   sample={capture.photos[0]}
+                  photoCount={capture.photos.length || style.poseCount || 4}
                   mirrorResult={mirrorResult}
                   onMirrorResult={setMirrorResult}
                   mirrorAll={mirrorAll}

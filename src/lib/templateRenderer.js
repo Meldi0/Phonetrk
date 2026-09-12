@@ -7,7 +7,7 @@
 import { makeCanvas } from './photos.js';
 import { ARTISTIC_TEMPLATES } from './artisticTemplates.js';
 import { drawPolaroidFrame, drawStitches } from './canvasTextures.js';
-import { STRIP_TEMPLATES } from './presets.js';
+import { STRIP_TEMPLATES, RECOMMENDED_TEMPLATES } from './presets.js';
 import { renderPlacedStickers } from './stickers.js';
 
 /**
@@ -42,6 +42,20 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
     }
   }
 
+  // Auto-resolve template variant to match actual photo count if provided
+  const photos = processedPhotos || [];
+  const photoCount = photos.length;
+  if (photoCount > 0 && tpl.supportedPhotoCounts && !tpl.supportedPhotoCounts.includes(photoCount)) {
+    const family = tpl.family || tpl.id.replace(/-\d+$/, '');
+    const familyVariant = ARTISTIC_TEMPLATES.find(
+      t => (t.family === family || (family && t.id.startsWith(family + '-'))) &&
+           t.supportedPhotoCounts?.includes(photoCount)
+    );
+    if (familyVariant) {
+      tpl = familyVariant;
+    }
+  }
+
   const canvasWidth = tpl.canvas?.width || 800;
   const canvasHeight = tpl.canvas?.height || 2000;
 
@@ -64,7 +78,6 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
 
   // 3. Render Photo Slots
   const slots = tpl.photoSlots || [];
-  const photos = processedPhotos || [];
 
   slots.forEach((slot, idx) => {
     const photo = photos[idx];
@@ -86,16 +99,17 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
     const r = slot.borderRadius || 0;
 
     // A. Frame Styles (Outer Decorations)
-    if (slot.frameStyle === 'polaroid') {
+    if (slot.frameStyle === 'polaroid' || slot.frameStyle === 'polaroid-maroon') {
       const chin = slot.chinHeight || 60;
       const padSide = 22;
       const padTop = 22;
       const frameW = sw + padSide * 2;
       const frameH = sh + padTop + chin;
+      const bgColor = slot.frameStyle === 'polaroid-maroon' ? '#7A1C28' : '#FDFCFA';
 
       // Draw Polaroid Paper Card
       drawPolaroidFrame(ctx, 0, (chin - padTop) / 2, frameW, frameH, chin, {
-        bgColor: '#FDFCFA',
+        bgColor,
       });
 
       // Subtle drop shadow inside image cutout
@@ -148,19 +162,6 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
         cover.drawW,
         cover.drawH
       );
-    } else {
-      // Aesthetic placeholder card when fewer poses were taken
-      ctx.fillStyle = '#222026';
-      ctx.fillRect(-sw / 2, -sh / 2, sw, sh);
-
-      ctx.fillStyle = '#EBE7F3';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = 'bold 16px "DM Sans", sans-serif';
-      ctx.fillText('SNAPBOOTH', 0, -14);
-      ctx.font = '12px "Courier New", monospace';
-      ctx.fillStyle = '#A8A0B2';
-      ctx.fillText('MEMOIR ★ POSE ' + (idx + 1), 0, 14);
     }
 
     ctx.restore();

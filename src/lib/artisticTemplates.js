@@ -33,9 +33,15 @@ import {
   drawNewspaperHeader,
   drawTornNewspaperFrame,
   drawMusicPlayerCard,
+  drawLaceDenimBackground,
+  drawVintageDigicam,
+  drawFabricBow,
+  drawCuteCherries,
+  drawWashiTapeStrip,
 } from './canvasTextures.js';
+import { ADDITIONAL_TEMPLATES } from './additionalTemplates.js';
 
-export const ARTISTIC_TEMPLATES = [
+const BASE_ARTISTIC_TEMPLATES = [
   // ==========================================
   // TEMPLATE 01: VINTAGE AIRMAIL PHOTO STRIP
   // ==========================================
@@ -1000,13 +1006,25 @@ export const ARTISTIC_TEMPLATES = [
   },
 ];
 
+const ENRICHED_BASE_TEMPLATES = BASE_ARTISTIC_TEMPLATES.map(t => ({
+  family: t.family || t.id.replace(/-\d+$/, ''),
+  supportedPhotoCounts: t.supportedPhotoCounts || [t.photoSlots?.length || 4],
+  ...t,
+}));
+
+export const ARTISTIC_TEMPLATES = [...ADDITIONAL_TEMPLATES, ...ENRICHED_BASE_TEMPLATES];
+
 export const ARTISTIC_CATEGORIES = [
   'All',
+  'Cute',
+  'Clean',
   'Scrapbook',
   'Denim',
   'Vintage',
   'Film',
   'Polaroid',
   'Minimal',
+  'Y2K',
   'Favorites',
 ];
+
