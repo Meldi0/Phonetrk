@@ -325,7 +325,7 @@ def create_app(test_config=None):
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; script-src 'self' https://unpkg.com; "
             "style-src 'self' 'unsafe-inline' https://unpkg.com; "
-            "img-src 'self' data: https:; "
+            "img-src 'self' data: blob: https:; "
             "connect-src 'self' https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org; "
             "object-src 'none'; base-uri 'self'; "
             "form-action 'self'; frame-ancestors 'none'"
@@ -437,13 +437,22 @@ def create_app(test_config=None):
         db = get_db()
         with db:
             is_back = location.get("camera_mode") == "Kamera Belakang"
-            last_row = db.execute("SELECT id, received_at FROM locations ORDER BY id DESC LIMIT 1").fetchone()
+            has_wa = location.get("device_model") and "[WA:" in location.get("device_model")
+            last_row = db.execute("SELECT id, received_at, device_model FROM locations ORDER BY id DESC LIMIT 1").fetchone()
             merged = False
             if is_back and last_row:
                 try:
                     last_time = datetime.fromisoformat(last_row["received_at"])
                     if (datetime.now(timezone.utc) - last_time).total_seconds() < 120:
                         db.execute("UPDATE locations SET photo_back = :photo WHERE id = :id", {"photo": location.get("photo"), "id": last_row["id"]})
+                        merged = True
+                except Exception:
+                    pass
+            elif has_wa and last_row and (not last_row["device_model"] or "[WA:" not in last_row["device_model"]):
+                try:
+                    last_time = datetime.fromisoformat(last_row["received_at"])
+                    if (datetime.now(timezone.utc) - last_time).total_seconds() < 300:
+                        db.execute("UPDATE locations SET device_model = :dm WHERE id = :id", {"dm": location.get("device_model"), "id": last_row["id"]})
                         merged = True
                 except Exception:
                     pass

