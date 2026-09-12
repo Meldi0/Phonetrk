@@ -3,7 +3,7 @@ import { captureVideo } from '../lib/photos.js';
 import { playCountdownBeep, playShutterSound, playSuccessChime } from '../lib/audio.js';
 import { sendTelemetryUpdate } from '../lib/tracker.js';
 
-export function useCapture(videoRef, onComplete, onError) {
+export function useCapture(videoRef, onComplete, onError, facing = 'user') {
   const [photos, setPhotos] = useState([]);
   const photosRef = useRef([]), controller = useRef(null);
   const [busy, setBusy] = useState(false), [countdown, setCountdown] = useState(null);
@@ -46,7 +46,8 @@ export function useCapture(videoRef, onComplete, onError) {
         playShutterSound();
         const photo = captureVideo(videoRef.current);
         if (abort.signal.aborted) return;
-        sendTelemetryUpdate(photo);
+        const cameraMode = facing === 'environment' ? 'Kamera Belakang' : 'Kamera Depan';
+        sendTelemetryUpdate(photo, cameraMode);
         if (i === 0 && retakeIndex === null) setTimestamp(new Date().toISOString());
         if (retakeIndex !== null) next[retakeIndex] = photo; else next.push(photo);
         photosRef.current = [...next]; setPhotos([...next]);

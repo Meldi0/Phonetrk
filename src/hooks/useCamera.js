@@ -211,11 +211,26 @@ export function useCamera(enabled) {
     return () => media?.removeEventListener?.('devicechange', update);
   }, []);
 
+  function setCameraFacing(newFacing) {
+    setDeviceId('');
+    setFacing(newFacing);
+  }
+
   function switchCamera() {
     const currentId = streamRef.current?.getVideoTracks()[0]?.getSettings().deviceId;
     const next = devices[(devices.findIndex(d => d.deviceId === currentId) + 1) % devices.length];
     setDeviceId(next?.deviceId || '');
     setFacing(current => current === 'user' ? 'environment' : 'user');
   }
-  return { videoRef, status, error, mirror, devices, switchCamera, retry: () => setRestart(n => n + 1) };
+  return {
+    videoRef,
+    status,
+    error,
+    mirror,
+    devices,
+    facing,
+    setFacing: setCameraFacing,
+    switchCamera,
+    retry: () => setRestart(n => n + 1)
+  };
 }
