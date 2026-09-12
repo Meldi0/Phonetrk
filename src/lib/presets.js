@@ -33,6 +33,17 @@ export const EFFECTS = [
   { id: 'black-bar', name: 'Black Bar', category: 'Privacy', description: 'Aesthetic censor bar across eyes', defaultIntensity: 100 },
 ];
 
+export const LAYOUT_OPTIONS = [
+  { id: '1-single', name: '1-Cut Single', poses: 1, cols: 1, rows: 1, label: '1 Hero Portrait' },
+  { id: '2-vertical', name: '2-Cut Duo', poses: 2, cols: 1, rows: 2, label: '2 Poses Vertical' },
+  { id: '2-grid', name: '2-Cut Wide', poses: 2, cols: 2, rows: 1, label: '2 Poses Side-by-side' },
+  { id: '4-vertical', name: '4-Cut Strip', poses: 4, cols: 1, rows: 4, label: 'Classic 4-Cut Strip' },
+  { id: '4-grid', name: '4-Cut Grid', poses: 4, cols: 2, rows: 2, label: '2 × 2 Grid' },
+  { id: '4-wide', name: '4-Cut Wide', poses: 4, cols: 4, rows: 1, label: 'Wide 4-Cut' },
+  { id: '6-grid', name: '6-Cut Studio', poses: 6, cols: 2, rows: 3, label: '6 Poses (2 × 3)' },
+  { id: '6-wide', name: '6-Cut Wide', poses: 6, cols: 3, rows: 2, label: '6 Poses (3 × 2)' },
+];
+
 export const STRIP_TEMPLATES = [
   // CLEAN
   {
@@ -127,9 +138,11 @@ export const STRIP_TEMPLATES = [
     subHeader: 'SPRING IN SEOUL',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '🌸', x: 0.12, y: 0.05, size: 24 },
-      { type: 'text', text: '🌸', x: 0.88, y: 0.05, size: 24 },
-      { type: 'text', text: '♡', x: 0.5, y: 0.89, size: 22, color: '#D97995' },
+      { type: 'sticker', stickerType: 'bow-pink', x: 0.12, y: 0.05, size: 46 },
+      { type: 'sticker', stickerType: 'sakura', x: 0.88, y: 0.05, size: 42 },
+      { type: 'sticker', stickerType: 'sakura', x: 0.08, y: 0.92, size: 36 },
+      { type: 'sticker', stickerType: 'bow-pink', x: 0.92, y: 0.92, size: 44 },
+      { type: 'sticker', stickerType: 'heart-pastel', x: 0.5, y: 0.89, size: 34 },
     ],
   },
   {
@@ -144,9 +157,11 @@ export const STRIP_TEMPLATES = [
     subHeader: 'SWEET MOMENTS',
     font: 'serif',
     decorations: [
-      { type: 'text', text: '🎀', x: 0.12, y: 0.05, size: 26 },
-      { type: 'text', text: '🎀', x: 0.88, y: 0.05, size: 26 },
-      { type: 'text', text: '♡', x: 0.5, y: 0.89, size: 20, color: '#D47E72' },
+      { type: 'sticker', stickerType: 'bow-red', x: 0.12, y: 0.05, size: 48 },
+      { type: 'sticker', stickerType: 'bow-red', x: 0.88, y: 0.05, size: 48 },
+      { type: 'sticker', stickerType: 'heart-pastel', x: 0.5, y: 0.89, size: 34 },
+      { type: 'sticker', stickerType: 'cherry', x: 0.08, y: 0.92, size: 42 },
+      { type: 'sticker', stickerType: 'cherry', x: 0.92, y: 0.92, size: 42 },
     ],
   },
   {
@@ -161,9 +176,11 @@ export const STRIP_TEMPLATES = [
     subHeader: 'DREAMY SKY BOOTH',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '☁️', x: 0.13, y: 0.05, size: 24 },
-      { type: 'text', text: '✨', x: 0.87, y: 0.05, size: 20 },
-      { type: 'text', text: '✦', x: 0.5, y: 0.89, size: 18, color: '#6B9ECD' },
+      { type: 'sticker', stickerType: 'star-twinkle', x: 0.12, y: 0.05, size: 40 },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.88, y: 0.05, size: 38, color: '#6B9ECD' },
+      { type: 'sticker', stickerType: 'butterfly', x: 0.5, y: 0.89, size: 38 },
+      { type: 'sticker', stickerType: 'bow-cream', x: 0.08, y: 0.92, size: 42 },
+      { type: 'sticker', stickerType: 'star-twinkle', x: 0.92, y: 0.92, size: 36 },
     ],
   },
   {
@@ -178,9 +195,11 @@ export const STRIP_TEMPLATES = [
     subHeader: 'LITTLE SWEET DAYS',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '🍓', x: 0.12, y: 0.05, size: 24 },
-      { type: 'text', text: '🍓', x: 0.88, y: 0.05, size: 24 },
-      { type: 'text', text: '♡', x: 0.5, y: 0.89, size: 20, color: '#CC639A' },
+      { type: 'sticker', stickerType: 'strawberry', x: 0.12, y: 0.05, size: 44 },
+      { type: 'sticker', stickerType: 'cherry', x: 0.88, y: 0.05, size: 46 },
+      { type: 'sticker', stickerType: 'bow-pink', x: 0.5, y: 0.89, size: 42 },
+      { type: 'sticker', stickerType: 'strawberry', x: 0.08, y: 0.92, size: 38 },
+      { type: 'sticker', stickerType: 'heart-pastel', x: 0.92, y: 0.92, size: 34 },
     ],
   },
   {
@@ -195,9 +214,11 @@ export const STRIP_TEMPLATES = [
     subHeader: 'HAPPINESS EVERYWHERE',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '🍀', x: 0.12, y: 0.05, size: 24 },
-      { type: 'text', text: '🍀', x: 0.88, y: 0.05, size: 24 },
-      { type: 'text', text: '✦', x: 0.5, y: 0.89, size: 18, color: '#59A673' },
+      { type: 'sticker', stickerType: 'clover', x: 0.12, y: 0.05, size: 46 },
+      { type: 'sticker', stickerType: 'clover', x: 0.88, y: 0.05, size: 46 },
+      { type: 'sticker', stickerType: 'star-twinkle', x: 0.5, y: 0.89, size: 34 },
+      { type: 'sticker', stickerType: 'clover', x: 0.08, y: 0.92, size: 38 },
+      { type: 'sticker', stickerType: 'bow-cream', x: 0.92, y: 0.92, size: 40 },
     ],
   },
   {
@@ -212,9 +233,11 @@ export const STRIP_TEMPLATES = [
     subHeader: 'COZY PASTEL BOOTH',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '🐰', x: 0.12, y: 0.05, size: 24 },
-      { type: 'text', text: '🌸', x: 0.88, y: 0.05, size: 20 },
-      { type: 'text', text: '♡', x: 0.5, y: 0.89, size: 20, color: '#937BC2' },
+      { type: 'sticker', stickerType: 'bunny', x: 0.12, y: 0.05, size: 46 },
+      { type: 'sticker', stickerType: 'cat-paw', x: 0.88, y: 0.05, size: 42 },
+      { type: 'sticker', stickerType: 'bow-pink', x: 0.5, y: 0.89, size: 42 },
+      { type: 'sticker', stickerType: 'sakura', x: 0.08, y: 0.92, size: 36 },
+      { type: 'sticker', stickerType: 'bunny', x: 0.92, y: 0.92, size: 40 },
     ],
   },
 
@@ -231,10 +254,11 @@ export const STRIP_TEMPLATES = [
     subHeader: 'SNAP • SMILE • COLLECT',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '⚡', x: 0.09, y: 0.045, size: 22 },
-      { type: 'text', text: '💖', x: 0.91, y: 0.045, size: 22 },
-      { type: 'text', text: '✌️', x: 0.08, y: 0.91, size: 22 },
-      { type: 'text', text: '★', x: 0.92, y: 0.91, size: 22, color: '#E07558' },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.1, y: 0.05, size: 44, color: '#E07558' },
+      { type: 'sticker', stickerType: 'heart-sparkle', x: 0.9, y: 0.05, size: 42 },
+      { type: 'sticker', stickerType: 'smiley', x: 0.08, y: 0.92, size: 38 },
+      { type: 'sticker', stickerType: 'butterfly', x: 0.92, y: 0.92, size: 40 },
+      { type: 'sticker', stickerType: 'badge-love', x: 0.5, y: 0.89, size: 44 },
     ],
   },
   {
@@ -249,9 +273,9 @@ export const STRIP_TEMPLATES = [
     subHeader: 'SKETCHED WITH LOVE',
     font: 'serif',
     decorations: [
-      { type: 'text', text: '〰️', x: 0.1, y: 0.05, size: 20 },
-      { type: 'text', text: '★', x: 0.9, y: 0.05, size: 22 },
-      { type: 'text', text: '☺', x: 0.5, y: 0.89, size: 22 },
+      { type: 'sticker', stickerType: 'smiley', x: 0.1, y: 0.05, size: 38 },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.9, y: 0.05, size: 38 },
+      { type: 'sticker', stickerType: 'badge-besties', x: 0.5, y: 0.89, size: 42 },
     ],
   },
   {
@@ -266,9 +290,11 @@ export const STRIP_TEMPLATES = [
     subHeader: 'BEST TIMES TOGETHER',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '✨', x: 0.1, y: 0.045, size: 22 },
-      { type: 'text', text: '🎈', x: 0.9, y: 0.045, size: 24 },
-      { type: 'text', text: '⭐', x: 0.5, y: 0.89, size: 22, color: '#E0A02E' },
+      { type: 'sticker', stickerType: 'star-twinkle', x: 0.1, y: 0.045, size: 40 },
+      { type: 'sticker', stickerType: 'heart-sparkle', x: 0.9, y: 0.045, size: 40 },
+      { type: 'sticker', stickerType: 'badge-besties', x: 0.5, y: 0.89, size: 44 },
+      { type: 'sticker', stickerType: 'smiley', x: 0.08, y: 0.92, size: 36 },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.92, y: 0.92, size: 38, color: '#8C52AC' },
     ],
   },
   {
@@ -283,8 +309,9 @@ export const STRIP_TEMPLATES = [
     subHeader: 'ISSUE NO. 01 • STUDIO',
     font: 'sans',
     decorations: [
-      { type: 'text', text: 'BOOM!', x: 0.12, y: 0.05, size: 14, font: 'bold 15px Arial', color: '#E63946' },
-      { type: 'text', text: '✦', x: 0.9, y: 0.05, size: 22, color: '#151515' },
+      { type: 'text', text: 'BOOM!', x: 0.12, y: 0.05, size: 16, font: '900 16px Impact, Arial', color: '#E63946' },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.9, y: 0.05, size: 40, color: '#151515' },
+      { type: 'sticker', stickerType: 'badge-love', x: 0.5, y: 0.89, size: 44, color: '#E63946' },
     ],
   },
   {
@@ -299,9 +326,11 @@ export const STRIP_TEMPLATES = [
     subHeader: 'GOOD VIBES ONLY',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '✿', x: 0.1, y: 0.05, size: 22 },
-      { type: 'text', text: '✦', x: 0.9, y: 0.05, size: 22 },
-      { type: 'text', text: '♡', x: 0.5, y: 0.89, size: 20 },
+      { type: 'sticker', stickerType: 'sakura', x: 0.1, y: 0.05, size: 38 },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.9, y: 0.05, size: 38 },
+      { type: 'sticker', stickerType: 'heart-pastel', x: 0.5, y: 0.89, size: 36 },
+      { type: 'sticker', stickerType: 'butterfly', x: 0.08, y: 0.92, size: 38 },
+      { type: 'sticker', stickerType: 'smiley', x: 0.92, y: 0.92, size: 36 },
     ],
   },
 
@@ -319,6 +348,7 @@ export const STRIP_TEMPLATES = [
     font: 'sans',
     decorations: [
       { type: 'film-marks' },
+      { type: 'sticker', stickerType: 'badge-memories', x: 0.5, y: 0.89, size: 42, color: '#D87A38' },
     ],
   },
   {
@@ -334,6 +364,7 @@ export const STRIP_TEMPLATES = [
     font: 'sans',
     decorations: [
       { type: 'timestamp-digital', color: '#FF7A29' },
+      { type: 'sticker', stickerType: 'badge-kstyle', x: 0.5, y: 0.89, size: 40, color: '#E8A35D' },
     ],
   },
   {
@@ -349,6 +380,7 @@ export const STRIP_TEMPLATES = [
     font: 'serif',
     decorations: [
       { type: 'timestamp-analog', color: '#B05930' },
+      { type: 'sticker', stickerType: 'badge-memories', x: 0.5, y: 0.89, size: 42, color: '#B05930' },
     ],
   },
   {
@@ -362,7 +394,9 @@ export const STRIP_TEMPLATES = [
     header: 'PHOTO BOOTH 2000',
     subHeader: 'AUTOMATIC PORTRAIT KIOSK',
     font: 'sans',
-    decorations: [],
+    decorations: [
+      { type: 'sticker', stickerType: 'badge-besties', x: 0.5, y: 0.89, size: 42, color: '#A290B8' },
+    ],
   },
   {
     id: 'vintage-cream',
@@ -375,7 +409,9 @@ export const STRIP_TEMPLATES = [
     header: 'VINTAGE PHOTOBOOTH',
     subHeader: 'CLASSIC SEPIA TONE',
     font: 'serif',
-    decorations: [],
+    decorations: [
+      { type: 'sticker', stickerType: 'badge-memories', x: 0.5, y: 0.89, size: 40, color: '#91795E' },
+    ],
   },
   {
     id: 'old-camera-black',
@@ -388,7 +424,9 @@ export const STRIP_TEMPLATES = [
     header: 'CAMERA NO. 4',
     subHeader: 'SILVER GELATIN PRINT',
     font: 'sans',
-    decorations: [],
+    decorations: [
+      { type: 'sticker', stickerType: 'badge-kstyle', x: 0.5, y: 0.89, size: 42, color: '#8E8C96' },
+    ],
   },
 
   // Y2K
@@ -399,14 +437,16 @@ export const STRIP_TEMPLATES = [
     background: ['#E9E1FA', '#D7CCF2'],
     textColor: '#392C59',
     accentColor: '#8055CD',
-    border: 'white-thin',
+    border: 'silver',
     header: '✧ CYBER LAVENDER ✧',
     subHeader: 'DIGITAL ARCHIVE 2003',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '✦', x: 0.1, y: 0.05, size: 24, color: '#8055CD' },
-      { type: 'text', text: '★', x: 0.9, y: 0.05, size: 24, color: '#8055CD' },
-      { type: 'text', text: '✧', x: 0.5, y: 0.89, size: 22, color: '#8055CD' },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.1, y: 0.05, size: 44, color: '#8055CD' },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.9, y: 0.05, size: 44, color: '#8055CD' },
+      { type: 'sticker', stickerType: 'heart-chrome', x: 0.5, y: 0.89, size: 40 },
+      { type: 'sticker', stickerType: 'butterfly', x: 0.08, y: 0.92, size: 40 },
+      { type: 'sticker', stickerType: 'star-twinkle', x: 0.92, y: 0.92, size: 36 },
     ],
   },
   {
@@ -421,9 +461,11 @@ export const STRIP_TEMPLATES = [
     subHeader: 'METALLIC SERIES',
     font: 'serif',
     decorations: [
-      { type: 'text', text: '🩶', x: 0.1, y: 0.05, size: 22 },
-      { type: 'text', text: '✦', x: 0.9, y: 0.05, size: 24, color: '#636E84' },
-      { type: 'text', text: '⛓️', x: 0.5, y: 0.89, size: 20 },
+      { type: 'sticker', stickerType: 'heart-chrome', x: 0.12, y: 0.05, size: 46 },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.88, y: 0.05, size: 42, color: '#636E84' },
+      { type: 'sticker', stickerType: 'heart-chrome', x: 0.5, y: 0.89, size: 42 },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.08, y: 0.92, size: 36, color: '#636E84' },
+      { type: 'sticker', stickerType: 'heart-chrome', x: 0.92, y: 0.92, size: 38 },
     ],
   },
   {
@@ -438,8 +480,9 @@ export const STRIP_TEMPLATES = [
     subHeader: 'SD CARD • 2048x1536',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '🔋', x: 0.1, y: 0.05, size: 20 },
-      { type: 'text', text: 'HQ', x: 0.9, y: 0.05, size: 14, font: 'bold 14px monospace', color: '#3F7BB3' },
+      { type: 'sticker', stickerType: 'rec-badge', x: 0.1, y: 0.05, size: 28 },
+      { type: 'text', text: 'HQ', x: 0.9, y: 0.05, size: 16, font: 'bold 16px monospace', color: '#3F7BB3' },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.5, y: 0.89, size: 36, color: '#3F7BB3' },
     ],
   },
   {
@@ -454,9 +497,9 @@ export const STRIP_TEMPLATES = [
     subHeader: '8-BIT MEMORY CARD',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '👾', x: 0.1, y: 0.05, size: 22 },
-      { type: 'text', text: '💖', x: 0.9, y: 0.05, size: 22 },
-      { type: 'text', text: '■', x: 0.5, y: 0.89, size: 18, color: '#BC467A' },
+      { type: 'sticker', stickerType: 'heart-pixel', x: 0.1, y: 0.05, size: 44, color: '#BC467A' },
+      { type: 'sticker', stickerType: 'heart-pixel', x: 0.9, y: 0.05, size: 44, color: '#BC467A' },
+      { type: 'sticker', stickerType: 'heart-pixel', x: 0.5, y: 0.89, size: 38, color: '#BC467A' },
     ],
   },
   {
@@ -471,8 +514,9 @@ export const STRIP_TEMPLATES = [
     subHeader: 'Y2K OPTICAL DISC',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '❄️', x: 0.1, y: 0.05, size: 22 },
-      { type: 'text', text: '✦', x: 0.9, y: 0.05, size: 24, color: '#4577B5' },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.1, y: 0.05, size: 44, color: '#4577B5' },
+      { type: 'sticker', stickerType: 'butterfly', x: 0.9, y: 0.05, size: 42 },
+      { type: 'sticker', stickerType: 'star-twinkle', x: 0.5, y: 0.89, size: 38 },
     ],
   },
   {
@@ -487,9 +531,9 @@ export const STRIP_TEMPLATES = [
     subHeader: 'METALLIC FLASH',
     font: 'sans',
     decorations: [
-      { type: 'text', text: '★', x: 0.1, y: 0.05, size: 24, color: '#6E7584' },
-      { type: 'text', text: '★', x: 0.9, y: 0.05, size: 24, color: '#6E7584' },
-      { type: 'text', text: '✦', x: 0.5, y: 0.89, size: 22, color: '#6E7584' },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.1, y: 0.05, size: 44, color: '#6E7584' },
+      { type: 'sticker', stickerType: 'star-4point', x: 0.9, y: 0.05, size: 44, color: '#6E7584' },
+      { type: 'sticker', stickerType: 'heart-chrome', x: 0.5, y: 0.89, size: 40 },
     ],
   },
 ];
@@ -516,9 +560,13 @@ export const DEFAULT_EFFECT = {
 export const DEFAULT_STYLE = {
   template: 'lavender-minimal',
   frame: 'lavender-minimal',
-  layout: 'vertical',
+  layout: '4-vertical',
+  poseCount: 4,
   sticker: '',
-  header: 'SNAPBOOTH',
+  userStickers: [],
+  customBg: '',
+  borderStyle: 'default',
+  header: '',
   text: '',
   location: 'Bandung, West Java',
   showLocation: true,
@@ -535,8 +583,6 @@ export const CAPTURE_PACES = [
 
 export const DEFAULT_PACE = 'normal';
 
-// A single RGB matrix powers the SVG live preview and Canvas pixel processing.
-// No CanvasRenderingContext2D.filter dependency (including on mobile Safari).
 export function colorMatrix(filterId, adjust = DEFAULT_ADJUST) {
   const p = FILTERS.find(f => f.id === filterId) || FILTERS[0];
   const b = p.brightness * (1 + (adjust?.brightness || 0) / 100) * (adjust?.glow ? 1.025 : 1);

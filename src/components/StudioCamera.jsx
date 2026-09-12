@@ -20,6 +20,7 @@ export default function StudioCamera({
   onMirrorResult,
   mirrorAll,
   onMirrorAll,
+  onPoseCountChange,
 }) {
   const [settings, setSettings] = useState(false);
   const [grid, setGrid] = useState(false);
@@ -180,7 +181,7 @@ export default function StudioCamera({
             onChange={onMirrorResult}
           />
           <Toggle
-            label="Mirror All Photos (Apply orientation to all 4 poses)"
+            label="Mirror All Photos (Apply orientation to all poses)"
             checked={mirrorAll}
             onChange={onMirrorAll}
           />
@@ -216,6 +217,27 @@ export default function StudioCamera({
         </div>
       )}
 
+      {/* Grid / Pose Count Selector (1, 2, 4, 6) */}
+      <div className="pose-count-bar">
+        <span>Session Layout:</span>
+        <div className="pose-count-group" role="radiogroup" aria-label="Pose Count">
+          {[1, 2, 4, 6].map(count => (
+            <button
+              key={count}
+              type="button"
+              className={`pose-count-pill ${capture.poseCount === count ? 'active' : ''}`}
+              disabled={capture.busy}
+              onClick={() => {
+                capture.setPoseCount(count);
+                if (onPoseCountChange) onPoseCountChange(count);
+              }}
+            >
+              {count} {count === 1 ? 'Foto' : 'Cut'}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="filter-heading">
         <span>Find your tone</span>
         <span>{FILTERS.length} studio presets</span>
@@ -235,14 +257,14 @@ export default function StudioCamera({
             onClick={() => onStart(retake !== null ? 'retake' : 'auto')}
           >
             <Camera size={19} />
-            {retake !== null ? `Retake Pose ${retake + 1}` : 'Start 4-Cut Session'}
+            {retake !== null ? `Retake Pose ${retake + 1}` : `Start ${capture.poseCount}-Cut Session`}
           </button>
         )}
         <div className="shutter-secondary">
           <span>
             {retake !== null
               ? 'Replace just this pose'
-              : `${capture.pace === 'relaxed' ? 'Relaxed' : capture.pace === 'fast' ? 'Fast' : 'Normal'} pace • 4 poses`}
+              : `${capture.poseCount} poses • ${capture.pace === 'relaxed' ? 'Relaxed' : capture.pace === 'fast' ? 'Fast' : 'Normal'} pace`}
           </span>
           {retake !== null ? (
             <button className="text-button" disabled={capture.busy} onClick={onCancelRetake}>

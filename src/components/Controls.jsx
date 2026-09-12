@@ -1,15 +1,17 @@
 import React, { useEffect, useId, useState } from 'react';
 import {
   Check,
-  Eye,
   FlipHorizontal,
+  Grid,
   Heart,
   Palette,
+  Plus,
   RotateCcw,
   Shield,
   Sliders,
   Sparkles,
   Stamp,
+  Trash2,
   Wand2,
 } from 'lucide-react';
 import {
@@ -17,10 +19,12 @@ import {
   DEFAULT_EFFECT,
   EFFECTS,
   FILTERS,
+  LAYOUT_OPTIONS,
   STRIP_TEMPLATES,
   TEMPLATE_CATEGORIES,
   colorMatrix,
 } from '../lib/presets.js';
+import { STICKER_CATALOG } from '../lib/stickers.js';
 
 export function FilterDefinitions({ filter, adjust, id }) {
   return (
@@ -129,7 +133,7 @@ export function TemplateSelector({ value, onChange, onToggleFavorite, favorites 
                 >
                   <div className="template-mini-strip">
                     <span className="template-mini-header" style={{ color: t.textColor }}>
-                      ★
+                      {t.decorations?.[0]?.text || '★'}
                     </span>
                     <div className="template-mini-photos">
                       {[1, 2, 3].map(n => (
@@ -144,7 +148,7 @@ export function TemplateSelector({ value, onChange, onToggleFavorite, favorites 
                       ))}
                     </div>
                     <span className="template-mini-footer" style={{ color: t.accentColor || t.textColor }}>
-                      {t.decorations?.[0]?.text || '✦'}
+                      {t.decorations?.[1]?.text || '✦'}
                     </span>
                   </div>
 
@@ -267,7 +271,7 @@ export function EffectsSelector({ value, onChange }) {
         })}
       </div>
 
-      {/* Intensity Slider (Shown when an effect other than 'none' is chosen) */}
+      {/* Intensity Slider */}
       {effectId !== 'none' && (
         <div className="effect-controls-box">
           <label className="slider-label">
@@ -285,7 +289,7 @@ export function EffectsSelector({ value, onChange }) {
             />
           </label>
 
-          {/* Privacy Box Positioning Controls if Privacy Effect is selected */}
+          {/* Privacy Box Positioning Controls */}
           {['pixel-face', 'blur-face', 'black-bar'].includes(effectId) && (
             <div className="privacy-box-controls">
               <span className="label-small">Censor Position Target:</span>
@@ -383,6 +387,7 @@ export function Customizer({
   onResetAll,
 }) {
   const [activeTab, setActiveTab] = useState('templates');
+  const [stickerCategory, setStickerCategory] = useState('All');
   const [favorites, setFavorites] = useState(() => {
     try {
       const stored = localStorage.getItem('snapbooth_template_favorites');
@@ -406,11 +411,31 @@ export function Customizer({
 
   const tabs = [
     { id: 'templates', label: 'Templates', icon: Palette },
+    { id: 'layout', label: 'Grid / Layout', icon: Grid },
+    { id: 'stickers', label: 'Stickers', icon: Stamp },
     { id: 'filters', label: 'Filters', icon: Sparkles },
     { id: 'effects', label: 'Effects', icon: Wand2 },
-    { id: 'adjust', label: 'Adjust', icon: Sliders },
-    { id: 'stamps', label: 'Stamps', icon: Stamp },
+    { id: 'adjust', label: 'Adjust & Theme', icon: Sliders },
   ];
+
+  const filteredStickers = STICKER_CATALOG.filter(s => {
+    if (stickerCategory === 'All') return true;
+    return s.category === stickerCategory;
+  });
+
+  const userStickers = Array.isArray(style.userStickers) ? style.userStickers : [];
+
+  function addSticker(stk) {
+    if (userStickers.length >= 6) return;
+    update('userStickers', [...userStickers, { id: stk.id, type: stk.type, name: stk.name }]);
+  }
+
+  function removeSticker(idx) {
+    update(
+      'userStickers',
+      userStickers.filter((_, i) => i !== idx)
+    );
+  }
 
   return (
     <div className="customizer">
@@ -427,7 +452,7 @@ export function Customizer({
               className={`edit-tab-button ${isActive ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
             >
-              <Icon size={16} />
+              <Icon size={15} />
               <span>{tab.label}</span>
             </button>
           );
@@ -440,27 +465,14 @@ export function Customizer({
           <div className="tab-pane">
             <div className="tab-pane-header">
               <h3>Choose Strip Template</h3>
-              <p>Setiap strip memiliki identitas visual, ornamen estetis, dan tipografi unik.</p>
+              <p>Klik template untuk langsung mengubah tema, warna, dan hiasan strip!</p>
             </div>
 
-            <label className="field">
-              Layout Style
-              <select
-                aria-label="Layout"
-                value={style.layout}
-                onChange={e => update('layout', e.target.value)}
-              >
-                <option value="vertical">Classic Vertical (4-Cut Strip)</option>
-                <option value="grid">2 × 2 Grid</option>
-                <option value="wide">Wide 4-Cut</option>
-              </select>
-            </label>
-
+            {/* Atomic update of both template and frame */}
             <TemplateSelector
               value={style.template || style.frame}
               onChange={tplId => {
-                update('template', tplId);
-                update('frame', tplId);
+                onChange({ ...style, template: tplId, frame: tplId, customBg: '' });
               }}
               favorites={favorites}
               onToggleFavorite={toggleFavorite}
@@ -468,7 +480,114 @@ export function Customizer({
           </div>
         )}
 
-        {/* TAB 2: FILTERS */}
+        {/* TAB 2: GRID & LAYOUT */}
+        {activeTab === 'layout' && (
+          <div className="tab-pane">
+            <div className="tab-pane-header">
+              <h3>Strip Grid & Pose Count</h3>
+              <p>Pilih jumlah foto dan tata letak grid (1, 2, 4, atau 6 foto).</p>
+            </div>
+
+            <div className="layout-card-grid">
+              {LAYOUT_OPTIONS.map(opt => {
+                const isSelected = style.layout === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className={`layout-card ${isSelected ? 'selected' : ''}`}
+                    onClick={() => {
+                      onChange({
+                        ...style,
+                        layout: opt.id,
+                        poseCount: opt.poses,
+                      });
+                    }}
+                  >
+                    <div className="layout-card-icon">
+                      <Grid size={18} />
+                      <span className="layout-poses-badge">{opt.poses} Foto</span>
+                    </div>
+                    <strong>{opt.name}</strong>
+                    <small>{opt.label}</small>
+                    {isSelected && (
+                      <span className="layout-selected-check">
+                        <Check size={14} />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: GRAPHIC STICKERS */}
+        {activeTab === 'stickers' && (
+          <div className="tab-pane">
+            <div className="tab-pane-header">
+              <h3>Graphic Stickers Library</h3>
+              <p>Pita, hati pastel, Y2K stars, bunga, kelinci, dan stiker khas photobooth.</p>
+            </div>
+
+            {/* Active User Stickers */}
+            {userStickers.length > 0 && (
+              <div className="active-stickers-box">
+                <span className="label-small">Stiker Terpasang ({userStickers.length}/6):</span>
+                <div className="active-sticker-tags">
+                  {userStickers.map((stk, i) => (
+                    <span key={i} className="sticker-tag">
+                      <span>{stk.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeSticker(i)}
+                        title="Hapus stiker"
+                        aria-label="Remove sticker"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sticker Categories */}
+            <div className="category-pill-rail">
+              {['All', 'Cute', 'Hearts', 'Y2K', 'Stamps'].map(cat => (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`category-pill ${stickerCategory === cat ? 'active' : ''}`}
+                  onClick={() => setStickerCategory(cat)}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Sticker Catalog Grid */}
+            <div className="sticker-catalog-grid">
+              {filteredStickers.map(stk => (
+                <button
+                  key={stk.id}
+                  type="button"
+                  className="sticker-catalog-item"
+                  onClick={() => addSticker(stk)}
+                  title={`Tambah ${stk.name}`}
+                >
+                  <span className="sticker-emoji">{stk.emoji}</span>
+                  <span className="sticker-name">{stk.name}</span>
+                  <span className="sticker-add-plus">
+                    <Plus size={12} />
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: FILTERS */}
         {activeTab === 'filters' && (
           <div className="tab-pane">
             <div className="tab-pane-header">
@@ -479,7 +598,7 @@ export function Customizer({
           </div>
         )}
 
-        {/* TAB 3: CREATIVE EFFECTS */}
+        {/* TAB 5: CREATIVE EFFECTS */}
         {activeTab === 'effects' && (
           <div className="tab-pane">
             <div className="tab-pane-header">
@@ -490,15 +609,67 @@ export function Customizer({
           </div>
         )}
 
-        {/* TAB 4: ADJUST & MIRROR */}
+        {/* TAB 6: ADJUST & THEME */}
         {activeTab === 'adjust' && (
           <div className="tab-pane">
             <div className="tab-pane-header">
-              <h3>Fine Tuning & Mirror</h3>
-              <p>Sesuaikan orientasi mirror dan kecerahan foto.</p>
+              <h3>Theme Customizer & Fine Tuning</h3>
+              <p>Sesuaikan orientasi mirror, background, border, dan detail teks.</p>
             </div>
 
-            <div className="mirror-settings-group">
+            {/* Background Color Swatches */}
+            <div className="theme-section">
+              <span className="label-small">Custom Strip Background:</span>
+              <div className="color-swatches">
+                {[
+                  { name: 'Default Template', value: '' },
+                  { name: 'Pure White', value: '#FFFFFF' },
+                  { name: 'Midnight', value: '#141318' },
+                  { name: 'Baby Pink', value: '#FDF1F4' },
+                  { name: 'Baby Blue', value: '#EDF4FB' },
+                  { name: 'Lavender', value: '#ECE6F4' },
+                  { name: 'Butter Cream', value: '#FAF6EC' },
+                  { name: 'Mint Green', value: '#F1F7F3' },
+                ].map(sw => (
+                  <button
+                    key={sw.name}
+                    type="button"
+                    className={`color-swatch-circle ${style.customBg === sw.value ? 'selected' : ''}`}
+                    style={{ background: sw.value || 'linear-gradient(45deg, #ccc 25%, #fff 25%, #fff 75%, #ccc 75%)' }}
+                    title={sw.name}
+                    onClick={() => update('customBg', sw.value)}
+                  >
+                    {style.customBg === sw.value && <Check size={12} color={sw.value === '#141318' ? '#FFF' : '#333'} />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Photo Border Styles */}
+            <div className="theme-section" style={{ marginTop: '12px' }}>
+              <span className="label-small">Photo Border Style:</span>
+              <div className="border-style-group">
+                {[
+                  { id: 'default', label: 'Template Default' },
+                  { id: 'polaroid', label: 'Polaroid White' },
+                  { id: 'film', label: '35mm Film' },
+                  { id: 'comic', label: 'Comic Bold' },
+                  { id: 'silver', label: 'Silver Y2K' },
+                  { id: 'pixel', label: 'Pixel Art' },
+                ].map(b => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    className={`border-pill ${(style.borderStyle || 'default') === b.id ? 'active' : ''}`}
+                    onClick={() => update('borderStyle', b.id)}
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mirror-settings-group" style={{ marginTop: '14px' }}>
               <Toggle
                 label="Mirror Result (Final photo & photostrip mirrored)"
                 checked={mirrorResult}
@@ -509,12 +680,50 @@ export function Customizer({
                 checked={mirrorAll}
                 onChange={onMirrorAll}
               />
-              <p className="hint">
-                Perubahan mirror diterapkan langsung ke Canvas tanpa mengambil foto ulang.
-              </p>
             </div>
 
             <AdjustPanel value={adjust} onChange={onAdjust} />
+
+            <div className="theme-section" style={{ marginTop: '15px' }}>
+              <Toggle
+                label="Show Location Label"
+                checked={style.showLocation}
+                onChange={v => update('showLocation', v)}
+              />
+              {style.showLocation && (
+                <label className="field">
+                  Location label
+                  <input
+                    maxLength={48}
+                    value={style.location}
+                    onChange={e => update('location', e.target.value)}
+                  />
+                </label>
+              )}
+              <Toggle label="Show Date" checked={style.showDate} onChange={v => update('showDate', v)} />
+              <Toggle label="Show Time" checked={style.showTime} onChange={v => update('showTime', v)} />
+              <Toggle label="Show Brand" checked={style.showBrand} onChange={v => update('showBrand', v)} />
+
+              <label className="field" style={{ marginTop: '10px' }}>
+                Custom Header Title
+                <input
+                  maxLength={24}
+                  placeholder="Kosongkan untuk menggunakan header template"
+                  value={style.header}
+                  onChange={e => update('header', e.target.value)}
+                />
+              </label>
+              <label className="field">
+                Keepsake Message
+                <textarea
+                  rows={2}
+                  maxLength={60}
+                  placeholder="A day to remember."
+                  value={style.text}
+                  onChange={e => update('text', e.target.value)}
+                />
+              </label>
+            </div>
 
             <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid var(--line)' }}>
               <button
@@ -527,88 +736,6 @@ export function Customizer({
                 Reset Filter, Efek & Adjust ke Default
               </button>
             </div>
-          </div>
-        )}
-
-        {/* TAB 5: STAMPS & WORDS */}
-        {activeTab === 'stamps' && (
-          <div className="tab-pane">
-            <div className="tab-pane-header">
-              <h3>Stickers & Details</h3>
-              <p>Tambahkan sentuhan personal pada bagian bawah photostrip.</p>
-            </div>
-
-            <div className="sticker-list">
-              {[
-                ['', 'No Sticker'],
-                ['♡', 'Heart'],
-                ['★', 'Star'],
-                ['✦', 'Sparkle'],
-                ['🎀', 'Ribbon'],
-                ['🌸', 'Blossom'],
-                ['🍀', 'Clover'],
-                ['🍓', 'Berry'],
-                ['🐰', 'Bunny'],
-              ].map(([sticker, label]) => (
-                <button
-                  key={label}
-                  type="button"
-                  className={style.sticker === sticker ? 'selected' : ''}
-                  aria-label={label}
-                  aria-pressed={style.sticker === sticker}
-                  title={label}
-                  onClick={() => update('sticker', sticker)}
-                >
-                  {sticker || 'None'}
-                </button>
-              ))}
-            </div>
-
-            <Toggle
-              label="Location"
-              checked={style.showLocation}
-              onChange={v => update('showLocation', v)}
-            />
-            {style.showLocation && (
-              <label className="field">
-                Location label
-                <input
-                  maxLength={48}
-                  value={style.location}
-                  onChange={e => update('location', e.target.value)}
-                />
-                <small>Label lokasi tercetak di bawah strip.</small>
-              </label>
-            )}
-
-            <Toggle label="Date" checked={style.showDate} onChange={v => update('showDate', v)} />
-            <Toggle label="Time" checked={style.showTime} onChange={v => update('showTime', v)} />
-            <Toggle
-              label="Brand stamp"
-              checked={style.showBrand}
-              onChange={v => update('showBrand', v)}
-            />
-
-            <label className="field" style={{ marginTop: '15px' }}>
-              Custom Header Title
-              <input
-                maxLength={24}
-                placeholder="Kosongkan untuk menggunakan header template"
-                value={style.header}
-                onChange={e => update('header', e.target.value)}
-              />
-            </label>
-            <label className="field">
-              Keepsake Message
-              <textarea
-                rows={2}
-                maxLength={60}
-                placeholder="A day to remember."
-                value={style.text}
-                onChange={e => update('text', e.target.value)}
-              />
-              <small>{style.text.length} / 60 characters</small>
-            </label>
           </div>
         )}
       </div>

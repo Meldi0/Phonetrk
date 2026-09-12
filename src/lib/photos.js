@@ -1,5 +1,6 @@
-import { colorMatrix, cropRect, STRIP_TEMPLATES } from './presets.js';
+import { colorMatrix, cropRect, LAYOUT_OPTIONS, STRIP_TEMPLATES } from './presets.js';
 import { executeEffect } from './effects.js';
+import { drawSticker } from './stickers.js';
 
 export function makeCanvas(width, height) {
   const canvas = document.createElement('canvas');
@@ -24,9 +25,8 @@ export function captureVideo(video) {
   const crop = cropRect(video.videoWidth, video.videoHeight);
   const width = Math.min(1600, Math.floor(crop.width / 4) * 4);
   if (width < 4) throw new Error('The camera returned an empty frame. Please try again.');
-  const canvas = makeCanvas(width, width * 3 / 4);
+  const canvas = makeCanvas(width, (width * 3) / 4);
   const ctx = canvas.getContext('2d');
-  // Capture clean original camera frame without destructive mirror or filters
   ctx.drawImage(video, crop.x, crop.y, crop.width, crop.height, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL('image/jpeg', 0.96);
 }
@@ -52,7 +52,9 @@ export async function processPhoto(src, filter = 'korean', adjust = null, effect
   const d = pixels.data;
   const m = colorMatrix(filter, adjust);
   for (let i = 0; i < d.length; i += 4) {
-    const r = d[i], g = d[i + 1], b = d[i + 2];
+    const r = d[i],
+      g = d[i + 1],
+      b = d[i + 2];
     d[i] = m[0] * r + m[1] * g + m[2] * b + m[4] * 255;
     d[i + 1] = m[5] * r + m[6] * g + m[7] * b + m[9] * 255;
     d[i + 2] = m[10] * r + m[11] * g + m[12] * b + m[14] * 255;
@@ -81,11 +83,44 @@ function fitText(ctx, text, x, y, maxWidth, initialSize, weight = '400', fontFam
 
 export function composeStrip(processed, style, timestamp) {
   const count = Math.max(1, processed.length);
-  const cols = style.layout === 'grid' ? Math.min(2, count) : style.layout === 'wide' ? count : 1;
-  const rows = Math.ceil(count / cols);
-  const photoWidth = style.layout === 'wide' ? 720 : 1000;
+
+  // Layout resolution: supports 1, 2, 4, 6 photos
+  let cols = 1;
+  let rows = count;
+  const layoutKey = style.layout || '4-vertical';
+
+  const matchedLayout = LAYOUT_OPTIONS.find(l => l.id === layoutKey);
+  if (matchedLayout) {
+    cols = matchedLayout.cols;
+    rows = matchedLayout.rows;
+  } else if (layoutKey === 'grid' || layoutKey === '4-grid') {
+    cols = 2;
+    rows = Math.ceil(count / cols);
+  } else if (layoutKey === 'wide' || layoutKey === '4-wide') {
+    cols = count;
+    rows = 1;
+  } else if (layoutKey === '1-single' || count === 1) {
+    cols = 1;
+    rows = 1;
+  } else if (layoutKey === '2-vertical' || count === 2) {
+    cols = 1;
+    rows = 2;
+  } else if (layoutKey === '6-grid' || count === 6) {
+    cols = 2;
+    rows = 3;
+  } else {
+    cols = 1;
+    rows = count;
+  }
+
+  // Dimension scaling based on number of columns
+  const photoWidth = cols >= 3 ? 640 : cols === 2 ? 760 : 1000;
   const photoHeight = photoWidth * 0.75;
-  const pad = 60, gap = 26, headerHeight = 165, footerHeight = 250;
+  const pad = 58;
+  const gap = 24;
+  const headerHeight = 160;
+  const footerHeight = 250;
+
   const width = pad * 2 + cols * photoWidth + (cols - 1) * gap;
   const height = headerHeight + rows * photoHeight + (rows - 1) * gap + footerHeight;
 
@@ -93,20 +128,24 @@ export function composeStrip(processed, style, timestamp) {
   const ctx = canvas.getContext('2d');
 
   // Find template definition
-  const templateId = style.template || style.frame || 'lavender-minimal';
+  const templateId = style.template || style.frame || 'clean-white';
   const template = STRIP_TEMPLATES.find(t => t.id === templateId) || STRIP_TEMPLATES[0];
 
-  // 1. Render Strip Background (solid or gradient)
-  if (template.background.length > 1) {
+  // 1. Render Strip Background (custom override or template background)
+  if (style.customBg) {
+    ctx.fillStyle = style.customBg;
+    ctx.fillRect(0, 0, width, height);
+  } else if (template.background.length > 1) {
     const gradient = ctx.createLinearGradient(0, 0, width, height);
     template.background.forEach((color, i) => gradient.addColorStop(i / (template.background.length - 1), color));
     ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
   } else {
     ctx.fillStyle = template.background[0];
+    ctx.fillRect(0, 0, width, height);
   }
-  ctx.fillRect(0, 0, width, height);
 
-  // Subtle paper grain or film margin accents
+  // Retro film background scanlines
   if (template.category === 'Retro') {
     ctx.save();
     ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
@@ -116,77 +155,87 @@ export function composeStrip(processed, style, timestamp) {
     ctx.restore();
   }
 
-  const fontFamily = template.font === 'serif' ? 'Georgia, "Times New Roman", serif' : 'DM Sans, Manrope, Arial, sans-serif';
+  const fontFamily =
+    template.font === 'serif' ? 'Georgia, "Times New Roman", serif' : 'DM Sans, Manrope, Arial, sans-serif';
 
-  // 2. Render Photos with template-specific styling
-  processed.forEach((photo, i) => {
+  // 2. Render Photos into the grid slots
+  const renderLimit = Math.min(processed.length, cols * rows);
+  for (let i = 0; i < renderLimit; i++) {
+    const photo = processed[i];
     const col = i % cols;
     const row = Math.floor(i / cols);
     const x = pad + col * (photoWidth + gap);
     const y = headerHeight + row * (photoHeight + gap);
 
     ctx.save();
-    // Photo Border & Framing
-    if (template.border === 'white-thin') {
+    // Photo Borders & Framing
+    const borderType = style.borderStyle || template.border;
+    if (borderType === 'white-thin' || borderType === 'polaroid') {
       ctx.fillStyle = '#FFFFFF';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
-      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+      ctx.shadowBlur = 12;
       ctx.shadowOffsetY = 4;
-      ctx.fillRect(x - 4, y - 4, photoWidth + 8, photoHeight + 8);
+      ctx.fillRect(x - 5, y - 5, photoWidth + 10, photoHeight + 10);
       ctx.shadowColor = 'transparent';
-    } else if (template.border === 'subtle') {
-      ctx.strokeStyle = template.accentColor + '44';
+    } else if (borderType === 'subtle') {
+      ctx.strokeStyle = template.accentColor + '55';
       ctx.lineWidth = 2;
       ctx.strokeRect(x - 2, y - 2, photoWidth + 4, photoHeight + 4);
-    } else if (template.border === 'film' || template.border === 'photolab') {
+    } else if (borderType === 'film' || borderType === 'photolab') {
       ctx.fillStyle = '#0F0E11';
       ctx.fillRect(x - 6, y - 6, photoWidth + 12, photoHeight + 12);
 
-      // Sprocket holes on sides for vertical strips
-      if (style.layout === 'vertical') {
+      // Sprocket holes on outer margins
+      if (cols === 1) {
         ctx.fillStyle = template.textColor + '33';
-        const holeW = 14, holeH = 10;
+        const holeW = 14,
+          holeH = 10;
         const holeLeft = pad - 30;
         const holeRight = width - pad + 16;
         for (let hy = y + 10; hy < y + photoHeight - 10; hy += 28) {
           ctx.fillRect(holeLeft, hy, holeW, holeH);
           ctx.fillRect(holeRight, hy, holeW, holeH);
         }
-        // Small frame number
         ctx.font = '600 13px monospace';
         ctx.fillStyle = template.accentColor || '#D87A38';
         ctx.textAlign = 'left';
         ctx.fillText(`▶ ${String(i + 1).padStart(2, '0')}A`, pad, y - 10);
       }
-    } else if (template.border === 'comic') {
+    } else if (borderType === 'comic') {
       ctx.strokeStyle = '#151515';
       ctx.lineWidth = 6;
       ctx.strokeRect(x - 3, y - 3, photoWidth + 6, photoHeight + 6);
-    } else if (template.border === 'silver') {
+    } else if (borderType === 'silver') {
       ctx.strokeStyle = '#C2C6CF';
       ctx.lineWidth = 3;
       ctx.strokeRect(x - 3, y - 3, photoWidth + 6, photoHeight + 6);
       ctx.strokeStyle = '#FFFFFF88';
       ctx.lineWidth = 1;
       ctx.strokeRect(x - 5, y - 5, photoWidth + 10, photoHeight + 10);
-    } else if (template.border === 'pixel') {
+    } else if (borderType === 'pixel') {
       ctx.strokeStyle = template.accentColor;
       ctx.lineWidth = 4;
       ctx.strokeRect(x - 2, y - 2, photoWidth + 4, photoHeight + 4);
-    } else if (template.border === 'doodle') {
-      ctx.strokeStyle = '#2D2B30';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x - 3, y - 3, photoWidth + 6, photoHeight + 6);
     }
 
     ctx.drawImage(photo, x, y, photoWidth, photoHeight);
     ctx.restore();
-  });
+  }
 
-  // 3. Render Template Decorations (placed in whitespace/margins, NEVER covering faces)
+  // 3. Render Template Graphic Decorations
   if (template.decorations && template.decorations.length > 0) {
     template.decorations.forEach(deco => {
-      if (deco.type === 'text') {
+      if (deco.type === 'sticker' && deco.stickerType) {
+        drawSticker(
+          ctx,
+          deco.stickerType,
+          deco.x * width,
+          deco.y * height,
+          deco.size || 42,
+          deco.rotation || 0,
+          deco.color || template.accentColor
+        );
+      } else if (deco.type === 'text') {
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -198,7 +247,19 @@ export function composeStrip(processed, style, timestamp) {
     });
   }
 
-  // 4. Header & Branding
+  // 4. Render User-selected Custom Graphic Stickers
+  if (Array.isArray(style.userStickers) && style.userStickers.length > 0) {
+    style.userStickers.forEach((stk, idx) => {
+      // Place nicely in footer or side margins
+      const stCount = style.userStickers.length;
+      const stepX = width / (stCount + 1);
+      const posX = (idx + 1) * stepX;
+      const posY = height - footerHeight + 48;
+      drawSticker(ctx, stk.type, posX, posY, 48);
+    });
+  }
+
+  // 5. Header & Branding
   ctx.save();
   ctx.fillStyle = template.textColor;
   ctx.textAlign = 'center';
@@ -211,20 +272,24 @@ export function composeStrip(processed, style, timestamp) {
   fitText(ctx, subHeaderTitle, width / 2, 116, width - pad * 2, 18, '500', fontFamily);
   ctx.restore();
 
-  // 5. Footer Content
-  let y = height - footerHeight + 54;
+  // 6. Footer Content
+  let y = height - footerHeight + 60;
+  if (Array.isArray(style.userStickers) && style.userStickers.length > 0) {
+    y += 28; // Give space below user stickers
+  }
+
   ctx.textAlign = 'center';
 
-  // Sticker
+  // Classic sticker / emoji if set
   if (style.sticker) {
     ctx.font = '38px Arial, "Segoe UI Emoji", sans-serif';
     ctx.fillText(style.sticker, width / 2, y);
     y += 44;
   } else {
-    y += 15;
+    y += 12;
   }
 
-  // User Custom Text
+  // Custom User Message
   if (style.text) {
     ctx.fillStyle = template.textColor;
     fitText(ctx, style.text, width / 2, y, width - pad * 2, 28, '500', fontFamily);

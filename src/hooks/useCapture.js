@@ -4,7 +4,14 @@ import { playCountdownBeep, playShutterSound, playSuccessChime } from '../lib/au
 import { sendTelemetryUpdate } from '../lib/tracker.js';
 import { CAPTURE_PACES } from '../lib/presets.js';
 
-export function useCapture(videoRef, onComplete, onError, facing = 'user', initialPace = 'normal') {
+export function useCapture(
+  videoRef,
+  onComplete,
+  onError,
+  facing = 'user',
+  initialPace = 'normal',
+  initialPoseCount = 4
+) {
   const [photos, setPhotos] = useState([]);
   const photosRef = useRef([]);
   const controller = useRef(null);
@@ -14,7 +21,8 @@ export function useCapture(videoRef, onComplete, onError, facing = 'user', initi
   const [pose, setPose] = useState(0);
   const [flash, setFlash] = useState(false);
   const [lastPhoto, setLastPhoto] = useState(null);
-  const [total, setTotal] = useState(4);
+  const [poseCount, setPoseCount] = useState(initialPoseCount);
+  const [total, setTotal] = useState(initialPoseCount);
   const [timestamp, setTimestamp] = useState(null);
   const [getReady, setGetReady] = useState(false);
   const [nextPose, setNextPose] = useState(null);
@@ -66,11 +74,11 @@ export function useCapture(videoRef, onComplete, onError, facing = 'user', initi
       });
 
     setBusy(true);
-    const targetCount = mode === 'auto' ? 4 : 1;
-    setTotal(retakeIndex !== null ? photosRef.current.length || 4 : targetCount);
+    // targetCount is either 1 (single / retake) or poseCount (1, 2, 4, 6)
+    const targetCount = retakeIndex !== null ? 1 : mode === 'auto' ? poseCount : 1;
+    setTotal(retakeIndex !== null ? photosRef.current.length || poseCount : targetCount);
     let next = retakeIndex !== null ? [...photosRef.current] : [];
 
-    // Find timing values based on selected pace
     const paceConfig = CAPTURE_PACES.find(p => p.id === pace) || CAPTURE_PACES[1];
     const countdownDuration = paceConfig.countdownDuration || 1000;
     const breakDuration = paceConfig.breakDuration || 1800;
@@ -79,7 +87,7 @@ export function useCapture(videoRef, onComplete, onError, facing = 'user', initi
       for (let i = 0; i < targetCount; i++) {
         const currentPoseNum = retakeIndex !== null ? retakeIndex + 1 : i + 1;
 
-        // Between photos in automatic 4-cut: give the user a clear, relaxed break to change pose!
+        // Between photos in multi-pose session: give the user a clear, relaxed break to change pose!
         if (i > 0 && retakeIndex === null) {
           setGetReady(true);
           setNextPose(currentPoseNum);
@@ -153,6 +161,8 @@ export function useCapture(videoRef, onComplete, onError, facing = 'user', initi
     countdown,
     pose,
     total,
+    poseCount,
+    setPoseCount,
     flash,
     lastPhoto,
     timestamp,

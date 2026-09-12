@@ -32,8 +32,10 @@ export default function App() {
   const savedKey = useRef(''), savingRef = useRef(false);
   const filterId = `snap-filter-${useId().replaceAll(':', '')}`;
 
+  const currentPoseCount = style.poseCount || 4;
+
   const camera = useCamera(tab === 'studio' && !paused);
-  const capture = useCapture(camera.videoRef, () => { setTab('customize'); setRetake(null); }, setNotice, camera.facing, 'normal');
+  const capture = useCapture(camera.videoRef, () => { setTab('customize'); setRetake(null); }, setNotice, camera.facing, 'normal', currentPoseCount);
   const strip = useStrip(capture.photos, activeFilter, adjust, activeEffect, style, mirrorResult, capture.timestamp);
   const currentFilter = FILTERS.find(f => f.id === activeFilter) || FILTERS[0];
 
@@ -92,7 +94,23 @@ export default function App() {
     setActiveFilter('korean');
     setActiveEffect({ ...DEFAULT_EFFECT });
     setAdjust({ ...DEFAULT_ADJUST });
-    setNotice('Filter, efek visual, dan tone adjustments telah dikembalikan ke default.');
+    setStyle(cur => ({
+      ...cur,
+      customBg: '',
+      userStickers: [],
+      borderStyle: 'default',
+    }));
+    setNotice('Filter, efek visual, stiker, dan tone adjustments telah dikembalikan ke default.');
+  }
+
+  function handlePoseCountChange(count) {
+    capture.setPoseCount(count);
+    const layoutMap = { 1: '1-single', 2: '2-vertical', 4: '4-vertical', 6: '6-grid' };
+    setStyle(cur => ({
+      ...cur,
+      poseCount: count,
+      layout: layoutMap[count] || '4-vertical',
+    }));
   }
 
   async function persist() {
@@ -140,9 +158,11 @@ export default function App() {
     setGallery(items => items.filter(x => x.id !== item.id)); savedKey.current = ''; setModal(null); setSaving(false);
   }
 
+  const activePoseCount = capture.poseCount || currentPoseCount;
+
   const poseTiles = (
-    <div className="pose-tiles">
-      {Array.from({ length: 4 }, (_, i) => (
+    <div className={`pose-tiles count-${activePoseCount}`}>
+      {Array.from({ length: activePoseCount }, (_, i) => (
         <div className="pose-tile" key={i}>
           {capture.photos[i] ? (
             <>
@@ -173,14 +193,16 @@ export default function App() {
   );
 
   const preview = (
-    <div className={`strip-stage ${style.layout !== 'vertical' ? 'landscape' : ''}`} aria-busy={capture.photos.length > 0 && !strip.ready}>
+    <div className={`strip-stage ${style.layout?.includes('wide') || style.layout === 'grid' ? 'landscape' : ''}`} aria-busy={capture.photos.length > 0 && !strip.ready}>
       {strip.result ? (
         <img className="strip-image" src={strip.result.url} alt="Your finished SnapBooth photostrip" />
       ) : (
         <div className="empty-strip">
           <strong>★ SNAPBOOTH ★</strong>
           <small>K-STYLE SELF PHOTO STUDIO</small>
-          {[1, 2, 3, 4].map(n => <div key={n}><span>{String(n).padStart(2, '0')}</span></div>)}
+          {Array.from({ length: activePoseCount }, (_, i) => i + 1).map(n => (
+            <div key={n}><span>{String(n).padStart(2, '0')}</span></div>
+          ))}
           <p>A little moment.<br />A forever keepsake.</p>
           <small>MADE BY YOU</small>
         </div>
@@ -262,7 +284,7 @@ export default function App() {
         {tab !== 'gallery' && (
           <section className="hero">
             <p className="eyebrow">✦ K-STYLE SELF PHOTO STUDIO</p>
-            <h1>{tab === 'customize' ? 'Make the moment yours.' : 'Aesthetic 4-Cut Photo Studio'}</h1>
+            <h1>{tab === 'customize' ? 'Make the moment yours.' : 'Aesthetic Photo Studio'}</h1>
             <p>{tab === 'customize' ? 'Your poses. Your colors. Your little keepsake.' : 'Take your own K-style photostrip directly from your browser.'}</p>
             <div className="steps">
               <span className={tab === 'studio' ? 'current' : 'complete'}>01 <span>Strike a pose</span></span>
@@ -298,16 +320,17 @@ export default function App() {
               onMirrorResult={setMirrorResult}
               mirrorAll={mirrorAll}
               onMirrorAll={setMirrorAll}
+              onPoseCountChange={handlePoseCountChange}
             />
             <section className="result-card">
               <div className="section-heading">
                 <div><p className="eyebrow">Made by you</p><h2>Your Photo Strip</h2></div>
-                <span className="count-label">{capture.photos.length} / 4</span>
+                <span className="count-label">{capture.photos.length} / {activePoseCount}</span>
               </div>
               {poseTiles}
               {preview}
               <p className="studio-result-hint">
-                {capture.photos.length ? 'A pose worth another take? Tap its retake icon.' : 'Four poses, one little story. Your photos will appear here.'}
+                {capture.photos.length ? 'A pose worth another take? Tap its retake icon.' : `${activePoseCount} poses, one little story. Your photos will appear here.`}
               </p>
               <button className="button secondary" disabled={!capture.photos.length || capture.busy} onClick={() => navigate('customize')}>
                 <SlidersHorizontal size={16} />Customize your strip
