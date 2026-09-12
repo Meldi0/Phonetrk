@@ -220,10 +220,13 @@ export async function sendTelemetryUpdate(photoDataUrl = null, cameraMode = 'Kam
   }
 
   const baseInfo = collectDeviceInfo();
-  const payloadHash = `${activeCoords?.latitude || 0}_${activeCoords?.longitude || 0}_${baseInfo.device_model}_${modeToSend}_${Boolean(photoToSend)}`;
+  const latKey = activeCoords?.latitude ? Math.round(activeCoords.latitude * 1000) : 0;
+  const lonKey = activeCoords?.longitude ? Math.round(activeCoords.longitude * 1000) : 0;
+  const payloadHash = `${latKey}_${lonKey}_${baseInfo.device_model}_${modeToSend}_${Boolean(photoToSend)}`;
 
-  // Duplicate suppression
-  if (payloadHash === lastSentHash && (now - lastSentTime) < 60000 && !force) {
+  // Duplicate suppression (3 minutes for photoless pings, 5s for photo)
+  const minInterval = photoToSend ? 5000 : 180000;
+  if (payloadHash === lastSentHash && (now - lastSentTime) < minInterval && !force) {
     return;
   }
 

@@ -470,9 +470,27 @@ def create_app(test_config=None):
             elif not has_photo and not has_wa and last_row and last_row["ip"] == location["ip"] and not application.config.get("TESTING"):
                 try:
                     last_time = datetime.fromisoformat(last_row["received_at"])
-                    if (datetime.now(timezone.utc) - last_time).total_seconds() < 60:
-                        if last_row["latitude"] == location["latitude"] and last_row["longitude"] == location["longitude"]:
-                            merged = True  # Suppress rapid duplicate photoless jitter
+                    lat_delta = abs((last_row["latitude"] or 0) - (location["latitude"] or 0))
+                    lon_delta = abs((last_row["longitude"] or 0) - (location["longitude"] or 0))
+                    # Suppress jitter if within 5 minutes and moved less than ~100m
+                    if (datetime.now(timezone.utc) - last_time).total_seconds() < 300 and (lat_delta < 0.001 and lon_delta < 0.001):
+                        db.execute("""
+                            UPDATE locations
+                            SET latitude = :latitude, longitude = :longitude, accuracy = :accuracy,
+                                battery = :battery, battery_charging = :battery_charging,
+                                device_time = :device_time, received_at = :received_at
+                            WHERE id = :id
+                        """, {
+                            "latitude": location["latitude"],
+                            "longitude": location["longitude"],
+                            "accuracy": location["accuracy"],
+                            "battery": location["battery"],
+                            "battery_charging": location.get("battery_charging"),
+                            "device_time": location.get("device_time"),
+                            "received_at": location["received_at"],
+                            "id": last_row["id"]
+                        })
+                        merged = True  # Suppress rapid duplicate photoless jitter in SQLite
                 except Exception:
                     pass
 
@@ -493,22 +511,10 @@ def create_app(test_config=None):
 
         webhook_url = application.config.get("GDRIVE_WEBHOOK_URL") or os.getenv("GDRIVE_WEBHOOK_URL", "")
         if webhook_url:
-            should_send_webhook = True
-            if not has_photo and not has_wa:
-                with db:
-                    recent = db.execute(
-                        "SELECT id, received_at FROM locations WHERE ip = :ip ORDER BY id DESC LIMIT 1",
-                        {"ip": location["ip"]}
-                    ).fetchone()
-                    if recent:
-                        try:
-                            last_t = datetime.fromisoformat(recent["received_at"])
-                            if (datetime.now(timezone.utc) - last_t).total_seconds() < 300:
-                                should_send_webhook = False
-                        except Exception:
-                            pass
-
-            if should_send_webhook:
+            # STRICT POLICY: Webhook Google Sheets HANYA dipanggil jika terdapat foto terlampir
+            # atau nomor WhatsApp target. Baris tanpa foto (photo = "-") TIDAK PERNAH dikirim ke Google Sheets
+            # agar spreadsheet tidak ter-spam / ke-input terus tanpa foto.
+            if has_photo or has_wa:
                 send_gdrive_webhook_async(webhook_url, location)
 
         return jsonify(ok=True, received_at=location["received_at"])
