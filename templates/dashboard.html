@@ -56,6 +56,21 @@
         <div class="metric-card"><dt>Akurasi Sinyal</dt><dd id="accuracy">—</dd></div>
         <div class="metric-card"><dt>Daya Baterai</dt><dd id="battery">—</dd></div>
       </dl>
+
+      <!-- Spesifikasi Lengkap Perangkat Target -->
+      <div class="device-spec-card" style="background: var(--surface-2, rgba(255,255,255,0.7)); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 12px; margin: 12px 0;">
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">
+          📱 INFORMASI PERANGKAT & JARINGAN
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.82rem;">
+          <div><span style="color: var(--text-muted, #64748b);">Perangkat:</span> <strong id="specDevice" style="display: block; word-break: break-word;">—</strong></div>
+          <div><span style="color: var(--text-muted, #64748b);">Browser / App:</span> <strong id="specBrowser" style="display: block; word-break: break-word;">—</strong></div>
+          <div><span style="color: var(--text-muted, #64748b);">IP Publik:</span> <strong id="specIp" style="display: block; word-break: break-word;">—</strong></div>
+          <div><span style="color: var(--text-muted, #64748b);">Jaringan:</span> <strong id="specNetwork" style="display: block; word-break: break-word;">—</strong></div>
+          <div><span style="color: var(--text-muted, #64748b);">Layar HP:</span> <strong id="specScreen" style="display: block; word-break: break-word;">—</strong></div>
+          <div><span style="color: var(--text-muted, #64748b);">RAM & CPU:</span> <strong id="specHardware" style="display: block; word-break: break-word;">—</strong></div>
+        </div>
+      </div>
       
       <div class="last-sent">
         <span>Terakhir Online · Diterima Server</span>
@@ -84,7 +99,9 @@
       <table>
         <thead>
           <tr>
-            <th scope="col">Waktu Diterima</th>
+            <th scope="col">Waktu</th>
+            <th scope="col">Perangkat & OS</th>
+            <th scope="col">IP & Jaringan</th>
             <th scope="col">Latitude</th>
             <th scope="col">Longitude</th>
             <th scope="col">Akurasi</th>
@@ -93,7 +110,7 @@
           </tr>
         </thead>
         <tbody id="historyBody">
-          <tr><td colspan="6" class="empty-row">Belum ada data lokasi yang masuk.</td></tr>
+          <tr><td colspan="8" class="empty-row">Belum ada data lokasi yang masuk.</td></tr>
         </tbody>
       </table>
     </div>

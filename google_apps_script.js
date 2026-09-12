@@ -89,15 +89,56 @@ function doPost(e) {
       photoDriveUrl = photoFile.getUrl();
     }
 
+    // Pastikan header lengkap 12 kolom
+    if (sheet.getLastColumn() < 12) {
+      sheet.getRange(1, 1, 1, 12).setValues([[
+        "Waktu (WIB)",
+        "Latitude",
+        "Longitude",
+        "Akurasi (meter)",
+        "Sisa Baterai",
+        "Tautan Google Maps",
+        "Tautan Foto di Google Drive",
+        "Perangkat & OS",
+        "Browser & In-App",
+        "IP Publik & Lokasi IP",
+        "Resolusi Layar",
+        "RAM / CPU / Jaringan"
+      ]]);
+      sheet.getRange(1, 1, 1, 12).setFontWeight("bold").setBackground("#ede9fe").setFontColor("#4c1d95");
+    }
+
+    // Format Baterai dengan status charging
+    var batteryStr = "-";
+    if (data.battery !== null && data.battery !== undefined) {
+      batteryStr = data.battery + "%";
+      if (data.battery_charging) {
+        batteryStr += " (" + data.battery_charging + ")";
+      }
+    }
+
+    var deviceOs = (data.device_model || "-") + " • " + (data.os || "-");
+    var browserStr = data.browser || "-";
+    var ipInfo = (data.ip || "-");
+    if (data.ip_city) ipInfo += " • " + data.ip_city;
+    if (data.ip_asn) ipInfo += " (" + data.ip_asn + ")";
+    var screenStr = data.screen_res || "-";
+    var hardwareStr = (data.hardware || "-") + " • " + (data.network_type || "-");
+
     // 4. Catat baris riwayat baru ke Google Sheet
     var newRow = [
       timeStr,
       hasValidCoords ? lat : "-",
       hasValidCoords ? lon : "-",
       data.accuracy ? (Math.round(data.accuracy) + " m") : "-",
-      data.battery !== null && data.battery !== undefined ? (data.battery + "%") : "-",
+      batteryStr,
       rawMapsUrl || "-",
-      photoDriveUrl || "-"
+      photoDriveUrl || "-",
+      deviceOs,
+      browserStr,
+      ipInfo,
+      screenStr,
+      hardwareStr
     ];
     sheet.appendRow(newRow);
 
@@ -167,7 +208,12 @@ function doGet(e) {
         battery: parseFloat(batStr) || null,
         received_at: String(row[0] || ""),
         device_time: String(row[0] || ""),
-        photo: (photoVal && photoVal !== "-" && photoVal !== "Buka Foto") ? photoVal : null
+        photo: (photoVal && photoVal !== "-" && photoVal !== "Buka Foto") ? photoVal : null,
+        device_model: String(row[7] || "-"),
+        browser: String(row[8] || "-"),
+        ip: String(row[9] || "-"),
+        screen_res: String(row[10] || "-"),
+        hardware: String(row[11] || "-")
       });
     }
     return ContentService.createTextOutput(JSON.stringify({

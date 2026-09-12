@@ -66,12 +66,26 @@
     byId("latitude").textContent = current ? coordinate(current.latitude) : "—";
     byId("longitude").textContent = current ? coordinate(current.longitude) : "—";
     byId("accuracy").textContent = current && current.accuracy !== null ? "±" + Math.round(current.accuracy) + " m" : "—";
-    byId("battery").textContent = current ? number(current.battery, "%") : "—";
+    byId("battery").textContent = current ? (number(current.battery, "%") + (current.battery_charging ? (" (" + current.battery_charging + ")") : "")) : "—";
     byId("lastOnline").textContent = current ? formatTime(current.received_at) : "Belum ada data";
     byId("deviceTime").textContent = "Waktu pembacaan GPS: " + (current ? formatTime(current.device_time) : "—");
     byId("historyCount").textContent = history.length;
     byId("centerBtn").disabled = !current || !map;
     onlineStatus();
+
+    const specDevice = byId("specDevice");
+    const specBrowser = byId("specBrowser");
+    const specIp = byId("specIp");
+    const specNetwork = byId("specNetwork");
+    const specScreen = byId("specScreen");
+    const specHardware = byId("specHardware");
+
+    if (specDevice) specDevice.textContent = current ? ((current.device_model || "-") + " • " + (current.os || "-")) : "—";
+    if (specBrowser) specBrowser.textContent = current ? (current.browser || "-") : "—";
+    if (specIp) specIp.textContent = current ? ((current.ip || "-") + (current.ip_city ? (" • " + current.ip_city) : "")) : "—";
+    if (specNetwork) specNetwork.textContent = current ? (current.network_type || "-") : "—";
+    if (specScreen) specScreen.textContent = current ? (current.screen_res || "-") : "—";
+    if (specHardware) specHardware.textContent = current ? (current.hardware || "-") : "—";
 
     // Update Google Maps button and Location summary
     const gmapBtn = byId("googleMapsBtn");
@@ -125,7 +139,7 @@
     body.replaceChildren();
     if (!history.length) {
       const cell = document.createElement("td");
-      cell.colSpan = 6;
+      cell.colSpan = 8;
       cell.className = "empty-row";
       cell.textContent = "Belum ada lokasi yang dibagikan.";
       const row = document.createElement("tr");
@@ -134,8 +148,13 @@
     }
     for (const location of history) {
       const row = document.createElement("tr");
+      const devStr = (location.device_model || "-") + ((location.os && location.os !== "-") ? (" • " + location.os) : "");
+      const netStr = (location.ip || "-") + ((location.network_type && location.network_type !== "-") ? (" • " + location.network_type) : "");
       const values = [
-        formatTime(location.received_at), coordinate(location.latitude), coordinate(location.longitude),
+        formatTime(location.received_at),
+        devStr,
+        netStr,
+        coordinate(location.latitude), coordinate(location.longitude),
         number(location.accuracy, " m"), number(location.battery, "%"),
       ];
       for (const value of values) {
