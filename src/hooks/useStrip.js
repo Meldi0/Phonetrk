@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { canvasBlob, composeStrip, processPhoto } from '../lib/photos.js';
+import { preloadStickerAssets } from '../lib/stickers.js';
 
 export function useStrip(photos, filter, adjust, effect, style, mirrorResult = false, timestamp = null) {
   const [result, setResult] = useState(null);
@@ -59,12 +60,24 @@ export function useStrip(photos, filter, adjust, effect, style, mirrorResult = f
           cache.current = { photos, filter, adjust, effectKey, mirrorResult, processed };
         }
 
+        if (Array.isArray(style.userStickers) && style.userStickers.length > 0) {
+          await preloadStickerAssets(style.userStickers);
+          if (cancelled) return;
+        }
+
         const canvas = composeStrip(processed, style, timestamp);
         const blob = await canvasBlob(canvas);
         if (cancelled) return;
 
         const url = canvas.toDataURL ? canvas.toDataURL('image/png') : URL.createObjectURL(blob);
-        setResult({ key, url, blob, width: canvas.width, height: canvas.height, processed });
+
+        let baseUrl = url;
+        if (Array.isArray(style.userStickers) && style.userStickers.length > 0) {
+          const baseCanvas = composeStrip(processed, { ...style, userStickers: [] }, timestamp);
+          baseUrl = baseCanvas.toDataURL ? baseCanvas.toDataURL('image/png') : URL.createObjectURL(await canvasBlob(baseCanvas));
+        }
+
+        setResult({ key, url, baseUrl, blob, width: canvas.width, height: canvas.height, processed });
       } catch (err) {
         if (!cancelled) setError(err.message);
       }

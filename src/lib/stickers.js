@@ -1,319 +1,585 @@
-// High-resolution Vector & Canvas Graphic Stickers for SnapBooth
+/**
+ * SnapBooth High-Resolution Graphic & Physical Sticker System
+ * Provides 40+ transparent physical sticker assets across 6 curated collections:
+ * Fabric Patch, Botanical (Flowers), Denim / Y2K, Analog Retro, Paper Scrapbook, Cute Objects.
+ * All stickers are true transparent WebP assets with zero Unicode text emojis.
+ */
 
-export const STICKER_CATALOG = [
-  // Cute / Ribbons
-  { id: 'ribbon-pink', name: 'Pink Bow', category: 'Cute', emoji: '🎀', type: 'bow-pink' },
-  { id: 'ribbon-red', name: 'Red Satin Bow', category: 'Cute', emoji: '🎀', type: 'bow-red' },
-  { id: 'ribbon-cream', name: 'Cream Tie', category: 'Cute', emoji: '୨୧', type: 'bow-cream' },
-  { id: 'cherry-pair', name: 'Sweet Cherries', category: 'Cute', emoji: '🍒', type: 'cherry' },
-  { id: 'strawberry', name: 'Strawberry', category: 'Cute', emoji: '🍓', type: 'strawberry' },
-  { id: 'bunny-cute', name: 'Little Bunny', category: 'Cute', emoji: '🐰', type: 'bunny' },
-  { id: 'cat-paw', name: 'Cat Paw', category: 'Cute', emoji: '🐾', type: 'cat-paw' },
-  { id: 'sakura-flower', name: 'Sakura Petal', category: 'Cute', emoji: '🌸', type: 'sakura' },
-  { id: 'clover-leaf', name: 'Lucky Clover', category: 'Cute', emoji: '🍀', type: 'clover' },
-
-  // Hearts & Sparkles
-  { id: 'heart-pastel', name: 'Pastel Heart', category: 'Hearts', emoji: '💖', type: 'heart-pastel' },
-  { id: 'heart-glitter', name: 'Sparkle Heart', category: 'Hearts', emoji: '✨', type: 'heart-sparkle' },
-  { id: 'heart-chrome', name: 'Chrome Heart', category: 'Hearts', emoji: '🩶', type: 'heart-chrome' },
-  { id: 'heart-pixel', name: 'Pixel Heart', category: 'Hearts', emoji: '👾', type: 'heart-pixel' },
-
-  // Stars & Y2K
-  { id: 'star-y2k', name: 'Cyber Star', category: 'Y2K', emoji: '✦', type: 'star-4point' },
-  { id: 'star-sparkle', name: 'Twinkle Star', category: 'Y2K', emoji: '✨', type: 'star-twinkle' },
-  { id: 'butterfly-blue', name: 'Blue Butterfly', category: 'Y2K', emoji: '🦋', type: 'butterfly' },
-  { id: 'smiley-happy', name: 'Retro Smiley', category: 'Y2K', emoji: '☺', type: 'smiley' },
-  { id: 'digicam-rec', name: 'REC Dot', category: 'Y2K', emoji: '●', type: 'rec-badge' },
-
-  // Badges & Stamps
-  { id: 'badge-love', name: 'LOVE Stamp', category: 'Stamps', emoji: '♥', type: 'badge-love' },
-  { id: 'badge-besties', name: 'BESTIES', category: 'Stamps', emoji: '★', type: 'badge-besties' },
-  { id: 'badge-kstyle', name: 'K-PHOTO', category: 'Stamps', emoji: '✦', type: 'badge-kstyle' },
-  { id: 'badge-memories', name: 'MEMORIES', category: 'Stamps', emoji: '✿', type: 'badge-memories' },
+export const STICKER_CATEGORIES = [
+  'All',
+  'Favorites',
+  'Fabric',
+  'Flowers',
+  'Denim',
+  'Retro',
+  'Scrapbook',
+  'Cute',
 ];
 
-// Helper to draw clean vector shapes on Canvas context
-export function drawSticker(ctx, type, cx, cy, size = 40, rotation = 0, color = null) {
-  ctx.save();
-  ctx.translate(cx, cy);
-  if (rotation) ctx.rotate((rotation * Math.PI) / 180);
+export const STICKER_LIBRARY = [
+  // -------------------------------------------------------------
+  // COLLECTION 01: FABRIC PATCHES
+  // -------------------------------------------------------------
+  {
+    id: 'red-stitched-star',
+    name: 'Red Stitched Star',
+    category: 'Fabric',
+    src: '/stickers/fabric/red-stitched-star.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['star', 'fabric', 'stitch', 'red', 'patch'],
+  },
+  {
+    id: 'blue-stitched-star',
+    name: 'Blue Denim Star',
+    category: 'Fabric',
+    src: '/stickers/fabric/blue-stitched-star.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['star', 'fabric', 'blue', 'denim'],
+  },
+  {
+    id: 'cream-stitched-star',
+    name: 'Cream Canvas Star',
+    category: 'Fabric',
+    src: '/stickers/fabric/cream-stitched-star.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['star', 'cream', 'canvas', 'patch'],
+  },
+  {
+    id: 'black-stitched-star',
+    name: 'Noir Canvas Star',
+    category: 'Fabric',
+    src: '/stickers/fabric/black-stitched-star.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['star', 'black', 'noir', 'patch'],
+  },
+  {
+    id: 'fabric-heart',
+    name: 'Red Fabric Heart',
+    category: 'Fabric',
+    src: '/stickers/fabric/fabric-heart.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['heart', 'red', 'fabric', 'love'],
+  },
+  {
+    id: 'denim-heart',
+    name: 'Denim Pocket Heart',
+    category: 'Fabric',
+    src: '/stickers/fabric/denim-heart.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['heart', 'denim', 'blue'],
+  },
+  {
+    id: 'fabric-lightning',
+    name: 'Canvas Lightning',
+    category: 'Fabric',
+    src: '/stickers/fabric/fabric-lightning.webp',
+    defaultScale: 0.16,
+    aspectRatio: 1.0,
+    tags: ['lightning', 'yellow', 'canvas'],
+  },
+  {
+    id: 'fabric-clover',
+    name: 'Felt Clover Patch',
+    category: 'Fabric',
+    src: '/stickers/fabric/fabric-clover.webp',
+    defaultScale: 0.16,
+    aspectRatio: 1.0,
+    tags: ['clover', 'green', 'lucky'],
+  },
+  {
+    id: 'fabric-moon',
+    name: 'Gold Moon Patch',
+    category: 'Fabric',
+    src: '/stickers/fabric/fabric-moon.webp',
+    defaultScale: 0.16,
+    aspectRatio: 1.0,
+    tags: ['moon', 'gold', 'night'],
+  },
+  {
+    id: 'fabric-flower',
+    name: 'Felt Flower Patch',
+    category: 'Fabric',
+    src: '/stickers/fabric/fabric-flower.webp',
+    defaultScale: 0.17,
+    aspectRatio: 1.0,
+    tags: ['flower', 'felt', 'pink'],
+  },
 
-  const half = size / 2;
+  // -------------------------------------------------------------
+  // COLLECTION 02: BOTANICAL (FLOWERS)
+  // -------------------------------------------------------------
+  {
+    id: 'burgundy-lily',
+    name: 'Burgundy Lily',
+    category: 'Flowers',
+    src: '/stickers/botanical/burgundy-lily.webp',
+    defaultScale: 0.24,
+    aspectRatio: 1.0,
+    tags: ['lily', 'flower', 'burgundy', 'red', 'botanical'],
+  },
+  {
+    id: 'white-lily',
+    name: 'Ivory Lily',
+    category: 'Flowers',
+    src: '/stickers/botanical/white-lily.webp',
+    defaultScale: 0.24,
+    aspectRatio: 1.0,
+    tags: ['lily', 'flower', 'white', 'botanical'],
+  },
+  {
+    id: 'pink-lily',
+    name: 'Blush Pink Lily',
+    category: 'Flowers',
+    src: '/stickers/botanical/pink-lily.webp',
+    defaultScale: 0.24,
+    aspectRatio: 1.0,
+    tags: ['lily', 'pink', 'flower'],
+  },
+  {
+    id: 'daisy-flower',
+    name: 'Meadow Daisy',
+    category: 'Flowers',
+    src: '/stickers/botanical/daisy-flower.webp',
+    defaultScale: 0.20,
+    aspectRatio: 1.0,
+    tags: ['daisy', 'white', 'flower'],
+  },
+  {
+    id: 'vintage-rose',
+    name: 'Antique Crimson Rose',
+    category: 'Flowers',
+    src: '/stickers/botanical/vintage-rose.webp',
+    defaultScale: 0.21,
+    aspectRatio: 1.0,
+    tags: ['rose', 'red', 'flower'],
+  },
+  {
+    id: 'tulip-flower',
+    name: 'Scarlet Tulip',
+    category: 'Flowers',
+    src: '/stickers/botanical/tulip-flower.webp',
+    defaultScale: 0.19,
+    aspectRatio: 1.0,
+    tags: ['tulip', 'red', 'flower'],
+  },
+  {
+    id: 'babys-breath',
+    name: "Baby's Breath",
+    category: 'Flowers',
+    src: '/stickers/botanical/babys-breath.webp',
+    defaultScale: 0.22,
+    aspectRatio: 1.0,
+    tags: ['babys breath', 'white', 'flower'],
+  },
+  {
+    id: 'botanical-leaves',
+    name: 'Olive Botanical Leaves',
+    category: 'Flowers',
+    src: '/stickers/botanical/botanical-leaves.webp',
+    defaultScale: 0.22,
+    aspectRatio: 1.0,
+    tags: ['leaves', 'green', 'botanical', 'foliage'],
+  },
 
-  switch (type) {
-    case 'bow-pink':
-    case 'bow-red':
-    case 'bow-cream': {
-      const mainColor = type === 'bow-pink' ? '#F48FB1' : type === 'bow-red' ? '#E53935' : '#D7CCC8';
-      const shadowColor = type === 'bow-pink' ? '#EC407A' : type === 'bow-red' ? '#C62828' : '#BCAAA4';
+  // -------------------------------------------------------------
+  // COLLECTION 03: DENIM / Y2K
+  // -------------------------------------------------------------
+  {
+    id: 'chrome-star-3d',
+    name: '3D Chrome Star',
+    category: 'Denim',
+    src: '/stickers/denim-y2k/chrome-star-3d.webp',
+    defaultScale: 0.19,
+    aspectRatio: 1.0,
+    tags: ['chrome', 'star', '3d', 'silver', 'y2k'],
+  },
+  {
+    id: 'chrome-heart-3d',
+    name: '3D Chrome Heart',
+    category: 'Denim',
+    src: '/stickers/denim-y2k/chrome-heart-3d.webp',
+    defaultScale: 0.19,
+    aspectRatio: 1.0,
+    tags: ['chrome', 'heart', '3d', 'silver', 'y2k'],
+  },
+  {
+    id: 'chrome-sparkle',
+    name: 'Y2K Cyber Sparkle',
+    category: 'Denim',
+    src: '/stickers/denim-y2k/chrome-sparkle.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['sparkle', 'cyber', 'y2k', 'glitter'],
+  },
+  {
+    id: 'denim-star',
+    name: 'Gold Stitch Denim Star',
+    category: 'Denim',
+    src: '/stickers/denim-y2k/denim-star.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['denim', 'star', 'patch'],
+  },
+  {
+    id: 'denim-butterfly',
+    name: 'Denim Butterfly',
+    category: 'Denim',
+    src: '/stickers/denim-y2k/denim-butterfly.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['butterfly', 'denim', 'y2k'],
+  },
+  {
+    id: 'safety-pin-metal',
+    name: 'Vintage Safety Pin',
+    category: 'Denim',
+    src: '/stickers/denim-y2k/safety-pin-metal.webp',
+    defaultScale: 0.16,
+    aspectRatio: 1.0,
+    tags: ['pin', 'metal', 'safety pin', 'silver'],
+  },
+  {
+    id: 'paper-clip',
+    name: 'Silver Paper Clip',
+    category: 'Denim',
+    src: '/stickers/denim-y2k/paper-clip.webp',
+    defaultScale: 0.14,
+    aspectRatio: 1.0,
+    tags: ['clip', 'paperclip', 'metal'],
+  },
+  {
+    id: 'eight-ball',
+    name: 'Retro 8-Ball',
+    category: 'Denim',
+    src: '/stickers/denim-y2k/eight-ball.webp',
+    defaultScale: 0.17,
+    aspectRatio: 1.0,
+    tags: ['8-ball', 'pool', 'retro', 'black'],
+  },
 
-      // Left loop
-      ctx.beginPath();
-      ctx.fillStyle = mainColor;
-      ctx.moveTo(-4, 0);
-      ctx.bezierCurveTo(-half, -half * 0.8, -half * 0.9, half * 0.5, -4, 2);
-      ctx.fill();
+  // -------------------------------------------------------------
+  // COLLECTION 04: ANALOG RETRO & MUSIC
+  // -------------------------------------------------------------
+  {
+    id: 'retro-instant-camera',
+    name: 'Retro Instant Camera',
+    category: 'Retro',
+    src: '/stickers/analog/retro-instant-camera.webp',
+    defaultScale: 0.22,
+    aspectRatio: 1.0,
+    tags: ['camera', 'polaroid', 'onestep', 'analog'],
+  },
+  {
+    id: 'film-roll-35mm',
+    name: '35mm Film Canister',
+    category: 'Retro',
+    src: '/stickers/analog/film-roll-35mm.webp',
+    defaultScale: 0.19,
+    aspectRatio: 1.0,
+    tags: ['film', '35mm', 'analog', 'camera'],
+  },
+  {
+    id: 'film-negative-strip',
+    name: '35mm Film Strip',
+    category: 'Retro',
+    src: '/stickers/analog/film-negative-strip.webp',
+    defaultScale: 0.21,
+    aspectRatio: 1.0,
+    tags: ['film', 'strip', 'negative'],
+  },
+  {
+    id: 'cd-star-disc',
+    name: 'Optical CD Disc',
+    category: 'Retro',
+    src: '/stickers/analog/cd-star-disc.webp',
+    defaultScale: 0.24,
+    aspectRatio: 1.0,
+    tags: ['cd', 'disc', 'music', 'stars'],
+  },
+  {
+    id: 'music-player-bar',
+    name: 'Music Player Bar',
+    category: 'Retro',
+    src: '/stickers/analog/music-player-bar.webp',
+    defaultScale: 0.25,
+    aspectRatio: 1.0,
+    tags: ['player', 'music', 'playback', 'controls'],
+  },
+  {
+    id: 'vinyl-record-ep',
+    name: 'Vinyl Record EP',
+    category: 'Retro',
+    src: '/stickers/analog/vinyl-record-ep.webp',
+    defaultScale: 0.23,
+    aspectRatio: 1.0,
+    tags: ['vinyl', 'record', 'lp', 'music'],
+  },
+  {
+    id: 'audio-cassette',
+    name: 'Audio Cassette Tape',
+    category: 'Retro',
+    src: '/stickers/analog/audio-cassette.webp',
+    defaultScale: 0.21,
+    aspectRatio: 1.0,
+    tags: ['cassette', 'tape', 'retro', 'music'],
+  },
+  {
+    id: 'mini-polaroid-frame',
+    name: 'Mini Polaroid Frame',
+    category: 'Retro',
+    src: '/stickers/analog/mini-polaroid-frame.webp',
+    defaultScale: 0.20,
+    aspectRatio: 1.0,
+    tags: ['polaroid', 'frame', 'photo'],
+  },
+  {
+    id: 'retro-phone-handset',
+    name: 'Retro Telephone Receiver',
+    category: 'Retro',
+    src: '/stickers/analog/retro-phone-handset.webp',
+    defaultScale: 0.20,
+    aspectRatio: 1.0,
+    tags: ['phone', 'telephone', 'retro'],
+  },
 
-      // Right loop
-      ctx.beginPath();
-      ctx.moveTo(4, 0);
-      ctx.bezierCurveTo(half, -half * 0.8, half * 0.9, half * 0.5, 4, 2);
-      ctx.fill();
+  // -------------------------------------------------------------
+  // COLLECTION 05: PAPER SCRAPBOOK & EPHEMERA
+  // -------------------------------------------------------------
+  {
+    id: 'torn-paper-edge',
+    name: 'Torn Deckle Paper',
+    category: 'Scrapbook',
+    src: '/stickers/scrapbook/torn-paper-edge.webp',
+    defaultScale: 0.22,
+    aspectRatio: 1.0,
+    tags: ['paper', 'torn', 'deckle', 'scrapbook'],
+  },
+  {
+    id: 'washi-masking-tape',
+    name: 'Washi Masking Tape',
+    category: 'Scrapbook',
+    src: '/stickers/scrapbook/washi-masking-tape.webp',
+    defaultScale: 0.22,
+    aspectRatio: 1.0,
+    tags: ['tape', 'washi', 'masking tape'],
+  },
+  {
+    id: 'store-receipt-stub',
+    name: 'Store Receipt Stub',
+    category: 'Scrapbook',
+    src: '/stickers/scrapbook/store-receipt-stub.webp',
+    defaultScale: 0.20,
+    aspectRatio: 1.0,
+    tags: ['receipt', 'ticket', 'thermal', 'barcode'],
+  },
+  {
+    id: 'vintage-ticket-stub',
+    name: 'Vintage Memories Ticket',
+    category: 'Scrapbook',
+    src: '/stickers/scrapbook/vintage-ticket-stub.webp',
+    defaultScale: 0.21,
+    aspectRatio: 1.0,
+    tags: ['ticket', 'admission', 'vintage', 'memories'],
+  },
+  {
+    id: 'postal-stamp-airmail',
+    name: 'Airmail Postage Stamp',
+    category: 'Scrapbook',
+    src: '/stickers/scrapbook/postal-stamp-airmail.webp',
+    defaultScale: 0.17,
+    aspectRatio: 1.0,
+    tags: ['stamp', 'postage', 'airmail'],
+  },
+  {
+    id: 'barcode-label',
+    name: 'Scannable Barcode Label',
+    category: 'Scrapbook',
+    src: '/stickers/scrapbook/barcode-label.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['barcode', 'label', 'tag'],
+  },
+  {
+    id: 'newspaper-clipping',
+    name: 'Newspaper Headline Clip',
+    category: 'Scrapbook',
+    src: '/stickers/scrapbook/newspaper-clipping.webp',
+    defaultScale: 0.22,
+    aspectRatio: 1.0,
+    tags: ['newspaper', 'clipping', 'headline', 'newsprint'],
+  },
 
-      // Tails
-      ctx.beginPath();
-      ctx.fillStyle = shadowColor;
-      ctx.moveTo(-6, 2);
-      ctx.lineTo(-half * 0.7, half * 0.9);
-      ctx.lineTo(-half * 0.3, half * 0.7);
-      ctx.lineTo(-2, 3);
-      ctx.fill();
+  // -------------------------------------------------------------
+  // COLLECTION 06: CUTE OBJECTS & PATCHES
+  // -------------------------------------------------------------
+  {
+    id: 'fabric-bow-pink',
+    name: 'Pink Fabric Bow',
+    category: 'Cute',
+    src: '/stickers/cute/fabric-bow-pink.webp',
+    defaultScale: 0.19,
+    aspectRatio: 1.0,
+    tags: ['bow', 'pink', 'fabric', 'ribbon'],
+  },
+  {
+    id: 'satin-ribbon-red',
+    name: 'Red Satin Bow',
+    category: 'Cute',
+    src: '/stickers/cute/satin-ribbon-red.webp',
+    defaultScale: 0.19,
+    aspectRatio: 1.0,
+    tags: ['bow', 'red', 'satin', 'ribbon'],
+  },
+  {
+    id: 'embroidered-cherry',
+    name: 'Embroidered Cherries',
+    category: 'Cute',
+    src: '/stickers/cute/embroidered-cherry.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['cherry', 'cherries', 'patch'],
+  },
+  {
+    id: 'embroidered-strawberry',
+    name: 'Strawberry Patch',
+    category: 'Cute',
+    src: '/stickers/cute/embroidered-strawberry.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['strawberry', 'fruit', 'patch'],
+  },
+  {
+    id: 'cloud-patch',
+    name: 'Embroidered Cloud',
+    category: 'Cute',
+    src: '/stickers/cute/cloud-patch.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['cloud', 'sky', 'patch'],
+  },
+  {
+    id: 'bunny-patch',
+    name: 'Stitched Bunny Patch',
+    category: 'Cute',
+    src: '/stickers/cute/bunny-patch.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['bunny', 'rabbit', 'patch'],
+  },
+  {
+    id: 'bear-patch',
+    name: 'Teddy Bear Patch',
+    category: 'Cute',
+    src: '/stickers/cute/bear-patch.webp',
+    defaultScale: 0.18,
+    aspectRatio: 1.0,
+    tags: ['bear', 'teddy', 'patch'],
+  },
+];
 
-      ctx.beginPath();
-      ctx.moveTo(6, 2);
-      ctx.lineTo(half * 0.7, half * 0.9);
-      ctx.lineTo(half * 0.3, half * 0.7);
-      ctx.lineTo(2, 3);
-      ctx.fill();
+// In-memory image element cache for synchronous Canvas drawing
+const imageCache = new Map();
 
-      // Center knot
-      ctx.beginPath();
-      ctx.fillStyle = shadowColor;
-      ctx.ellipse(0, 1, half * 0.28, half * 0.24, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#FFFFFF88';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      break;
-    }
-
-    case 'heart-pastel':
-    case 'heart-sparkle':
-    case 'heart-chrome': {
-      const heartColor =
-        color || (type === 'heart-chrome' ? '#9E9E9E' : type === 'heart-sparkle' ? '#FF6B8B' : '#FFA8B8');
-
-      ctx.beginPath();
-      ctx.fillStyle = heartColor;
-      ctx.moveTo(0, half * 0.7);
-      ctx.bezierCurveTo(-half * 0.9, 0, -half * 0.8, -half * 0.75, 0, -half * 0.25);
-      ctx.bezierCurveTo(half * 0.8, -half * 0.75, half * 0.9, 0, 0, half * 0.7);
-      ctx.fill();
-
-      if (type === 'heart-chrome') {
-        // Metallic sheen
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(-half * 0.35, -half * 0.35, half * 0.2, Math.PI * 0.8, Math.PI * 1.6);
-        ctx.stroke();
-      } else {
-        // Soft white highlight
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.beginPath();
-        ctx.ellipse(-half * 0.3, -half * 0.3, half * 0.15, half * 0.08, -Math.PI / 4, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      break;
-    }
-
-    case 'heart-pixel': {
-      const p = size / 10;
-      ctx.fillStyle = color || '#F06292';
-      const matrix = [
-        [0, 1, 1, 0, 0, 1, 1, 0],
-        [1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1],
-        [0, 1, 1, 1, 1, 1, 1, 0],
-        [0, 0, 1, 1, 1, 1, 0, 0],
-        [0, 0, 0, 1, 1, 0, 0, 0],
-      ];
-      matrix.forEach((row, ry) => {
-        row.forEach((cell, rx) => {
-          if (cell) {
-            ctx.fillRect((rx - 4) * p, (ry - 3) * p, p, p);
-          }
-        });
-      });
-      break;
-    }
-
-    case 'star-4point':
-    case 'star-twinkle': {
-      ctx.fillStyle = color || '#B388FF';
-      ctx.beginPath();
-      ctx.moveTo(0, -half);
-      ctx.quadraticCurveTo(0, 0, half, 0);
-      ctx.quadraticCurveTo(0, 0, 0, half);
-      ctx.quadraticCurveTo(0, 0, -half, 0);
-      ctx.quadraticCurveTo(0, 0, 0, -half);
-      ctx.fill();
-
-      // Center bright core
-      ctx.fillStyle = '#FFFFFF';
-      ctx.beginPath();
-      ctx.arc(0, 0, half * 0.2, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    }
-
-    case 'cherry': {
-      // Stems
-      ctx.strokeStyle = '#4E7D42';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(0, -half * 0.8);
-      ctx.quadraticCurveTo(-half * 0.4, -half * 0.4, -half * 0.35, half * 0.2);
-      ctx.moveTo(0, -half * 0.8);
-      ctx.quadraticCurveTo(half * 0.3, -half * 0.3, half * 0.35, half * 0.3);
-      ctx.stroke();
-
-      // Cherries
-      ctx.fillStyle = '#D32F2F';
-      ctx.beginPath();
-      ctx.arc(-half * 0.35, half * 0.3, half * 0.36, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(half * 0.35, half * 0.4, half * 0.36, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Highlights
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.beginPath();
-      ctx.arc(-half * 0.45, half * 0.2, half * 0.1, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(half * 0.25, half * 0.3, half * 0.1, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    }
-
-    case 'strawberry': {
-      // Berry body
-      ctx.fillStyle = '#E53935';
-      ctx.beginPath();
-      ctx.moveTo(0, half * 0.8);
-      ctx.bezierCurveTo(-half * 0.9, 0, -half * 0.7, -half * 0.6, 0, -half * 0.5);
-      ctx.bezierCurveTo(half * 0.7, -half * 0.6, half * 0.9, 0, 0, half * 0.8);
-      ctx.fill();
-
-      // Seeds
-      ctx.fillStyle = '#FFF59D';
-      [
-        [-half * 0.3, -half * 0.1],
-        [0, 0],
-        [half * 0.3, -half * 0.1],
-        [-half * 0.15, half * 0.3],
-        [half * 0.15, half * 0.3],
-      ].forEach(([sx, sy]) => {
-        ctx.beginPath();
-        ctx.ellipse(sx, sy, 1.5, 2.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Leaves
-      ctx.fillStyle = '#43A047';
-      ctx.beginPath();
-      ctx.moveTo(0, -half * 0.8);
-      ctx.lineTo(-half * 0.4, -half * 0.5);
-      ctx.lineTo(-half * 0.1, -half * 0.45);
-      ctx.lineTo(0, -half * 0.4);
-      ctx.lineTo(half * 0.1, -half * 0.45);
-      ctx.lineTo(half * 0.4, -half * 0.5);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    }
-
-    case 'clover': {
-      ctx.fillStyle = '#4CAF50';
-      const leafR = half * 0.35;
-      [
-        [0, -half * 0.35],
-        [half * 0.35, 0],
-        [0, half * 0.35],
-        [-half * 0.35, 0],
-      ].forEach(([lx, ly]) => {
-        ctx.beginPath();
-        ctx.arc(lx, ly, leafR, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Stem
-      ctx.strokeStyle = '#388E3C';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.quadraticCurveTo(half * 0.2, half * 0.6, half * 0.3, half * 0.9);
-      ctx.stroke();
-      break;
-    }
-
-    case 'sakura': {
-      ctx.fillStyle = '#F8BBD0';
-      const petalDist = half * 0.4;
-      for (let a = 0; a < 5; a++) {
-        const rad = (a * 72 * Math.PI) / 180;
-        const px = Math.cos(rad) * petalDist;
-        const py = Math.sin(rad) * petalDist;
-        ctx.beginPath();
-        ctx.ellipse(px, py, half * 0.3, half * 0.18, rad, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      // Center
-      ctx.fillStyle = '#E91E63';
-      ctx.beginPath();
-      ctx.arc(0, 0, half * 0.15, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    }
-
-    case 'badge-love':
-    case 'badge-besties':
-    case 'badge-kstyle':
-    case 'badge-memories': {
-      const badgeText =
-        type === 'badge-love'
-          ? '♥ LOVE ♥'
-          : type === 'badge-besties'
-          ? '★ BESTIES ★'
-          : type === 'badge-kstyle'
-          ? '✦ K-PHOTO ✦'
-          : 'MEMORIES';
-
-      const badgeW = size * 1.8;
-      const badgeH = size * 0.6;
-      ctx.fillStyle = color || '#30293D';
-      if (ctx.roundRect) {
-        ctx.beginPath();
-        ctx.roundRect(-badgeW / 2, -badgeH / 2, badgeW, badgeH, 6);
-        ctx.fill();
-      } else {
-        ctx.fillRect(-badgeW / 2, -badgeH / 2, badgeW, badgeH);
-      }
-
-      ctx.strokeStyle = '#FFFFFF55';
-      ctx.lineWidth = 1;
-      if (ctx.roundRect) {
-        ctx.stroke();
-      }
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = `bold ${Math.round(size * 0.28)}px 'DM Sans', sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(badgeText, 0, 1);
-      break;
-    }
-
-    default:
-      // Fallback: draw as clean emoji text
-      ctx.font = `${Math.round(size * 0.8)}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(color || '★', 0, 0);
-      break;
+/**
+ * Preload and return HTMLImageElement from asset URL
+ */
+export function getStickerImage(src) {
+  if (imageCache.has(src)) {
+    return imageCache.get(src);
   }
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = src;
+  imageCache.set(src, img);
+  return img;
+}
 
-  ctx.restore();
+/**
+ * Ensures all sticker assets used in an export are loaded before rendering
+ */
+export async function preloadStickerAssets(stickers) {
+  const promises = stickers.map(stk => {
+    const item = STICKER_LIBRARY.find(s => s.id === (stk.stickerId || stk.id || stk.type));
+    if (!item) return Promise.resolve(null);
+    return new Promise(resolve => {
+      if (imageCache.has(item.src)) {
+        const cached = imageCache.get(item.src);
+        if (cached.complete) return resolve(cached);
+      }
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        imageCache.set(item.src, img);
+        resolve(img);
+      };
+      img.onerror = () => resolve(null);
+      img.src = item.src;
+    });
+  });
+  return Promise.all(promises);
+}
+
+/**
+ * Render placed user stickers on Canvas with normalized math
+ */
+export function renderPlacedStickers(ctx, userStickers, canvasWidth, canvasHeight) {
+  if (!Array.isArray(userStickers) || userStickers.length === 0) return;
+
+  // Sort by zIndex
+  const sorted = [...userStickers].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+
+  for (const stk of sorted) {
+    const asset = STICKER_LIBRARY.find(s => s.id === (stk.stickerId || stk.id || stk.type));
+    if (!asset) continue;
+
+    const img = getStickerImage(asset.src);
+    if (!img || !img.complete || img.naturalWidth === 0) {
+      continue;
+    }
+
+    // Normalized coordinates to absolute canvas pixels
+    const cx = stk.x * canvasWidth;
+    const cy = stk.y * canvasHeight;
+    const targetW = (stk.scale || asset.defaultScale || 0.18) * canvasWidth;
+    const targetH = targetW * (asset.aspectRatio || 1.0);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    if (stk.rotation) {
+      ctx.rotate((stk.rotation * Math.PI) / 180);
+    }
+
+    if (stk.flipX) {
+      ctx.scale(-1, 1);
+    }
+
+    ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
+    ctx.restore();
+  }
+}
+
+/**
+ * Backward compatibility helper for legacy code
+ */
+export const STICKER_CATALOG = STICKER_LIBRARY;
+export function drawSticker(ctx, type, cx, cy, size = 40, rotation = 0, color = null) {
+  const asset = STICKER_LIBRARY.find(s => s.id === type || s.id.includes(type));
+  if (asset) {
+    const img = getStickerImage(asset.src);
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      if (rotation) ctx.rotate((rotation * Math.PI) / 180);
+      ctx.drawImage(img, -size / 2, -size / 2, size, size);
+      ctx.restore();
+      return;
+    }
+  }
 }

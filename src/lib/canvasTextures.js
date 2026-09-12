@@ -1070,3 +1070,132 @@ export function drawPolaroidFrame(ctx, x, y, width, height, chinHeight = 60, opt
 
   ctx.restore();
 }
+
+/**
+ * Draws vintage newspaper masthead inspired by New York Times reference
+ */
+export function drawNewspaperHeader(ctx, width, title = 'The Daily Chronicle', subtitle = "All the Memories That's Fit to Print", dateStr = 'Saturday, February 23, 2026') {
+  ctx.save();
+  // Double top rule
+  ctx.strokeStyle = '#18181A';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(35, 45);
+  ctx.lineTo(width - 35, 45);
+  ctx.stroke();
+
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(35, 50);
+  ctx.lineTo(width - 35, 50);
+  ctx.stroke();
+
+  // Left ear motto
+  ctx.font = 'italic 11px Georgia, serif';
+  ctx.fillStyle = '#222226';
+  ctx.textAlign = 'left';
+  ctx.fillText(subtitle, 40, 72);
+
+  // Right ear edition
+  ctx.textAlign = 'right';
+  ctx.font = 'bold 11px Georgia, serif';
+  ctx.fillText('SPECIAL EDITION ★', width - 40, 72);
+
+  // Main Masthead Title
+  ctx.textAlign = 'center';
+  ctx.font = '900 48px "Playfair Display", "Times New Roman", Georgia, serif';
+  ctx.fillText(title, width / 2, 125);
+
+  // Bottom dateline bar between double rules
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(35, 145);
+  ctx.lineTo(width - 35, 145);
+  ctx.moveTo(35, 165);
+  ctx.lineTo(width - 35, 165);
+  ctx.stroke();
+
+  ctx.font = '11px "Courier New", monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('VOL. CXXIV ... No. 4,812', 40, 158);
+  ctx.textAlign = 'center';
+  ctx.fillText(dateStr, width / 2, 158);
+  ctx.textAlign = 'right';
+  ctx.fillText('PRICE $2.50', width - 40, 158);
+
+  ctx.restore();
+}
+
+/**
+ * Draws a torn deckle-edge newspaper clipping photo frame
+ */
+export function drawTornNewspaperFrame(ctx, x, y, width, height, headline = 'BREAKING MEMORY') {
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Soft drop shadow
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 6;
+
+  // Aged newsprint clipping background
+  ctx.fillStyle = '#FAF7EE';
+  ctx.fillRect(-width / 2 - 16, -height / 2 - 32, width + 32, height + 56);
+  ctx.shadowColor = 'transparent';
+
+  // Headline on clipping
+  ctx.fillStyle = '#111';
+  ctx.font = 'bold 13px Georgia, serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(headline.toUpperCase(), -width / 2 - 10, -height / 2 - 14);
+
+  // Column rule and article filler lines
+  ctx.lineWidth = 0.8;
+  ctx.strokeStyle = '#666';
+  ctx.beginPath();
+  ctx.moveTo(-width / 2 - 12, height / 2 + 8);
+  ctx.lineTo(width / 2 + 12, height / 2 + 8);
+  ctx.stroke();
+
+  ctx.fillStyle = '#444';
+  ctx.font = '8px "Times New Roman", serif';
+  ctx.fillText('Yesterday, amid joyful smiles and unforgettable light, memorable poses were captured.', -width / 2 - 10, height / 2 + 18);
+
+  ctx.restore();
+}
+
+/**
+ * Draws retro music player widget inspired by media reference
+ */
+export function drawMusicPlayerCard(ctx, x, y, width, height, title = 'For You Memories') {
+  ctx.save();
+  ctx.translate(x, y);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+  ctx.shadowBlur = 18;
+  ctx.shadowOffsetY = 8;
+
+  // Dark card
+  ctx.fillStyle = '#141418';
+  if (ctx.roundRect) {
+    ctx.beginPath();
+    ctx.roundRect(-width / 2, -height / 2, width, height, 18);
+    ctx.fill();
+  } else {
+    ctx.fillRect(-width / 2, -height / 2, width, height);
+  }
+  ctx.shadowColor = 'transparent';
+
+  // White header
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 16px "DM Sans", sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(title, -width / 2 + 24, -height / 2 + 32);
+
+  ctx.fillStyle = '#8E8E93';
+  ctx.font = '12px "DM Sans", sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('See All', width / 2 - 24, -height / 2 + 32);
+
+  ctx.restore();
+}

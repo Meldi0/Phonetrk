@@ -8,6 +8,7 @@ import { makeCanvas } from './photos.js';
 import { ARTISTIC_TEMPLATES } from './artisticTemplates.js';
 import { drawPolaroidFrame, drawStitches } from './canvasTextures.js';
 import { STRIP_TEMPLATES } from './presets.js';
+import { renderPlacedStickers } from './stickers.js';
 
 /**
  * Fits an image into a destination rectangle using object-fit: cover
@@ -168,6 +169,11 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
   // 4. Render Foreground Material, Stamps, Typography & Decorations
   if (tpl.renderForeground) {
     tpl.renderForeground(ctx, canvas, style, timestamp);
+  }
+
+  // 5. Render Placed User Stickers (Ordered by zIndex)
+  if (Array.isArray(style.userStickers) && style.userStickers.length > 0) {
+    renderPlacedStickers(ctx, style.userStickers, canvasWidth, canvasHeight);
   }
 
   return canvas;

@@ -2,6 +2,6 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   base: '/',
-  publicDir: false,
+  publicDir: 'public',
   build: { outDir: 'dist/snapbooth' },
 });

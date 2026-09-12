@@ -11,11 +11,7 @@ export default defineConfig({
     permissions: ['camera'],
     viewport: { width: 1440, height: 1000 },
     launchOptions: {
-      args: [
-        '--use-fake-ui-for-media-stream',
-        '--use-fake-device-for-media-stream',
-        '--autoplay-policy=no-user-gesture-required',
-      ],
+      args: ['--use-fake-ui-for-media-stream', '--autoplay-policy=no-user-gesture-required'],
     },
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',

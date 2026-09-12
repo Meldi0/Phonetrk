@@ -30,6 +30,9 @@ import {
   drawSafetyPin,
   drawStitches,
   drawVinylRecord,
+  drawNewspaperHeader,
+  drawTornNewspaperFrame,
+  drawMusicPlayerCard,
 } from './canvasTextures.js';
 
 export const ARTISTIC_TEMPLATES = [
@@ -750,6 +753,248 @@ export const ARTISTIC_TEMPLATES = [
       ctx.fillStyle = '#9C9084';
       ctx.font = '13px "DM Sans", sans-serif';
       ctx.fillText(date.toDateString().toUpperCase(), width / 2, height - 85);
+      ctx.restore();
+    },
+  },
+
+  // ==========================================
+  // VERSION 1: CLEAN WHITESPACE MINIMAL
+  // ==========================================
+  {
+    id: 'version-1-clean',
+    name: 'Version 1: Clean Minimal',
+    category: 'Minimal',
+    description: 'Generous whitespace with ultra-clean frames, leaving spacious room for user stickers',
+    background: ['#FAF9F6'],
+    textColor: '#1A1A1E',
+    recommendedPoses: 4,
+    defaultFilter: 'clean',
+    canvas: { width: 900, height: 2100 },
+    photoSlots: [
+      { id: 1, x: 130, y: 160, width: 640, height: 380, borderRadius: 2, frameStyle: 'white-thin' },
+      { id: 2, x: 130, y: 580, width: 640, height: 380, borderRadius: 2, frameStyle: 'white-thin' },
+      { id: 3, x: 130, y: 1000, width: 640, height: 380, borderRadius: 2, frameStyle: 'white-thin' },
+      { id: 4, x: 130, y: 1420, width: 640, height: 380, borderRadius: 2, frameStyle: 'white-thin' },
+    ],
+    renderBackground(ctx, canvas) {
+      const { width, height } = canvas;
+      ctx.fillStyle = '#FAF9F6';
+      ctx.fillRect(0, 0, width, height);
+      // Delicate perimeter pencil border
+      ctx.strokeStyle = '#E8E5DD';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(30, 30, width - 60, height - 60);
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width, height } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#1A1A1E';
+      ctx.font = '500 24px "DM Sans", sans-serif';
+      ctx.letterSpacing = '6px';
+      ctx.fillText(style.header || 'STUDIO MEMORIES', width / 2, height - 150);
+      ctx.font = '300 13px "Courier New", monospace';
+      ctx.fillStyle = '#888892';
+      ctx.fillText(date.toISOString().split('T')[0].replace(/-/g, ' . ') + '  •  NO. 01', width / 2, height - 110);
+      ctx.restore();
+    },
+  },
+
+  // ==========================================
+  // VERSION 2: BALANCED SCRAPBOOK
+  // ==========================================
+  {
+    id: 'version-2-balanced',
+    name: 'Version 2: Balanced Scrapbook',
+    category: 'Scrapbook',
+    description: 'Layered paper cards, subtle kraft textures, and dedicated negative space for stickers',
+    background: ['#F5EFE4'],
+    textColor: '#2D2824',
+    recommendedPoses: 3,
+    defaultFilter: 'warmth',
+    canvas: { width: 900, height: 2100 },
+    photoSlots: [
+      { id: 1, x: 110, y: 170, width: 680, height: 440, borderRadius: 4, frameStyle: 'white-thin' },
+      { id: 2, x: 110, y: 650, width: 680, height: 440, borderRadius: 4, frameStyle: 'white-thin' },
+      { id: 3, x: 110, y: 1130, width: 680, height: 440, borderRadius: 4, frameStyle: 'white-thin' },
+    ],
+    renderBackground(ctx, canvas) {
+      const { width, height } = canvas;
+      const pat = createPaperPattern(ctx, 'kraft');
+      ctx.fillStyle = pat;
+      ctx.fillRect(0, 0, width, height);
+
+      // Subtle ticket accent on top right corner
+      ctx.save();
+      ctx.translate(width - 120, 90);
+      ctx.rotate(0.08);
+      ctx.fillStyle = '#E8DEC8';
+      ctx.fillRect(-80, -30, 160, 60);
+      ctx.strokeStyle = '#BBAE9A';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-80, -30, 160, 60);
+      ctx.fillStyle = '#5A4E3E';
+      ctx.font = 'bold 11px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('★ ADMIT ONE ★', 0, 4);
+      ctx.restore();
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width, height } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#2D2824';
+      ctx.font = 'bold 30px Georgia, serif';
+      ctx.fillText(style.header || 'SCRAPBOOK & MEMORIES', width / 2, height - 170);
+      ctx.font = 'italic 15px Georgia, serif';
+      ctx.fillStyle = '#7A6E5E';
+      ctx.fillText('Collected moments • Volume II', width / 2, height - 130);
+      ctx.font = '12px "DM Sans", sans-serif';
+      ctx.fillStyle = '#948878';
+      ctx.fillText(date.toDateString().toUpperCase(), width / 2, height - 95);
+      ctx.restore();
+    },
+  },
+
+  // ==========================================
+  // VERSION 4: THE DAILY CHRONICLE (RETRO NEWSPAPER)
+  // ==========================================
+  {
+    id: 'version-4-retro',
+    name: 'Version 4: The Daily Chronicle',
+    category: 'Vintage',
+    description: 'Vintage newspaper masthead & torn deckle clipping frames (New York Times style)',
+    background: ['#F3EFE6'],
+    textColor: '#151518',
+    recommendedPoses: 3,
+    defaultFilter: 'monochrome',
+    canvas: { width: 900, height: 2100 },
+    photoSlots: [
+      { id: 1, x: 120, y: 230, width: 660, height: 430, borderRadius: 2, frameStyle: 'paper-perforated' },
+      { id: 2, x: 120, y: 730, width: 660, height: 430, borderRadius: 2, frameStyle: 'paper-perforated' },
+      { id: 3, x: 120, y: 1230, width: 660, height: 430, borderRadius: 2, frameStyle: 'paper-perforated' },
+    ],
+    renderBackground(ctx, canvas) {
+      const { width, height } = canvas;
+      // Newsprint textured background
+      const pat = createPaperPattern(ctx, 'parchment');
+      ctx.fillStyle = pat;
+      ctx.fillRect(0, 0, width, height);
+
+      // Newspaper Masthead at Top
+      drawNewspaperHeader(
+        ctx,
+        width,
+        'The Daily Chronicle',
+        "All the Memories That's Fit to Print",
+        'SPECIAL PHOTOBOOTH EDITION'
+      );
+
+      // Torn newspaper frames under photo slots
+      drawTornNewspaperFrame(ctx, width / 2, 230 + 215, 660, 430, 'HIGHER SMILES FOR PHOTOBOOTH');
+      drawTornNewspaperFrame(ctx, width / 2, 730 + 215, 660, 430, 'NEW YORK JOURNAL ARCHIVE');
+      drawTornNewspaperFrame(ctx, width / 2, 1230 + 215, 660, 430, 'TIMELESS PORTRAITS OF TODAY');
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width, height } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+      ctx.save();
+      // Bottom newspaper footer & dateline
+      ctx.strokeStyle = '#18181A';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(35, height - 170);
+      ctx.lineTo(width - 35, height - 170);
+      ctx.stroke();
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#18181A';
+      ctx.font = '900 24px Georgia, serif';
+      ctx.fillText(style.header || 'THE DAILY MEMORIES', width / 2, height - 130);
+      ctx.font = 'italic 13px Georgia, serif';
+      ctx.fillStyle = '#55555A';
+      ctx.fillText('Printed and preserved directly on your browser  •  Vol. IV', width / 2, height - 95);
+      ctx.font = '11px "Courier New", monospace';
+      ctx.fillText(date.toDateString().toUpperCase(), width / 2, height - 65);
+      ctx.restore();
+    },
+  },
+
+  // ==========================================
+  // VERSION 6: CD & MUSIC MEMORIES (EXPRESSIVE)
+  // ==========================================
+  {
+    id: 'version-6-expressive',
+    name: 'Version 6: CD Music Memories',
+    category: 'Vintage',
+    description: 'Dark noir aesthetic with optical CD disc, playback controller, and Paris card styling',
+    background: ['#121216'],
+    textColor: '#FFFFFF',
+    recommendedPoses: 3,
+    defaultFilter: 'darkroom',
+    canvas: { width: 900, height: 2100 },
+    photoSlots: [
+      { id: 1, x: 110, y: 190, width: 680, height: 430, borderRadius: 16, frameStyle: 'white-thin' },
+      { id: 2, x: 110, y: 690, width: 680, height: 430, borderRadius: 16, frameStyle: 'white-thin' },
+      { id: 3, x: 110, y: 1220, width: 680, height: 430, borderRadius: 16, frameStyle: 'white-thin' },
+    ],
+    renderBackground(ctx, canvas) {
+      const { width, height } = canvas;
+      // Rich noir background
+      ctx.fillStyle = '#141418';
+      ctx.fillRect(0, 0, width, height);
+
+      // Large optical CD disc at top-left edge
+      ctx.save();
+      ctx.translate(140, 140);
+      ctx.beginPath();
+      ctx.arc(0, 0, 160, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // Concentric iridescent grooves
+      for (let r = 60; r < 155; r += 8) {
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Music player widget card in header
+      drawMusicPlayerCard(ctx, width / 2, 90, 480, 70, 'For You Memories');
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width, height } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '700 28px "DM Sans", sans-serif';
+      ctx.fillText(style.header || 'NOW PLAYING : MEMORIES', width / 2, height - 170);
+
+      // Track playback progress bar
+      ctx.strokeStyle = '#33333C';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(width / 2 - 180, height - 130);
+      ctx.lineTo(width / 2 + 180, height - 130);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#7061A8';
+      ctx.beginPath();
+      ctx.moveTo(width / 2 - 180, height - 130);
+      ctx.lineTo(width / 2 - 40, height - 130);
+      ctx.stroke();
+
+      ctx.fillStyle = '#8E8E93';
+      ctx.font = '12px "Courier New", monospace';
+      ctx.fillText('02:45  /  04:12   •   TRACK 06', width / 2, height - 95);
+      ctx.fillText(date.toDateString().toUpperCase(), width / 2, height - 65);
       ctx.restore();
     },
   },

@@ -6,12 +6,15 @@ import {
   Heart,
   Palette,
   Plus,
+  Redo2,
   RotateCcw,
+  Search,
   Shield,
   Sliders,
   Sparkles,
   Stamp,
   Trash2,
+  Undo2,
   Wand2,
 } from 'lucide-react';
 import {
@@ -24,7 +27,7 @@ import {
   TEMPLATE_CATEGORIES,
   colorMatrix,
 } from '../lib/presets.js';
-import { STICKER_CATALOG } from '../lib/stickers.js';
+import { STICKER_CATEGORIES, STICKER_LIBRARY } from '../lib/stickers.js';
 import { getTemplateThumbnail } from '../lib/thumbnails.js';
 
 export function FilterDefinitions({ filter, adjust, id }) {
@@ -371,9 +374,18 @@ export function Customizer({
   mirrorAll,
   onMirrorAll,
   onResetAll,
+  selectedStickerId,
+  onSelectSticker,
+  onAddSticker,
+  canUndoStickers,
+  canRedoStickers,
+  onUndoStickers,
+  onRedoStickers,
+  onClearStickers,
 }) {
   const [activeTab, setActiveTab] = useState('templates');
   const [stickerCategory, setStickerCategory] = useState('All');
+  const [stickerSearch, setStickerSearch] = useState('');
   const [favorites, setFavorites] = useState(() => {
     try {
       const stored = localStorage.getItem('snapbooth_template_favorites');
@@ -383,11 +395,31 @@ export function Customizer({
     }
   });
 
+  const [favoriteStickers, setFavoriteStickers] = useState(() => {
+    try {
+      const stored = localStorage.getItem('snapbooth_sticker_favorites');
+      return stored ? JSON.parse(stored) : ['red-stitched-star', 'burgundy-lily', 'chrome-star-3d'];
+    } catch {
+      return ['red-stitched-star', 'burgundy-lily'];
+    }
+  });
+
   const toggleFavorite = id => {
     setFavorites(prev => {
       const next = prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id];
       try {
         localStorage.setItem('snapbooth_template_favorites', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const toggleStickerFavorite = (id, e) => {
+    e.stopPropagation();
+    setFavoriteStickers(prev => {
+      const next = prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id];
+      try {
+        localStorage.setItem('snapbooth_sticker_favorites', JSON.stringify(next));
       } catch {}
       return next;
     });
@@ -404,23 +436,40 @@ export function Customizer({
     { id: 'adjust', label: 'Adjust & Theme', icon: Sliders },
   ];
 
-  const filteredStickers = STICKER_CATALOG.filter(s => {
+  const userStickers = Array.isArray(style.userStickers) ? style.userStickers : [];
+
+  const filteredStickers = STICKER_LIBRARY.filter(s => {
+    if (stickerSearch.trim()) {
+      const q = stickerSearch.toLowerCase();
+      const matchName = s.name.toLowerCase().includes(q);
+      const matchTags = s.tags?.some(t => t.toLowerCase().includes(q));
+      if (!matchName && !matchTags) return false;
+    }
     if (stickerCategory === 'All') return true;
+    if (stickerCategory === 'Favorites') return favoriteStickers.includes(s.id);
     return s.category === stickerCategory;
   });
 
-  const userStickers = Array.isArray(style.userStickers) ? style.userStickers : [];
-
-  function addSticker(stk) {
-    if (userStickers.length >= 6) return;
-    update('userStickers', [...userStickers, { id: stk.id, type: stk.type, name: stk.name }]);
-  }
-
-  function removeSticker(idx) {
-    update(
-      'userStickers',
-      userStickers.filter((_, i) => i !== idx)
-    );
+  function handleAddSticker(stk) {
+    const instanceId = 'stk_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+    const maxZ = userStickers.reduce((max, s) => Math.max(max, s.zIndex || 1), 1);
+    const newStk = {
+      instanceId,
+      stickerId: stk.id,
+      x: 0.50,
+      y: 0.45,
+      scale: stk.defaultScale || 0.18,
+      rotation: 0,
+      flipX: false,
+      zIndex: maxZ + 1,
+    };
+    if (onAddSticker) {
+      onAddSticker(newStk);
+    } else {
+      const next = [...userStickers, newStk];
+      update('userStickers', next);
+      onSelectSticker?.(instanceId);
+    }
   }
 
   return (
@@ -512,63 +561,127 @@ export function Customizer({
         {activeTab === 'stickers' && (
           <div className="tab-pane">
             <div className="tab-pane-header">
-              <h3>Graphic Stickers Library</h3>
-              <p>Pita, hati pastel, Y2K stars, bunga, kelinci, dan stiker khas photobooth.</p>
-            </div>
-
-            {/* Active User Stickers */}
-            {userStickers.length > 0 && (
-              <div className="active-stickers-box">
-                <span className="label-small">Stiker Terpasang ({userStickers.length}/6):</span>
-                <div className="active-sticker-tags">
-                  {userStickers.map((stk, i) => (
-                    <span key={i} className="sticker-tag">
-                      <span>{stk.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeSticker(i)}
-                        title="Hapus stiker"
-                        aria-label="Remove sticker"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </span>
-                  ))}
+              <div className="tab-title-row">
+                <div>
+                  <h3>Scrapbook Stickers</h3>
+                  <p>Stiker fisik: patch rajut, bunga lili, 35mm film, piringan hitam, & retro ephemera.</p>
+                </div>
+                <div className="sticker-history-actions">
+                  <button
+                    type="button"
+                    className="icon-action-btn"
+                    onClick={onUndoStickers}
+                    disabled={!canUndoStickers}
+                    title="Undo aksi stiker"
+                    aria-label="Undo"
+                  >
+                    <Undo2 size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-action-btn"
+                    onClick={onRedoStickers}
+                    disabled={!canRedoStickers}
+                    title="Redo aksi stiker"
+                    aria-label="Redo"
+                  >
+                    <Redo2 size={16} />
+                  </button>
+                  {userStickers.length > 0 && (
+                    <button
+                      type="button"
+                      className="icon-action-btn danger"
+                      onClick={onClearStickers}
+                      title="Hapus semua stiker"
+                      aria-label="Clear all stickers"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Sticker Categories */}
+            {/* Sticker Search Bar */}
+            <div className="sticker-search-bar">
+              <Search size={15} className="search-icon" />
+              <input
+                type="text"
+                placeholder="Cari stiker (star, lily, denim, camera...)"
+                value={stickerSearch}
+                onChange={e => setStickerSearch(e.target.value)}
+              />
+              {stickerSearch && (
+                <button
+                  type="button"
+                  className="clear-search-btn"
+                  onClick={() => setStickerSearch('')}
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Sticker Categories Rail */}
             <div className="category-pill-rail">
-              {['All', 'Cute', 'Hearts', 'Y2K', 'Stamps'].map(cat => (
+              {STICKER_CATEGORIES.map(cat => (
                 <button
                   key={cat}
                   type="button"
                   className={`category-pill ${stickerCategory === cat ? 'active' : ''}`}
                   onClick={() => setStickerCategory(cat)}
                 >
-                  {cat}
+                  {cat === 'Favorites' ? `♥ ${cat}` : cat}
                 </button>
               ))}
             </div>
 
+            {/* Active Stickers Counter & Notice */}
+            <div className="sticker-info-strip">
+              <span>{filteredStickers.length} stiker tersedia</span>
+              {userStickers.length > 0 && (
+                <span className="active-badge">{userStickers.length} terpasang</span>
+              )}
+            </div>
+
             {/* Sticker Catalog Grid */}
             <div className="sticker-catalog-grid">
-              {filteredStickers.map(stk => (
-                <button
-                  key={stk.id}
-                  type="button"
-                  className="sticker-catalog-item"
-                  onClick={() => addSticker(stk)}
-                  title={`Tambah ${stk.name}`}
-                >
-                  <span className="sticker-emoji">{stk.emoji}</span>
-                  <span className="sticker-name">{stk.name}</span>
-                  <span className="sticker-add-plus">
-                    <Plus size={12} />
-                  </span>
-                </button>
-              ))}
+              {filteredStickers.map(stk => {
+                const isFav = favoriteStickers.includes(stk.id);
+                return (
+                  <div
+                    key={stk.id}
+                    className="sticker-catalog-card"
+                    onClick={() => handleAddSticker(stk)}
+                    title={`Tambah ${stk.name}`}
+                  >
+                    <button
+                      type="button"
+                      className={`sticker-fav-heart ${isFav ? 'active' : ''}`}
+                      onClick={e => toggleStickerFavorite(stk.id, e)}
+                      title={isFav ? 'Hapus favorit' : 'Favoritkan'}
+                      aria-label="Toggle favorite"
+                    >
+                      <Heart size={12} fill={isFav ? '#E53935' : 'transparent'} />
+                    </button>
+                    <div className="sticker-thumb-container">
+                      <img
+                        src={stk.src}
+                        alt={stk.name}
+                        className="sticker-thumb-img"
+                        loading="lazy"
+                      />
+                    </div>
+                    <span className="sticker-card-name">{stk.name}</span>
+                  </div>
+                );
+              })}
+              {filteredStickers.length === 0 && (
+                <div className="sticker-empty-catalog">
+                  <p>Tidak ada stiker yang cocok dengan kata kunci.</p>
+                </div>
+              )}
             </div>
           </div>
         )}

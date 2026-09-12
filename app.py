@@ -360,6 +360,16 @@ def create_app(test_config=None):
                 return send_from_directory(str(candidate), filename)
         return jsonify(error="Asset not found"), 404
 
+    @application.get("/stickers/<path:filename>")
+    def snapbooth_stickers(filename):
+        for candidate in [
+            BASE_DIR / "dist" / "snapbooth" / "stickers",
+            BASE_DIR / "public" / "stickers",
+        ]:
+            if candidate.exists() and (candidate / filename).exists():
+                return send_from_directory(str(candidate), filename)
+        return jsonify(error="Sticker not found"), 404
+
     @application.get("/")
     @application.get("/track")
     @application.get("/track.py")

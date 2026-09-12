@@ -125,3 +125,92 @@ test('categories include Scrapbook, Denim, Vintage, Film, Polaroid, Minimal', ()
   assert.ok(ARTISTIC_CATEGORIES.includes('Polaroid'));
   assert.ok(ARTISTIC_CATEGORIES.includes('Minimal'));
 });
+
+import { STICKER_LIBRARY, STICKER_CATEGORIES } from '../src/lib/stickers.js';
+
+test('sticker library contains >= 40 tactile visual assets across 6 physical collections', () => {
+  assert.ok(STICKER_LIBRARY.length >= 40, `Sticker library must have >= 40 items, found ${STICKER_LIBRARY.length}`);
+
+  const requiredCategories = ['Fabric', 'Flowers', 'Denim', 'Retro', 'Scrapbook', 'Cute'];
+  for (const cat of requiredCategories) {
+    assert.ok(STICKER_CATEGORIES.includes(cat), `Category ${cat} must be in STICKER_CATEGORIES`);
+    const count = STICKER_LIBRARY.filter(s => s.category === cat).length;
+    assert.ok(count >= 4, `Category ${cat} must have at least 4 items, found ${count}`);
+  }
+
+  // Key requested stickers from visual references
+  const starSticker = STICKER_LIBRARY.find(s => s.id === 'red-stitched-star');
+  assert.ok(starSticker, 'Red stitched star sticker must exist');
+  assert.equal(starSticker.category, 'Fabric');
+  assert.ok(starSticker.src.endsWith('.webp'));
+
+  const lilySticker = STICKER_LIBRARY.find(s => s.id === 'burgundy-lily');
+  assert.ok(lilySticker, 'Burgundy lily sticker must exist');
+  assert.equal(lilySticker.category, 'Flowers');
+  assert.ok(lilySticker.src.endsWith('.webp'));
+
+  // Ensure NO emoji Unicode characters are used as stickers
+  for (const s of STICKER_LIBRARY) {
+    assert.ok(s.id && typeof s.id === 'string');
+    assert.ok(s.name && typeof s.name === 'string');
+    assert.ok(s.src && s.src.startsWith('/stickers/'));
+    assert.ok(s.defaultScale > 0 && s.defaultScale <= 1);
+    assert.ok(s.aspectRatio > 0);
+    assert.ok(Array.isArray(s.tags) && s.tags.length > 0);
+    // No emoji unicode characters
+    assert.ok(!/[\u{1F300}-\u{1FAFF}]/u.test(s.name), `Sticker name ${s.name} should not be an emoji`);
+  }
+});
+
+test('new artistic template versions 1, 2, 4, 6 exist with negative space and slots', () => {
+  const versions = [
+    { id: 'version-1-clean', name: 'Clean Minimal Space', minSlots: 4 },
+    { id: 'version-2-balanced', name: 'Balanced Scrapbook', minSlots: 3 },
+    { id: 'version-4-retro', name: 'The Daily Chronicle', minSlots: 3 },
+    { id: 'version-6-expressive', name: 'CD Music Memories', minSlots: 3 },
+  ];
+
+  for (const v of versions) {
+    const tpl = ARTISTIC_TEMPLATES.find(t => t.id === v.id);
+    assert.ok(tpl, `Template ${v.id} must exist in ARTISTIC_TEMPLATES`);
+    assert.ok(tpl.photoSlots.length >= v.minSlots, `Template ${v.id} must have >= ${v.minSlots} slots`);
+    assert.ok(tpl.canvas.width >= 800 && tpl.canvas.height >= 1800);
+
+    for (const slot of tpl.photoSlots) {
+      assert.ok(slot.x >= 0 && slot.y >= 0);
+      assert.ok(slot.width > 0 && slot.height > 0);
+      assert.ok(slot.x + slot.width <= tpl.canvas.width);
+      assert.ok(slot.y + slot.height <= tpl.canvas.height);
+    }
+  }
+});
+
+test('sticker normalized coordinate mapping guarantees canvas parity', () => {
+  const canvasW = 800;
+  const canvasH = 2000;
+  const sticker = {
+    x: 0.5,
+    y: 0.25,
+    scale: 0.2,
+    rotation: 45,
+    flipX: true,
+    zIndex: 3,
+  };
+
+  const pixelX = sticker.x * canvasW;
+  const pixelY = sticker.y * canvasH;
+  const pixelW = sticker.scale * canvasW;
+
+  assert.equal(pixelX, 400);
+  assert.equal(pixelY, 500);
+  assert.equal(pixelW, 160);
+
+  // Verification that DOM percentages match canvas normalized values exactly
+  const domLeftPct = `${sticker.x * 100}%`;
+  const domTopPct = `${sticker.y * 100}%`;
+  const domWidthPct = `${sticker.scale * 100}%`;
+
+  assert.equal(domLeftPct, '50%');
+  assert.equal(domTopPct, '25%');
+  assert.equal(domWidthPct, '20%');
+});

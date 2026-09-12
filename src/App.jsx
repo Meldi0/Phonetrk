@@ -2,6 +2,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import { Camera, Check, Download, Image as ImageIcon, MessageCircle, Moon, Printer, RotateCcw, Share2, SlidersHorizontal, Sun, User, X } from 'lucide-react';
 import StudioCamera from './components/StudioCamera.jsx';
 import { Customizer, FilterDefinitions } from './components/Controls.jsx';
+import { StickerCanvasEditor } from './components/StickerCanvasEditor.jsx';
 import Gallery from './components/Gallery.jsx';
 import Modal from './components/Modal.jsx';
 import { useCamera } from './hooks/useCamera.js';
@@ -29,6 +30,9 @@ export default function App() {
   const [gallery, setGallery] = useState([]), [galleryLoading, setGalleryLoading] = useState(true);
   const [saving, setSaving] = useState(false), [copies, setCopies] = useState(1), [paper, setPaper] = useState('Glossy');
   const [waInput, setWaInput] = useState('');
+  const [selectedStickerId, setSelectedStickerId] = useState(null);
+  const [stickerHistory, setStickerHistory] = useState(() => [style.userStickers || []]);
+  const [historyIdx, setHistoryIdx] = useState(0);
   const savedKey = useRef(''), savingRef = useRef(false);
   const filterId = `snap-filter-${useId().replaceAll(':', '')}`;
 
@@ -100,7 +104,76 @@ export default function App() {
       userStickers: [],
       borderStyle: 'default',
     }));
+    setSelectedStickerId(null);
+    setStickerHistory([[]]);
+    setHistoryIdx(0);
     setNotice('Filter, efek visual, stiker, dan tone adjustments telah dikembalikan ke default.');
+  }
+
+  function handleStickersChange(nextStickers) {
+    setStyle(cur => ({ ...cur, userStickers: nextStickers }));
+  }
+
+  function handleStickersCommit(nextStickers) {
+    setStyle(cur => ({ ...cur, userStickers: nextStickers }));
+    setStickerHistory(prev => {
+      const sliced = prev.slice(0, historyIdx + 1);
+      const nextList = [...sliced, nextStickers];
+      if (nextList.length > 30) nextList.shift();
+      return nextList;
+    });
+    setHistoryIdx(prev => Math.min(prev + 1, 29));
+  }
+
+  function handleAddSticker(stk) {
+    const instanceId = stk.instanceId || ('stk_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36));
+    const currentStickers = style.userStickers || [];
+    const count = currentStickers.length;
+    const staggerX = 0.5 + ((count % 3) - 1) * 0.08;
+    const staggerY = 0.45 + ((count % 4) - 1.5) * 0.08;
+    const maxZ = currentStickers.reduce((m, s) => Math.max(m, s.zIndex || 1), 1);
+
+    const newSticker = {
+      instanceId,
+      stickerId: stk.stickerId || stk.id,
+      x: stk.x ?? Math.max(0.15, Math.min(0.85, staggerX)),
+      y: stk.y ?? Math.max(0.15, Math.min(0.85, staggerY)),
+      scale: stk.scale ?? stk.defaultScale ?? 0.18,
+      rotation: stk.rotation ?? 0,
+      flipX: stk.flipX ?? false,
+      zIndex: maxZ + 1,
+    };
+
+    const next = [...currentStickers, newSticker];
+    setSelectedStickerId(instanceId);
+    handleStickersCommit(next);
+    setNotice('Stiker berhasil ditambahkan! Sentuh & geser stiker di atas strip foto.');
+  }
+
+  function handleUndoStickers() {
+    if (historyIdx > 0) {
+      const nextIdx = historyIdx - 1;
+      const restored = stickerHistory[nextIdx];
+      setHistoryIdx(nextIdx);
+      setStyle(cur => ({ ...cur, userStickers: restored }));
+    }
+  }
+
+  function handleRedoStickers() {
+    if (historyIdx < stickerHistory.length - 1) {
+      const nextIdx = historyIdx + 1;
+      const restored = stickerHistory[nextIdx];
+      setHistoryIdx(nextIdx);
+      setStyle(cur => ({ ...cur, userStickers: restored }));
+    }
+  }
+
+  function handleClearStickers() {
+    if (!style.userStickers?.length) return;
+    if (window.confirm('Hapus semua stiker dari strip foto ini?')) {
+      setSelectedStickerId(null);
+      handleStickersCommit([]);
+    }
   }
 
   function handlePoseCountChange(count) {
@@ -195,7 +268,22 @@ export default function App() {
   const preview = (
     <div className={`strip-stage ${style.layout?.includes('wide') || style.layout === 'grid' ? 'landscape' : ''}`} aria-busy={capture.photos.length > 0 && !strip.ready}>
       {strip.result ? (
-        <img className="strip-image" src={strip.result.url} alt="Your finished SnapBooth photostrip" />
+        <div className="strip-canvas-wrapper" style={{ position: 'relative', display: 'inline-block', lineHeight: 0 }}>
+          <img
+            className="strip-image"
+            src={tab === 'customize' ? (strip.result.baseUrl || strip.result.url) : strip.result.url}
+            alt="Your finished SnapBooth photostrip"
+          />
+          {tab === 'customize' && (
+            <StickerCanvasEditor
+              userStickers={style.userStickers || []}
+              onChange={handleStickersChange}
+              onCommit={handleStickersCommit}
+              selectedId={selectedStickerId}
+              onSelect={setSelectedStickerId}
+            />
+          )}
+        </div>
       ) : (
         <div className="empty-strip">
           <strong>★ SNAPBOOTH ★</strong>
@@ -284,7 +372,7 @@ export default function App() {
         {tab !== 'gallery' && (
           <section className="hero">
             <p className="eyebrow">✦ K-STYLE SELF PHOTO STUDIO</p>
-            <h1>{tab === 'customize' ? 'Make the moment yours.' : 'Aesthetic Photo Studio'}</h1>
+            <h1>{tab === 'customize' ? 'Make the moment yours.' : 'Aesthetic 4-Cut Photo Studio'}</h1>
             <p>{tab === 'customize' ? 'Your poses. Your colors. Your little keepsake.' : 'Take your own K-style photostrip directly from your browser.'}</p>
             <div className="steps">
               <span className={tab === 'studio' ? 'current' : 'complete'}>01 <span>Strike a pose</span></span>
@@ -371,6 +459,14 @@ export default function App() {
                   mirrorAll={mirrorAll}
                   onMirrorAll={setMirrorAll}
                   onResetAll={resetEditing}
+                  selectedStickerId={selectedStickerId}
+                  onSelectSticker={setSelectedStickerId}
+                  onAddSticker={handleAddSticker}
+                  canUndoStickers={historyIdx > 0}
+                  canRedoStickers={historyIdx < stickerHistory.length - 1}
+                  onUndoStickers={handleUndoStickers}
+                  onRedoStickers={handleRedoStickers}
+                  onClearStickers={handleClearStickers}
                 />
                 {actions}
               </section>

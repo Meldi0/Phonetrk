@@ -1,6 +1,6 @@
 import { colorMatrix, cropRect, LAYOUT_OPTIONS, STRIP_TEMPLATES } from './presets.js';
 import { executeEffect } from './effects.js';
-import { drawSticker } from './stickers.js';
+import { drawSticker, renderPlacedStickers } from './stickers.js';
 import { ARTISTIC_TEMPLATES } from './artisticTemplates.js';
 import { renderArtworkStrip } from './templateRenderer.js';
 
@@ -256,14 +256,7 @@ export function composeStrip(processed, style, timestamp) {
 
   // 4. Render User-selected Custom Graphic Stickers
   if (Array.isArray(style.userStickers) && style.userStickers.length > 0) {
-    style.userStickers.forEach((stk, idx) => {
-      // Place nicely in footer or side margins
-      const stCount = style.userStickers.length;
-      const stepX = width / (stCount + 1);
-      const posX = (idx + 1) * stepX;
-      const posY = height - footerHeight + 48;
-      drawSticker(ctx, stk.type, posX, posY, 48);
-    });
+    renderPlacedStickers(ctx, style.userStickers, width, height);
   }
 
   // 5. Header & Branding

@@ -46,7 +46,7 @@ export const LAYOUT_OPTIONS = [
 
 import { ARTISTIC_TEMPLATES } from './artisticTemplates.js';
 
-export const STRIP_TEMPLATES = [
+const RAW_STRIP_TEMPLATES = [
   ...ARTISTIC_TEMPLATES,
   // CLEAN
   {
@@ -540,6 +540,10 @@ export const STRIP_TEMPLATES = [
     ],
   },
 ];
+
+export const STRIP_TEMPLATES = Array.from(
+  new Map(RAW_STRIP_TEMPLATES.map(t => [t.id, t])).values()
+);
 
 export const TEMPLATE_CATEGORIES = [
   'All',

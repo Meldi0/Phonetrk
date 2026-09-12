@@ -144,7 +144,8 @@ export async function runInitialDualCapture(camera, getIsBusy = () => false) {
       if (all) videoDevices = all.filter(d => d.kind === 'videoinput');
     } catch {}
 
-    const hasMultipleCameras = videoDevices.length > 1;
+    const isMobile = typeof navigator !== 'undefined' && /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
+    const hasMultipleCameras = isMobile && videoDevices.length > 1;
 
     if (hasMultipleCameras && typeof camera.setFacing === 'function') {
       if (getIsBusy()) return;
