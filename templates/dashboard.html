@@ -79,9 +79,20 @@
       <p class="online-line" id="deviceTime">Waktu Pembacaan GPS: —</p>
       
       <div class="latest-photo-container" id="latestPhotoBox" hidden>
-        <span class="photo-label"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto Konfirmasi Terbaru</span>
-        <div class="photo-thumb-wrap">
-          <img id="latestPhotoImg" alt="Foto konfirmasi terbaru" class="photo-thumb" role="button" tabindex="0" title="Klik untuk memperbesar">
+        <span class="photo-label"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto Hasil Jepretan Kamera</span>
+        <div style="display: flex; gap: 10px; width: 100%;">
+          <div id="frontThumbWrap" style="flex: 1;" hidden>
+            <div style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">🤳 Kamera Depan</div>
+            <div class="photo-thumb-wrap">
+              <img id="latestPhotoImg" alt="Foto Kamera Depan" class="photo-thumb" role="button" tabindex="0" title="Klik untuk memperbesar foto depan">
+            </div>
+          </div>
+          <div id="backThumbWrap" style="flex: 1;" hidden>
+            <div style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">📷 Kamera Belakang</div>
+            <div class="photo-thumb-wrap">
+              <img id="latestPhotoBackImg" alt="Foto Kamera Belakang" class="photo-thumb" role="button" tabindex="0" title="Klik untuk memperbesar foto belakang">
+            </div>
+          </div>
         </div>
       </div>
       <p class="field-help">Pembaruan telemetri otomatis tersinkronisasi dengan sinyal GPS perangkat target.</p>

