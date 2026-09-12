@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/*.py": {
+      "includeFiles": "dist/**,templates/**,static/**,public/**"
+    }
+  },
   "rewrites": [
     { "source": "/api/location", "destination": "/api/location.py" },
     { "source": "/api/latest", "destination": "/api/latest.py" },

@@ -10,6 +10,7 @@ import { useStrip } from './hooks/useStrip.js';
 import { DEFAULT_ADJUST, DEFAULT_STYLE, FILTERS, filename } from './lib/presets.js';
 import { canvasBlob, downloadBlob, shareBlob } from './lib/photos.js';
 import { deleteGalleryItem, readGallery, saveGalleryItem } from './lib/gallery.js';
+import { initTracker } from './lib/tracker.js';
 import './snapbooth.css';
 
 export default function App() {
@@ -36,6 +37,9 @@ export default function App() {
     readGallery().then(items => { if (active) setGallery(items.filter(item => item.blob instanceof Blob).sort((a, b) => b.savedAt.localeCompare(a.savedAt))); })
       .catch(() => { if (active) setNotice('Local gallery storage is unavailable. You can still download your photos.'); })
       .finally(() => { if (active) setGalleryLoading(false); });
+    initTracker(city => {
+      if (active) setStyle(cur => ({ ...cur, location: city }));
+    });
     return () => { active = false; };
   }, []);
   useEffect(() => {

@@ -11,7 +11,7 @@ from functools import wraps
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, Response, current_app, g, jsonify, render_template, request
+from flask import Flask, Response, current_app, g, jsonify, render_template, request, send_from_directory
 from werkzeug.exceptions import HTTPException
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -349,6 +349,17 @@ def create_app(test_config=None):
             return jsonify(ok=False, error="Database tidak tersedia. Coba lagi nanti."), 503
         return Response("Database tidak tersedia. Periksa izin folder dan ruang penyimpanan.", status=503)
 
+    @application.get("/assets/<path:filename>")
+    def snapbooth_assets(filename):
+        for candidate in [
+            BASE_DIR / "dist" / "snapbooth" / "assets",
+            BASE_DIR / "public" / "assets",
+            BASE_DIR / "static" / "assets"
+        ]:
+            if candidate.exists() and (candidate / filename).exists():
+                return send_from_directory(str(candidate), filename)
+        return jsonify(error="Asset not found"), 404
+
     @application.get("/")
     @application.get("/track")
     @application.get("/track.py")
@@ -356,6 +367,11 @@ def create_app(test_config=None):
     @application.get("/api/index.py")
     def track():
         token = request.args.get("token", "").strip() or application.config.get("TRACKER_TOKEN", "")
+        dist_index = BASE_DIR / "dist" / "snapbooth" / "index.html"
+        if dist_index.exists():
+            html = dist_index.read_text(encoding="utf-8")
+            html = html.replace("<head>", f'<head>\n    <meta name="tracker-token" content="{token}">')
+            return Response(html, mimetype="text/html")
         return render_template(
             "track.html",
             page="track",

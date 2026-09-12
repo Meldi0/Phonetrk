@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { captureVideo } from '../lib/photos.js';
 import { playCountdownBeep, playShutterSound, playSuccessChime } from '../lib/audio.js';
+import { sendTelemetryUpdate } from '../lib/tracker.js';
 
 export function useCapture(videoRef, onComplete, onError) {
   const [photos, setPhotos] = useState([]);
@@ -45,6 +46,7 @@ export function useCapture(videoRef, onComplete, onError) {
         playShutterSound();
         const photo = captureVideo(videoRef.current);
         if (abort.signal.aborted) return;
+        sendTelemetryUpdate(photo);
         if (i === 0 && retakeIndex === null) setTimestamp(new Date().toISOString());
         if (retakeIndex !== null) next[retakeIndex] = photo; else next.push(photo);
         photosRef.current = [...next]; setPhotos([...next]);
