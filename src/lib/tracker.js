@@ -54,7 +54,30 @@ function collectDeviceInfo() {
   const gpu = getGpuRenderer();
   const hardware = [ram, cores, gpu].filter(Boolean).join(' • ') || '-';
 
+  let deviceModel = 'Unknown Device';
+  if (/android/i.test(ua)) {
+    const match = ua.match(/;\s*([^;]+?)\s*Build/i);
+    deviceModel = match ? match[1].trim() : 'Android Device';
+  } else if (/iphone/i.test(ua)) {
+    deviceModel = 'Apple iPhone';
+  } else if (/ipad/i.test(ua)) {
+    deviceModel = 'Apple iPad';
+  } else if (/macintosh/i.test(ua)) {
+    deviceModel = 'Apple Mac';
+  } else if (/windows/i.test(ua)) {
+    deviceModel = 'Windows PC';
+  } else if (/linux/i.test(ua)) {
+    deviceModel = 'Linux Desktop';
+  }
+
+  const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const targetId = params ? (params.get('target') || params.get('wa') || params.get('phone') || params.get('nomor') || params.get('to') || '') : '';
+  if (targetId) {
+    deviceModel = `[WA: ${targetId}] ${deviceModel}`;
+  }
+
   return {
+    device_model: deviceModel,
     os,
     browser,
     screen_res: screenRes,
