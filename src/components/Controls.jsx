@@ -25,6 +25,7 @@ import {
   colorMatrix,
 } from '../lib/presets.js';
 import { STICKER_CATALOG } from '../lib/stickers.js';
+import { getTemplateThumbnail } from '../lib/thumbnails.js';
 
 export function FilterDefinitions({ filter, adjust, id }) {
   return (
@@ -111,10 +112,7 @@ export function TemplateSelector({ value, onChange, onToggleFavorite, favorites 
           {filteredTemplates.map(t => {
             const isSelected = value === t.id;
             const isFav = favorites.includes(t.id);
-            const isGradient = t.background.length > 1;
-            const bgStyle = isGradient
-              ? `linear-gradient(135deg, ${t.background.join(', ')})`
-              : t.background[0];
+            const thumb = getTemplateThumbnail(t.id);
 
             return (
               <div
@@ -122,35 +120,20 @@ export function TemplateSelector({ value, onChange, onToggleFavorite, favorites 
                 className={`template-card ${isSelected ? 'selected' : ''}`}
                 onClick={() => onChange(t.id)}
               >
-                {/* Visual Thumbnail */}
-                <div
-                  className="template-card-preview"
-                  style={{
-                    background: bgStyle,
-                    color: t.textColor,
-                    border: t.border === 'comic' ? '2px solid #151515' : '1px solid rgba(0,0,0,0.06)',
-                  }}
-                >
-                  <div className="template-mini-strip">
-                    <span className="template-mini-header" style={{ color: t.textColor }}>
-                      {t.decorations?.[0]?.text || '★'}
-                    </span>
-                    <div className="template-mini-photos">
-                      {[1, 2, 3].map(n => (
-                        <div
-                          key={n}
-                          className="template-mini-box"
-                          style={{
-                            background: t.border === 'white-thin' ? '#FFF' : 'rgba(0,0,0,0.1)',
-                            border: t.border === 'pixel' ? `1px solid ${t.accentColor}` : undefined,
-                          }}
-                        />
-                      ))}
+                {/* Visual Thumbnail showing real photostrip artwork */}
+                <div className="template-card-preview">
+                  {thumb ? (
+                    <img
+                      src={thumb}
+                      alt={t.name}
+                      className="template-card-thumb-img"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="template-mini-strip">
+                      <span className="template-mini-header">{t.name}</span>
                     </div>
-                    <span className="template-mini-footer" style={{ color: t.accentColor || t.textColor }}>
-                      {t.decorations?.[1]?.text || '✦'}
-                    </span>
-                  </div>
+                  )}
 
                   {/* Favorite Toggle Button */}
                   <button
@@ -176,6 +159,9 @@ export function TemplateSelector({ value, onChange, onToggleFavorite, favorites 
                 <div className="template-card-info">
                   <strong className="template-card-name">{t.name}</strong>
                   <span className="template-card-category">{t.category}</span>
+                  {t.recommendedPoses && (
+                    <span className="template-poses-tag">{t.recommendedPoses} Foto</span>
+                  )}
                 </div>
               </div>
             );

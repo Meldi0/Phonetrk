@@ -1,6 +1,8 @@
 import { colorMatrix, cropRect, LAYOUT_OPTIONS, STRIP_TEMPLATES } from './presets.js';
 import { executeEffect } from './effects.js';
 import { drawSticker } from './stickers.js';
+import { ARTISTIC_TEMPLATES } from './artisticTemplates.js';
+import { renderArtworkStrip } from './templateRenderer.js';
 
 export function makeCanvas(width, height) {
   const canvas = document.createElement('canvas');
@@ -82,6 +84,12 @@ function fitText(ctx, text, x, y, maxWidth, initialSize, weight = '400', fontFam
 }
 
 export function composeStrip(processed, style, timestamp) {
+  const templateId = style.template || style.frame || 'airmail-love';
+  const artistic = ARTISTIC_TEMPLATES.find(t => t.id === templateId);
+  if (artistic || STRIP_TEMPLATES.find(t => t.id === templateId && t.photoSlots)) {
+    return renderArtworkStrip(processed, style, timestamp);
+  }
+
   const count = Math.max(1, processed.length);
 
   // Layout resolution: supports 1, 2, 4, 6 photos
@@ -128,7 +136,6 @@ export function composeStrip(processed, style, timestamp) {
   const ctx = canvas.getContext('2d');
 
   // Find template definition
-  const templateId = style.template || style.frame || 'clean-white';
   const template = STRIP_TEMPLATES.find(t => t.id === templateId) || STRIP_TEMPLATES[0];
 
   // 1. Render Strip Background (custom override or template background)

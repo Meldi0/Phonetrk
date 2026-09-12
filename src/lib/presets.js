@@ -44,7 +44,10 @@ export const LAYOUT_OPTIONS = [
   { id: '6-wide', name: '6-Cut Wide', poses: 6, cols: 3, rows: 2, label: '6 Poses (3 × 2)' },
 ];
 
+import { ARTISTIC_TEMPLATES } from './artisticTemplates.js';
+
 export const STRIP_TEMPLATES = [
+  ...ARTISTIC_TEMPLATES,
   // CLEAN
   {
     id: 'clean-white',
@@ -538,7 +541,21 @@ export const STRIP_TEMPLATES = [
   },
 ];
 
-export const TEMPLATE_CATEGORIES = ['All', 'Clean', 'Cute', 'Playful', 'Retro', 'Y2K', 'Favorites'];
+export const TEMPLATE_CATEGORIES = [
+  'All',
+  'Scrapbook',
+  'Denim',
+  'Vintage',
+  'Film',
+  'Polaroid',
+  'Minimal',
+  'Clean',
+  'Cute',
+  'Playful',
+  'Retro',
+  'Y2K',
+  'Favorites',
+];
 
 // Backward compatibility for FRAMES
 export const FRAMES = STRIP_TEMPLATES.map(t => ({
@@ -558,8 +575,8 @@ export const DEFAULT_EFFECT = {
 };
 
 export const DEFAULT_STYLE = {
-  template: 'lavender-minimal',
-  frame: 'lavender-minimal',
+  template: 'airmail-love',
+  frame: 'airmail-love',
   layout: '4-vertical',
   poseCount: 4,
   sticker: '',

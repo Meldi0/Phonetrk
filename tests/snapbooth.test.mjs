@@ -81,3 +81,47 @@ test('capture paces define timing intervals', () => {
   assert.ok(paceIds.includes('normal'));
   assert.ok(paceIds.includes('fast'));
 });
+
+import { ARTISTIC_TEMPLATES, ARTISTIC_CATEGORIES } from '../src/lib/artisticTemplates.js';
+import { fitCover } from '../src/lib/templateRenderer.js';
+
+test('artistic templates collection includes all 5 core reference templates with data-driven photo slots', () => {
+  const coreIds = ['airmail-love', 'denim-booth', 'denim-scrapbook', 'vinyl-memories', 'denim-note'];
+  for (const id of coreIds) {
+    const tpl = ARTISTIC_TEMPLATES.find(t => t.id === id);
+    assert.ok(tpl, `Template ${id} must exist in ARTISTIC_TEMPLATES`);
+    assert.ok(tpl.name, `Template ${id} must have a name`);
+    assert.ok(tpl.category, `Template ${id} must have a category`);
+    assert.ok(tpl.canvas && tpl.canvas.width >= 800 && tpl.canvas.height >= 1800, `Template ${id} must have high-res canvas`);
+    assert.ok(Array.isArray(tpl.photoSlots) && tpl.photoSlots.length >= 1, `Template ${id} must have photoSlots array`);
+    for (const slot of tpl.photoSlots) {
+      assert.ok(typeof slot.x === 'number' && typeof slot.y === 'number', `Slot in ${id} must have x and y`);
+      assert.ok(slot.width > 0 && slot.height > 0, `Slot in ${id} must have positive dimensions`);
+    }
+  }
+});
+
+test('fitCover scales and centers photos without distorting aspect ratio', () => {
+  // Landscape into portrait slot
+  const res1 = fitCover(1600, 1200, 400, 400);
+  assert.ok(Math.abs(res1.drawW - 533.33) < 0.1);
+  assert.equal(res1.drawH, 400);
+  assert.ok(Math.abs(res1.drawX - (-66.66)) < 0.1);
+  assert.equal(res1.drawY, 0);
+
+  // Portrait into landscape slot
+  const res2 = fitCover(1200, 1600, 600, 300);
+  assert.equal(res2.drawW, 600);
+  assert.equal(res2.drawH, 800);
+  assert.equal(res2.drawX, 0);
+  assert.equal(res2.drawY, -250);
+});
+
+test('categories include Scrapbook, Denim, Vintage, Film, Polaroid, Minimal', () => {
+  assert.ok(ARTISTIC_CATEGORIES.includes('Scrapbook'));
+  assert.ok(ARTISTIC_CATEGORIES.includes('Denim'));
+  assert.ok(ARTISTIC_CATEGORIES.includes('Vintage'));
+  assert.ok(ARTISTIC_CATEGORIES.includes('Film'));
+  assert.ok(ARTISTIC_CATEGORIES.includes('Polaroid'));
+  assert.ok(ARTISTIC_CATEGORIES.includes('Minimal'));
+});
