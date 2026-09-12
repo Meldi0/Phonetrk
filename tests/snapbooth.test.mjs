@@ -269,3 +269,24 @@ test('cute and clean aesthetic categories have dedicated templates', () => {
   assert.ok(cleanIds.includes('studio-white-6'));
 });
 
+test('dedicated 1-person SVG frame templates (Lego Pop iOS, Meow Arcade, Polaroid Eject) exist and support 1 photo', () => {
+  const legoPop = ARTISTIC_TEMPLATES.find(t => t.id === 'lego-pop-ios-1');
+  assert.ok(legoPop, 'lego-pop-ios-1 must exist');
+  assert.equal(legoPop.photoSlots.length, 1);
+  assert.deepEqual(legoPop.supportedPhotoCounts, [1]);
+  assert.equal(legoPop.recommendedFor, 1);
+
+  const meowArcade = ARTISTIC_TEMPLATES.find(t => t.id === 'meow-arcade-1');
+  assert.ok(meowArcade, 'meow-arcade-1 must exist');
+  assert.equal(meowArcade.photoSlots.length, 1);
+  assert.deepEqual(meowArcade.supportedPhotoCounts, [1]);
+  assert.equal(meowArcade.recommendedFor, 1);
+
+  const polaroidEject = ARTISTIC_TEMPLATES.find(t => t.id === 'polaroid-eject-1');
+  assert.ok(polaroidEject, 'polaroid-eject-1 must exist');
+  assert.equal(polaroidEject.photoSlots.length, 1);
+  assert.deepEqual(polaroidEject.supportedPhotoCounts, [1]);
+  assert.equal(polaroidEject.recommendedFor, 1);
+});
+
+

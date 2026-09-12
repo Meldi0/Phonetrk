@@ -31,6 +31,25 @@ import {
   drawFabricBow,
   drawCuteCherries,
   drawWashiTapeStrip,
+  createLegoPattern,
+  drawModernPaperclip,
+  drawHolographicMiniCd,
+  drawFriedEggSticker,
+  drawRetroUfoAlien,
+  drawLemonSlice,
+  drawOffTheWallPill,
+  drawIosPhotoCardFrame,
+  createGinghamPattern,
+  drawRetroStorybooks,
+  drawRetroPayphoneIcon,
+  drawRetroHandheldConsole,
+  createNotebookGridPattern,
+  drawPolaroidInstantCamera,
+  drawCuteSillyObjectBadge,
+  drawPointerArrow3D,
+  drawCuteStarCharacter,
+  drawVintagePhoneCordAndHandset,
+  drawExclamationBadge,
 } from './canvasTextures.js';
 
 export const ADDITIONAL_TEMPLATES = [
@@ -1731,6 +1750,487 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.textAlign = 'right';
       ctx.fillText('Local Intranet', winX + winW - 16, bottomBarY + 20);
 
+      ctx.restore();
+    },
+  },
+
+  // ==========================================
+  // 12. LEGO POP iOS (Frame 1 - 1 Photo Hero)
+  // ==========================================
+  {
+    id: 'lego-pop-ios-1',
+    family: 'lego-pop-ios',
+    name: 'Lego Pop iOS',
+    variantLabel: '1 Hero Card',
+    category: 'Playful',
+    description: 'Bright yellow Lego studs with iOS photo card, holographic mini-CD, UFO alien & fried egg sticker',
+    background: ['#F5AF00'],
+    textColor: '#111827',
+    supportedPhotoCounts: [1],
+    recommendedFor: 1,
+    canvas: { width: 1080, height: 1920 },
+    photoSlots: [
+      { id: 1, x: 70, y: 614, width: 940, height: 710, borderRadius: 0, frameStyle: 'none' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      // 1. Lego base studs pattern
+      ctx.fillStyle = createLegoPattern(ctx, '#F5AF00');
+      ctx.fillRect(0, 0, width, height);
+
+      // 2. White iOS Card Container (x: 70, y: 500, w: 940, h: 940)
+      drawIosPhotoCardFrame(ctx, 70, 500, 940, 940, 70, 614, 940, 710, style?.timestamp);
+    },
+    renderForeground(ctx) {
+      // Scale: 2x (matching 1080x1920 canvas from 540x960 SVG)
+      // Top-Left: Modern Silver Paperclip
+      drawModernPaperclip(ctx, 80, 260, 2, -0.61);
+
+      // Top-Right: Mini Holographic CD
+      drawHolographicMiniCd(ctx, 680, 200, 2);
+
+      // Top-Right: Sunny-side up Fried Egg Sticker over CD edge
+      drawFriedEggSticker(ctx, 800, 210, 2);
+
+      // Bottom-Left: Cute Retro Alien UFO with indicator LEDs
+      drawRetroUfoAlien(ctx, 90, 1480, 2);
+
+      // Bottom-Center: Fresh Lemon Slice with radial wedges
+      drawLemonSlice(ctx, 450, 1570, 2);
+
+      // Bottom-Right: "OFF THE WALL / STAY CURIOUS" Pill Capsule Sticker
+      drawOffTheWallPill(ctx, 650, 1420, -0.14, 2);
+    },
+  },
+
+  // ==========================================
+  // 13. MEOW'S ARCADE CONSOLE (Frame 2 - 1 Photo Hero)
+  // ==========================================
+  {
+    id: 'meow-arcade-1',
+    family: 'meow-arcade',
+    name: 'Meow Arcade Console',
+    variantLabel: '1 Hero Screen',
+    category: 'Retro',
+    description: 'Pastel gingham tablecloth with retro handheld game console screen, storybooks & red phone',
+    background: ['#FCF3EE', '#F37C76'],
+    textColor: '#3A404C',
+    supportedPhotoCounts: [1],
+    recommendedFor: 1,
+    canvas: { width: 1000, height: 1778 },
+    photoSlots: [
+      { id: 1, x: 190, y: 470, width: 620, height: 540, borderRadius: 18, frameStyle: 'none' },
+    ],
+    renderBackground(ctx, canvas) {
+      const { width, height } = canvas;
+      // 1. Gingham tablecloth pattern
+      ctx.fillStyle = createGinghamPattern(ctx, '#FCF3EE', '#F37C76');
+      ctx.fillRect(0, 0, width, height);
+
+      // 2. Bottom curved wave with strawberry accents
+      ctx.save();
+      ctx.fillStyle = '#FCF3EE';
+      ctx.beginPath();
+      ctx.moveTo(1000, 1400);
+      ctx.bezierCurveTo(1000, 1400, 600, 1300, 300, 1400);
+      ctx.bezierCurveTo(150, 1450, 0, 1500, 0, 1600);
+      ctx.lineTo(0, 1778);
+      ctx.lineTo(1000, 1778);
+      ctx.closePath();
+      ctx.fill();
+
+      // Strawberry seeds along bottom wave
+      ctx.fillStyle = '#E57373';
+      const seeds = [
+        [180, 1470], [320, 1440], [480, 1420], [640, 1410],
+        [780, 1430], [900, 1460], [120, 1580], [250, 1550],
+        [420, 1530], [580, 1520], [740, 1540], [870, 1570],
+      ];
+      seeds.forEach(([sx, sy]) => {
+        ctx.beginPath();
+        ctx.ellipse(sx, sy, 4, 2.5, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+
+      // 3. Top-Right Storybooks
+      drawRetroStorybooks(ctx, 740, 60, 1);
+
+      // 4. Bottom-Left Red Telephone Booth
+      drawRetroPayphoneIcon(ctx, 50, 1570, 1);
+
+      // 5. Center Retro Handheld Console Shell
+      drawRetroHandheldConsole(ctx, 60, 360, 880, 760, {
+        color: '#586BA4',
+        title: "MEOW'S ADVENTURE",
+        leftText1: 'FUN',
+        leftText2: 'PLAY!',
+        screenX: 190,
+        screenY: 470,
+        screenW: 620,
+        screenH: 540,
+      });
+
+      // Dark CRT screen background behind photo slot
+      ctx.fillStyle = '#2A2F3A';
+      if (ctx.roundRect) ctx.roundRect(190, 470, 620, 540, 18);
+      else ctx.rect(190, 470, 620, 540);
+      ctx.fill();
+    },
+    renderForeground(ctx) {
+      // Screen glass sheen reflection across top portion
+      ctx.save();
+      const glass = ctx.createLinearGradient(190, 470, 190, 650);
+      glass.addColorStop(0, 'rgba(255, 255, 255, 0.28)');
+      glass.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
+      glass.addColorStop(1, 'transparent');
+
+      ctx.fillStyle = glass;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(190, 470, 620, 180, [18, 18, 0, 0]);
+      else ctx.rect(190, 470, 620, 180);
+      ctx.fill();
+
+      // Console scanline details
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 14px Verdana, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('PRESS START • LEVEL 01 • READY', 500, 1160);
+
+      ctx.restore();
+    },
+  },
+
+  // ==========================================
+  // 14. POLAROID EJECT AIRMAIL (Frame 3 - 1 Photo Hero)
+  // ==========================================
+  {
+    id: 'polaroid-eject-1',
+    family: 'polaroid-eject',
+    name: 'Polaroid Eject Airmail',
+    variantLabel: '1 Ejected Photo',
+    category: 'Vintage',
+    description: 'Vintage Polaroid camera spitting out airmail keepsake photo with phone handset & retro stickers',
+    background: ['#F6F2E7'],
+    textColor: '#1B3A57',
+    supportedPhotoCounts: [1],
+    recommendedFor: 1,
+    canvas: { width: 1200, height: 2160 },
+    photoSlots: [
+      { id: 1, x: 368, y: 560, width: 464, height: 580, borderRadius: 6, frameStyle: 'paper-perforated' },
+    ],
+    renderBackground(ctx, canvas) {
+      const { width, height } = canvas;
+      // 1. Notebook Graph Grid Paper Background
+      ctx.fillStyle = createNotebookGridPattern(ctx, '#F6F2E7', '#DFD7C2');
+      ctx.fillRect(0, 0, width, height);
+
+      // 2. Ejected Photo Strip Base Card (at x: 320, y: 520, w: 560, h: 1240)
+      ctx.save();
+      ctx.shadowColor = 'rgba(44, 62, 80, 0.26)';
+      ctx.shadowBlur = 24;
+      ctx.shadowOffsetY = 24;
+
+      ctx.fillStyle = '#FBF8F0';
+      if (ctx.roundRect) ctx.roundRect(320, 520, 560, 1240, 8);
+      else ctx.rect(320, 520, 560, 1240);
+      ctx.fill();
+
+      ctx.shadowColor = 'transparent';
+
+      // Left & Right Airmail chevron borders
+      const barH = 48;
+      const stripeW = 24;
+      for (let y = 520; y < 1760; y += barH) {
+        ctx.fillStyle = (Math.floor((y - 520) / barH) % 2 === 0) ? '#1B4F72' : '#C0392B';
+        ctx.beginPath();
+        ctx.moveTo(320, y);
+        ctx.lineTo(320 + stripeW, y + stripeW);
+        ctx.lineTo(320 + stripeW, y + barH);
+        ctx.lineTo(320, y + barH - stripeW);
+        ctx.closePath();
+        ctx.fill();
+      }
+      for (let y = 520; y < 1760; y += barH) {
+        ctx.fillStyle = (Math.floor((y - 520) / barH) % 2 === 0) ? '#C0392B' : '#1B4F72';
+        ctx.beginPath();
+        ctx.moveTo(880 - stripeW, y);
+        ctx.lineTo(880, y + stripeW);
+        ctx.lineTo(880, y + barH);
+        ctx.lineTo(880 - stripeW, y + barH - stripeW);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.restore();
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const date = timestamp ? new Date(timestamp) : new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const dateFormatted = `${pad(date.getMonth() + 1)}.${pad(date.getDate())}.${String(date.getFullYear()).slice(-2)}`;
+
+      // 1. Vintage Polaroid Instant Camera at Top (x: 300, y: 90, scale: 2)
+      drawPolaroidInstantCamera(ctx, 300, 90, 2);
+
+      // 2. Embellishments & Stickers (scale: 2)
+      // Top-Left: 3D Pointer Arrow pointing to shutter
+      drawPointerArrow3D(ctx, 224, 284, -0.38, 2);
+
+      // Top-Right: "CUTE SILLY OBJECT★" badge
+      drawCuteSillyObjectBadge(ctx, 770, 350, 0.15, 2);
+
+      // Left-Center: Cute Smiling Star Character
+      drawCuteStarCharacter(ctx, 70, 460, -0.17, 2);
+
+      // Left-Side: Telephone Receiver + Spiral Cable
+      drawVintagePhoneCordAndHandset(ctx, 260, 520, 2);
+
+      // Left-Bottom: Exclamation Pop Badge
+      drawExclamationBadge(ctx, 200, 1280, -0.1, 2);
+
+      // 3. Ejected Photo Strip Bottom Typography & Stamps
+      ctx.save();
+      ctx.textAlign = 'center';
+
+      // Dashed separator line
+      ctx.strokeStyle = '#D5C8AD';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(360, 1220);
+      ctx.lineTo(840, 1220);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Typography
+      ctx.fillStyle = '#1B3A57';
+      ctx.font = '900 56px Impact, "Arial Black", sans-serif';
+      ctx.fillText(style.header || 'MEMORIES', 600, 1300);
+
+      ctx.fillStyle = '#C0392B';
+      ctx.font = 'italic bold 36px Georgia, serif';
+      ctx.fillText('&', 600, 1345);
+
+      ctx.fillStyle = '#1B3A57';
+      ctx.font = '900 64px Impact, "Arial Black", sans-serif';
+      ctx.fillText('STORIES', 600, 1410);
+
+      ctx.fillStyle = '#555555';
+      ctx.font = 'italic 34px "Brush Script MT", "Bickham Script Pro", cursive, serif';
+      ctx.fillText(style.text || 'captured in time', 600, 1465);
+
+      // Circular Postmark Stamp
+      drawPostmark(ctx, 480, 1590, 68, 'AIR MAIL PAR AVION', dateFormatted, '#8C7B6C');
+
+      // Date Stamp in Impact font
+      ctx.fillStyle = '#333333';
+      ctx.font = '900 44px Impact, sans-serif';
+      ctx.fillText(dateFormatted, 730, 1605);
+
+      // Wavy Cancellation Lines
+      ctx.strokeStyle = '#8C7B6C';
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.65;
+      for (let offset = -14; offset <= 14; offset += 14) {
+        ctx.beginPath();
+        for (let x = 620; x <= 820; x += 30) {
+          const y = 1530 + offset + Math.sin((x / 30) * Math.PI) * 7;
+          if (x === 620) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1.0;
+
+      ctx.restore();
+    },
+  },
+
+  // Multi-cut adaptations of the references
+  {
+    id: 'polaroid-eject-2',
+    family: 'polaroid-eject',
+    name: 'Polaroid Eject Airmail',
+    variantLabel: '2 Cut Duo',
+    category: 'Vintage',
+    description: 'Vintage Polaroid camera ejecting two airmail keepsake photos with phone cord & stickers',
+    background: ['#F6F2E7'],
+    textColor: '#1B3A57',
+    supportedPhotoCounts: [2],
+    recommendedFor: 2,
+    canvas: { width: 1200, height: 2160 },
+    photoSlots: [
+      { id: 1, x: 368, y: 560, width: 464, height: 320, borderRadius: 6, frameStyle: 'paper-perforated' },
+      { id: 2, x: 368, y: 920, width: 464, height: 320, borderRadius: 6, frameStyle: 'paper-perforated' },
+    ],
+    renderBackground(ctx, canvas) {
+      const { width, height } = canvas;
+      ctx.fillStyle = createNotebookGridPattern(ctx, '#F6F2E7', '#DFD7C2');
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.save();
+      ctx.shadowColor = 'rgba(44, 62, 80, 0.26)';
+      ctx.shadowBlur = 24;
+      ctx.shadowOffsetY = 24;
+      ctx.fillStyle = '#FBF8F0';
+      if (ctx.roundRect) ctx.roundRect(320, 520, 560, 1240, 8);
+      else ctx.rect(320, 520, 560, 1240);
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+
+      const barH = 48;
+      const stripeW = 24;
+      for (let y = 520; y < 1760; y += barH) {
+        ctx.fillStyle = (Math.floor((y - 520) / barH) % 2 === 0) ? '#1B4F72' : '#C0392B';
+        ctx.beginPath();
+        ctx.moveTo(320, y);
+        ctx.lineTo(320 + stripeW, y + stripeW);
+        ctx.lineTo(320 + stripeW, y + barH);
+        ctx.lineTo(320, y + barH - stripeW);
+        ctx.closePath();
+        ctx.fill();
+      }
+      for (let y = 520; y < 1760; y += barH) {
+        ctx.fillStyle = (Math.floor((y - 520) / barH) % 2 === 0) ? '#C0392B' : '#1B4F72';
+        ctx.beginPath();
+        ctx.moveTo(880 - stripeW, y);
+        ctx.lineTo(880, y + stripeW);
+        ctx.lineTo(880, y + barH);
+        ctx.lineTo(880 - stripeW, y + barH - stripeW);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const date = timestamp ? new Date(timestamp) : new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const dateFormatted = `${pad(date.getMonth() + 1)}.${pad(date.getDate())}.${String(date.getFullYear()).slice(-2)}`;
+
+      drawPolaroidInstantCamera(ctx, 300, 90, 2);
+      drawPointerArrow3D(ctx, 224, 284, -0.38, 2);
+      drawCuteSillyObjectBadge(ctx, 770, 350, 0.15, 2);
+      drawCuteStarCharacter(ctx, 70, 460, -0.17, 2);
+      drawVintagePhoneCordAndHandset(ctx, 260, 520, 2);
+      drawExclamationBadge(ctx, 200, 1280, -0.1, 2);
+
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.strokeStyle = '#D5C8AD';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(360, 1280);
+      ctx.lineTo(840, 1280);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#1B3A57';
+      ctx.font = '900 48px Impact, "Arial Black", sans-serif';
+      ctx.fillText(style.header || 'MEMORIES', 600, 1350);
+
+      ctx.fillStyle = '#C0392B';
+      ctx.font = 'italic bold 32px Georgia, serif';
+      ctx.fillText('&', 600, 1390);
+
+      ctx.fillStyle = '#1B3A57';
+      ctx.font = '900 54px Impact, "Arial Black", sans-serif';
+      ctx.fillText('STORIES', 600, 1445);
+
+      drawPostmark(ctx, 480, 1580, 68, 'AIR MAIL PAR AVION', dateFormatted, '#8C7B6C');
+      ctx.fillStyle = '#333333';
+      ctx.font = '900 44px Impact, sans-serif';
+      ctx.fillText(dateFormatted, 730, 1595);
+      ctx.restore();
+    },
+  },
+
+  {
+    id: 'meow-arcade-3',
+    family: 'meow-arcade',
+    name: 'Meow Arcade Console',
+    variantLabel: '3 Stacked Consoles',
+    category: 'Retro',
+    description: 'Pastel gingham tablecloth with 3 stacked retro handheld game consoles (Dark Blue, Yellow, Lavender)',
+    background: ['#FCF3EE', '#F37C76'],
+    textColor: '#3A404C',
+    supportedPhotoCounts: [3],
+    recommendedFor: 3,
+    canvas: { width: 1000, height: 1778 },
+    photoSlots: [
+      { id: 1, x: 250, y: 250, width: 500, height: 300, borderRadius: 15, frameStyle: 'none' },
+      { id: 2, x: 250, y: 700, width: 500, height: 300, borderRadius: 15, frameStyle: 'none' },
+      { id: 3, x: 250, y: 1150, width: 500, height: 300, borderRadius: 15, frameStyle: 'none' },
+    ],
+    renderBackground(ctx, canvas) {
+      const { width, height } = canvas;
+      ctx.fillStyle = createGinghamPattern(ctx, '#FCF3EE', '#F37C76');
+      ctx.fillRect(0, 0, width, height);
+
+      // Bottom curved wave
+      ctx.save();
+      ctx.fillStyle = '#FCF3EE';
+      ctx.beginPath();
+      ctx.moveTo(1000, 1400);
+      ctx.bezierCurveTo(1000, 1400, 600, 1300, 300, 1400);
+      ctx.bezierCurveTo(150, 1450, 0, 1500, 0, 1600);
+      ctx.lineTo(0, 1778);
+      ctx.lineTo(1000, 1778);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      drawRetroStorybooks(ctx, 740, 50, 1);
+      drawRetroPayphoneIcon(ctx, 40, 1600, 1);
+
+      // Console 1: Dark Blue
+      drawRetroHandheldConsole(ctx, 100, 200, 800, 400, {
+        color: '#586BA4',
+        title: "MEOW'S ADVENTURE",
+        leftText1: 'START',
+        leftText2: 'READY',
+        screenX: 250,
+        screenY: 250,
+        screenW: 500,
+        screenH: 300,
+      });
+
+      // Console 2: Yellow
+      drawRetroHandheldConsole(ctx, 100, 650, 800, 400, {
+        color: '#FCD78C',
+        title: 'RETRO SNAP',
+        leftText1: 'FUN',
+        leftText2: 'PLAY!',
+        screenX: 250,
+        screenY: 700,
+        screenW: 500,
+        screenH: 300,
+      });
+
+      // Console 3: Light Blue
+      drawRetroHandheldConsole(ctx, 100, 1100, 800, 400, {
+        color: '#A0B4FF',
+        title: 'GHOST STORIES',
+        leftText1: 'STAGE',
+        leftText2: 'CLEAR',
+        screenX: 250,
+        screenY: 1150,
+        screenW: 500,
+        screenH: 300,
+      });
+    },
+    renderForeground(ctx) {
+      // Small screen gloss overlays
+      ctx.save();
+      [250, 700, 1150].forEach(sy => {
+        const glass = ctx.createLinearGradient(250, sy, 250, sy + 100);
+        glass.addColorStop(0, 'rgba(255, 255, 255, 0.22)');
+        glass.addColorStop(1, 'transparent');
+        ctx.fillStyle = glass;
+        if (ctx.roundRect) ctx.roundRect(250, sy, 500, 100, [15, 15, 0, 0]);
+        else ctx.fillRect(250, sy, 500, 100);
+        ctx.fill();
+      });
       ctx.restore();
     },
   },

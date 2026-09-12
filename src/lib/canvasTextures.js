@@ -1554,3 +1554,1154 @@ export function drawWashiTapeStrip(ctx, x, y, width, height, color = 'rgba(240, 
 
   ctx.restore();
 }
+
+/**
+ * Generates yellow Lego stud pattern
+ */
+export function createLegoPattern(ctx, baseColor = '#F5AF00') {
+  const size = 60;
+  const off = createOffscreen(size, size);
+  const octx = off.getContext('2d');
+
+  octx.fillStyle = baseColor;
+  octx.fillRect(0, 0, size, size);
+
+  // 3D Stud circle layers
+  octx.fillStyle = '#E0A100';
+  octx.globalAlpha = 0.45;
+  octx.beginPath();
+  octx.arc(30, 30, 19, 0, Math.PI * 2);
+  octx.fill();
+
+  octx.globalAlpha = 1.0;
+  octx.fillStyle = '#FFD13B';
+  octx.beginPath();
+  octx.arc(28, 27, 17, 0, Math.PI * 2);
+  octx.fill();
+
+  octx.fillStyle = '#FFDB4D';
+  octx.beginPath();
+  octx.arc(27, 25, 14, 0, Math.PI * 2);
+  octx.fill();
+
+  octx.fillStyle = '#FFE76A';
+  octx.globalAlpha = 0.6;
+  octx.beginPath();
+  octx.arc(25, 23, 10, 0, Math.PI * 2);
+  octx.fill();
+  octx.globalAlpha = 1.0;
+
+  return ctx.createPattern(off, 'repeat');
+}
+
+export function drawModernPaperclip(ctx, x, y, scale = 1, angle = -0.6) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (angle) ctx.rotate(angle);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+  ctx.shadowBlur = 6;
+  ctx.shadowOffsetY = 4;
+
+  ctx.strokeStyle = '#D1D5DB';
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(0, 60);
+  ctx.lineTo(0, 20);
+  ctx.arc(15, 20, 15, Math.PI, 0, false);
+  ctx.lineTo(30, 80);
+  ctx.arc(5, 80, 25, 0, Math.PI, false);
+  ctx.lineTo(-20, 10);
+  ctx.arc(15, 10, 35, Math.PI, 0, false);
+  ctx.lineTo(50, 70);
+  ctx.stroke();
+
+  // White specular highlight
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, 60);
+  ctx.lineTo(0, 20);
+  ctx.arc(15, 20, 15, Math.PI, 0, false);
+  ctx.lineTo(30, 80);
+  ctx.arc(5, 80, 25, 0, Math.PI, false);
+  ctx.lineTo(-20, 10);
+  ctx.arc(15, 10, 35, Math.PI, 0, false);
+  ctx.lineTo(50, 70);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+export function drawHolographicMiniCd(ctx, x, y, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 6;
+
+  // Sheen gradient
+  const sheen = ctx.createLinearGradient(-50, -50, 50, 50);
+  sheen.addColorStop(0, '#E0E7FF');
+  sheen.addColorStop(0.25, '#FBCFE8');
+  sheen.addColorStop(0.5, '#FEF08A');
+  sheen.addColorStop(0.75, '#A7F3D0');
+  sheen.addColorStop(1, '#BAE6FD');
+
+  ctx.fillStyle = sheen;
+  ctx.strokeStyle = '#CBD5E1';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(45, 45, 50, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(45, 45, 46, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Spindle ring
+  ctx.fillStyle = '#F8FAFC';
+  ctx.strokeStyle = '#94A3B8';
+  ctx.beginPath();
+  ctx.arc(45, 45, 16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Center hole
+  ctx.fillStyle = '#F5AF00';
+  ctx.beginPath();
+  ctx.arc(45, 45, 8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Arc groove
+  ctx.strokeStyle = '#64748B';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([2, 3]);
+  ctx.beginPath();
+  ctx.arc(45, 45, 30, Math.PI * 0.7, Math.PI * 1.3);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Label text
+  ctx.fillStyle = '#475569';
+  ctx.font = 'bold 7px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('SWEET MEMORIES • 2026', 45, 26);
+
+  ctx.restore();
+}
+
+export function drawFriedEggSticker(ctx, x, y, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 4;
+
+  // Organic egg white shape
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.moveTo(35, 10);
+  ctx.bezierCurveTo(60, 5, 85, 20, 80, 45);
+  ctx.bezierCurveTo(75, 70, 60, 80, 35, 75);
+  ctx.bezierCurveTo(10, 70, 0, 55, 5, 35);
+  ctx.bezierCurveTo(10, 15, 20, 12, 35, 10);
+  ctx.closePath();
+  ctx.fill();
+
+  // Yolk with warm orange-gold radial gradient
+  const yolkGrad = ctx.createRadialGradient(42, 42, 2, 45, 45, 18);
+  yolkGrad.addColorStop(0, '#FFB703');
+  yolkGrad.addColorStop(0.7, '#FB8500');
+  yolkGrad.addColorStop(1, '#D46000');
+
+  ctx.fillStyle = yolkGrad;
+  ctx.beginPath();
+  ctx.arc(45, 45, 18, 0, Math.PI * 2);
+  ctx.fill();
+
+  // White gloss highlight
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+  ctx.beginPath();
+  ctx.ellipse(40, 39, 5, 3, -0.35, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+export function drawRetroUfoAlien(ctx, x, y, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 6;
+
+  // Glass dome
+  ctx.fillStyle = 'rgba(186, 230, 253, 0.8)';
+  ctx.strokeStyle = '#38BDF8';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(65, 40, 32, 26, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Cute green alien
+  ctx.fillStyle = '#A7F3D0';
+  ctx.beginPath();
+  ctx.arc(65, 42, 15, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Alien eyes & smile
+  ctx.fillStyle = '#065F46';
+  ctx.beginPath();
+  ctx.arc(60, 38, 2.5, 0, Math.PI * 2);
+  ctx.arc(70, 38, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = '#065F46';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(65, 45, 4, 0.1, Math.PI - 0.1);
+  ctx.stroke();
+
+  // Flying saucer rim
+  ctx.fillStyle = '#FACC15';
+  ctx.strokeStyle = '#CA8A04';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(65, 56, 60, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Inner saucer top
+  ctx.fillStyle = '#FDE047';
+  ctx.beginPath();
+  ctx.ellipse(65, 54, 45, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Indicator lights
+  const lights = [
+    { x: 35, y: 58, color: '#EF4444' },
+    { x: 50, y: 62, color: '#3B82F6' },
+    { x: 65, y: 63, color: '#22C55E' },
+    { x: 80, y: 62, color: '#A855F7' },
+    { x: 95, y: 58, color: '#EC4899' },
+  ];
+  lights.forEach(l => {
+    ctx.fillStyle = l.color;
+    ctx.beginPath();
+    ctx.arc(l.x, l.y, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.restore();
+}
+
+export function drawLemonSlice(ctx, x, y, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 4;
+
+  const lemonGrad = ctx.createRadialGradient(40, 40, 5, 40, 40, 38);
+  lemonGrad.addColorStop(0, '#FEF08A');
+  lemonGrad.addColorStop(0.7, '#FACC15');
+  lemonGrad.addColorStop(1, '#CA8A04');
+
+  ctx.fillStyle = lemonGrad;
+  ctx.beginPath();
+  ctx.arc(40, 40, 38, 0, Math.PI * 2);
+  ctx.fill();
+
+  // White pith
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.beginPath();
+  ctx.arc(40, 40, 34, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#FEF08A';
+  ctx.beginPath();
+  ctx.arc(40, 40, 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 8 pulp segments
+  ctx.fillStyle = '#FACC15';
+  ctx.strokeStyle = '#CA8A04';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 8; i++) {
+    const a1 = (i * Math.PI) / 4 + 0.08;
+    const a2 = ((i + 1) * Math.PI) / 4 - 0.08;
+    ctx.beginPath();
+    ctx.moveTo(40, 40);
+    ctx.arc(40, 40, 26, a1, a2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Center core
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.arc(40, 40, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+export function drawOffTheWallPill(ctx, x, y, angle = -0.14, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (angle) ctx.rotate(angle);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 6;
+
+  // Navy pill base with white border
+  const w = 165;
+  const h = 52;
+  ctx.fillStyle = '#1E3A8A';
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(0, 0, w, h, 26);
+  else ctx.rect(0, 0, w, h);
+  ctx.fill();
+  ctx.stroke();
+
+  // Inner dashed border
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = '#93C5FD';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(4, 4, w - 8, h - 8, 22);
+  else ctx.rect(4, 4, w - 8, h - 8);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Typography
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '900 14px "Arial Black", Impact, sans-serif';
+  ctx.fillText('OFF THE WALL', w / 2, 25);
+
+  ctx.fillStyle = '#93C5FD';
+  ctx.font = '700 9px -apple-system, sans-serif';
+  ctx.fillText('STAY CURIOUS', w / 2, 40);
+
+  ctx.restore();
+}
+
+export function drawIosPhotoCardFrame(ctx, x, y, width, height, slotX, slotY, slotW, slotH, timestamp) {
+  ctx.save();
+
+  // Drop shadow
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 10;
+
+  // White Card Outer Frame
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, width, height, 20);
+  else ctx.rect(x, y, width, height);
+  ctx.fill();
+
+  ctx.shadowColor = 'transparent';
+
+  // Date and Time calculation
+  const d = timestamp ? new Date(timestamp) : new Date();
+  const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+  // 1. Header Section
+  const headerH = slotY - y;
+  // Back Chevron (<)
+  ctx.strokeStyle = '#007AFF';
+  ctx.lineWidth = 3.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x + 35, y + headerH * 0.35);
+  ctx.lineTo(x + 24, y + headerH * 0.5);
+  ctx.lineTo(x + 35, y + headerH * 0.65);
+  ctx.stroke();
+
+  // Date & Time center text
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#111827';
+  ctx.font = '600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText('Today', x + width / 2, y + headerH * 0.44);
+
+  ctx.fillStyle = '#8E8E93';
+  ctx.font = '500 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText(timeStr || '9:41 AM', x + width / 2, y + headerH * 0.72);
+
+  // Edit Action (Right)
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#007AFF';
+  ctx.font = '500 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText('Edit', x + width - 30, y + headerH * 0.58);
+
+  // Header bottom hairline divider
+  ctx.strokeStyle = '#F2F2F7';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x, slotY);
+  ctx.lineTo(x + width, slotY);
+  ctx.stroke();
+
+  // 2. Footer Section
+  const footerY = slotY + slotH;
+  const footerH = y + height - footerY;
+
+  // Footer top hairline divider
+  ctx.strokeStyle = '#E5E5EA';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x, footerY);
+  ctx.lineTo(x + width, footerY);
+  ctx.stroke();
+
+  // Share icon (Left)
+  ctx.strokeStyle = '#007AFF';
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  const shareX = x + 35;
+  const shareY = footerY + footerH * 0.35;
+  if (ctx.roundRect) ctx.roundRect(shareX, shareY + 8, 20, 18, 4);
+  else ctx.rect(shareX, shareY + 8, 20, 18);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(shareX + 10, shareY + 15);
+  ctx.lineTo(shareX + 10, shareY);
+  ctx.lineTo(shareX + 5, shareY + 5);
+  ctx.moveTo(shareX + 10, shareY);
+  ctx.lineTo(shareX + 15, shareY + 5);
+  ctx.stroke();
+
+  // Heart icon (Center)
+  const hx = x + width / 2;
+  const hy = footerY + footerH * 0.36;
+  ctx.beginPath();
+  ctx.moveTo(hx, hy + 5);
+  ctx.bezierCurveTo(hx - 10, hy - 4, hx - 16, hy + 4, hx, hy + 20);
+  ctx.bezierCurveTo(hx + 16, hy + 4, hx + 10, hy - 4, hx, hy + 5);
+  ctx.stroke();
+
+  // Trash icon (Right)
+  const tx = x + width - 50;
+  const ty = footerY + footerH * 0.35;
+  ctx.beginPath();
+  ctx.moveTo(tx, ty + 6);
+  ctx.lineTo(tx + 18, ty + 6);
+  ctx.moveTo(tx + 5, ty + 6);
+  ctx.lineTo(tx + 5, ty + 2);
+  ctx.lineTo(tx + 13, ty + 2);
+  ctx.lineTo(tx + 13, ty + 6);
+  ctx.moveTo(tx + 2, ty + 6);
+  ctx.lineTo(tx + 4, ty + 22);
+  ctx.lineTo(tx + 14, ty + 22);
+  ctx.lineTo(tx + 16, ty + 6);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+export function createGinghamPattern(ctx, baseColor = '#FCF3EE', stripeColor = '#F37C76') {
+  const size = 100;
+  const off = createOffscreen(size, size);
+  const octx = off.getContext('2d');
+
+  octx.fillStyle = baseColor;
+  octx.fillRect(0, 0, size, size);
+
+  octx.fillStyle = stripeColor;
+  octx.globalAlpha = 0.3;
+  octx.fillRect(0, 0, 50, 100);
+  octx.fillRect(0, 0, 100, 50);
+  octx.globalAlpha = 1.0;
+
+  return ctx.createPattern(off, 'repeat');
+}
+
+export function drawRetroStorybooks(ctx, x, y, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 6;
+
+  // Book 1: Red "STORY" (rotate -5 deg)
+  ctx.save();
+  ctx.rotate(-0.09);
+  ctx.fillStyle = '#D02D2C';
+  if (ctx.roundRect) ctx.roundRect(0, 0, 200, 32, 4);
+  else ctx.fillRect(0, 0, 200, 32);
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 13px Verdana, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('STORY', 100, 21);
+  ctx.restore();
+
+  // Book 2: Yellow "FUN TALES" (rotate +2 deg)
+  ctx.save();
+  ctx.translate(-30, 42);
+  ctx.rotate(0.04);
+  ctx.fillStyle = '#FCD78C';
+  if (ctx.roundRect) ctx.roundRect(0, 0, 250, 36, 4);
+  else ctx.fillRect(0, 0, 250, 36);
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.fillStyle = '#3A404C';
+  ctx.font = 'bold 15px Verdana, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('FUN TALES', 125, 24);
+  ctx.restore();
+
+  ctx.restore();
+}
+
+export function drawRetroPayphoneIcon(ctx, x, y, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 6;
+
+  // Red phone booth box
+  ctx.fillStyle = '#D02D2C';
+  if (ctx.roundRect) ctx.roundRect(0, 0, 100, 150, 8);
+  else ctx.fillRect(0, 0, 100, 150);
+  ctx.fill();
+
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(20, 20, 60, 90);
+
+  // Keypad grid lines
+  ctx.beginPath();
+  ctx.moveTo(30, 42); ctx.lineTo(70, 42);
+  ctx.moveTo(30, 65); ctx.lineTo(70, 65);
+  ctx.moveTo(30, 88); ctx.lineTo(70, 88);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+export function drawRetroHandheldConsole(ctx, x, y, width, height, options = {}) {
+  const {
+    color = '#586BA4',
+    title = "MEOW'S ADVENTURE",
+    leftText1 = 'FUN',
+    leftText2 = 'PLAY!',
+    screenX = x + 150,
+    screenY = y + 50,
+    screenW = width - 300,
+    screenH = height - 100,
+  } = options;
+
+  ctx.save();
+
+  // Drop shadow
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+  ctx.shadowBlur = 18;
+  ctx.shadowOffsetY = 10;
+
+  // Console outer shell
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, width, height, 32);
+  else ctx.rect(x, y, width, height);
+  ctx.fill();
+
+  ctx.shadowColor = 'transparent';
+
+  // Title above screen
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 20px Verdana, sans-serif';
+  ctx.fillText(title, x + width / 2, screenY - 14);
+
+  // Left Controls
+  const leftCX = x + (screenX - x) / 2;
+  // Left Analog Joystick
+  ctx.fillStyle = '#FCF3EE';
+  ctx.beginPath();
+  ctx.arc(leftCX, screenY + screenH * 0.35, 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  // D-Pad
+  const dpadY = screenY + screenH * 0.72;
+  ctx.strokeStyle = '#FCF3EE';
+  ctx.lineWidth = 7;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(leftCX - 22, dpadY);
+  ctx.lineTo(leftCX + 22, dpadY);
+  ctx.moveTo(leftCX, dpadY - 22);
+  ctx.lineTo(leftCX, dpadY + 22);
+  ctx.stroke();
+
+  // Left texts
+  ctx.fillStyle = '#3A404C';
+  ctx.font = 'bold 15px Verdana, sans-serif';
+  ctx.fillText(leftText1, leftCX, screenY + screenH * 0.15);
+  ctx.fillText(leftText2, leftCX, screenY + screenH * 0.95);
+
+  // Right Controls
+  const rightCX = screenX + screenW + (x + width - (screenX + screenW)) / 2;
+  // Action buttons (A, B, X, Y)
+  ctx.fillStyle = '#FCF3EE';
+  ctx.beginPath();
+  ctx.arc(rightCX, screenY + screenH * 0.25, 26, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Right Analog Joystick
+  ctx.beginPath();
+  ctx.arc(rightCX, screenY + screenH * 0.72, 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Bottom small option pills
+  ctx.beginPath();
+  ctx.arc(leftCX, y + height - 28, 9, 0, Math.PI * 2);
+  ctx.arc(rightCX, y + height - 28, 9, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+export function createNotebookGridPattern(ctx, bg = '#F6F2E7', grid = '#DFD7C2') {
+  const size = 24;
+  const off = createOffscreen(size, size);
+  const octx = off.getContext('2d');
+
+  octx.fillStyle = bg;
+  octx.fillRect(0, 0, size, size);
+
+  octx.strokeStyle = grid;
+  octx.lineWidth = 0.9;
+  octx.beginPath();
+  octx.moveTo(size, 0);
+  octx.lineTo(0, 0);
+  octx.lineTo(0, size);
+  octx.stroke();
+
+  return ctx.createPattern(off, 'repeat');
+}
+
+export function drawPolaroidInstantCamera(ctx, x, y, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(44, 62, 80, 0.28)';
+  ctx.shadowBlur = 14;
+  ctx.shadowOffsetY = 12;
+
+  // Main Camera Body (300 x 235)
+  const bodyGrad = ctx.createLinearGradient(0, 0, 0, 235);
+  bodyGrad.addColorStop(0, '#FDFDFD');
+  bodyGrad.addColorStop(0.85, '#EAEAEA');
+  bodyGrad.addColorStop(1, '#D5D5D5');
+
+  ctx.fillStyle = bodyGrad;
+  ctx.strokeStyle = '#DCDCDC';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(0, 0, 300, 235, 28);
+  else ctx.rect(0, 0, 300, 235);
+  ctx.fill();
+  ctx.stroke();
+
+  // Inner highlight
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(5, 5, 290, 225, 24);
+  ctx.stroke();
+
+  // Viewfinder (Top Right: 210, 18, 60x42)
+  ctx.fillStyle = '#2B2D42';
+  ctx.strokeStyle = '#4A4E69';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(210, 18, 60, 42, 10);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#1B1C24';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(216, 23, 48, 32, 6);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(67, 97, 238, 0.4)';
+  ctx.beginPath();
+  ctx.arc(240, 39, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.beginPath();
+  ctx.arc(243, 36, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Flash Unit (Top Left: 25, 16, 64x62)
+  ctx.fillStyle = '#E5E5E5';
+  ctx.strokeStyle = '#BCBCBC';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(25, 16, 64, 62, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#F8F9FA';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(29, 20, 56, 54, 5);
+  ctx.fill();
+
+  ctx.strokeStyle = '#CBD5E1';
+  ctx.lineWidth = 2;
+  for (let gx = 37; gx <= 77; gx += 8) {
+    ctx.beginPath();
+    ctx.moveTo(gx, 20);
+    ctx.lineTo(gx, 74);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = 'rgba(255, 209, 102, 0.4)';
+  ctx.beginPath();
+  ctx.arc(57, 47, 14, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Red Shutter Button (32, 92)
+  ctx.fillStyle = '#D90429';
+  ctx.strokeStyle = '#B00020';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(48, 108, 18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#EF233C';
+  ctx.beginPath();
+  ctx.arc(46, 106, 14, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255, 117, 143, 0.8)';
+  ctx.beginPath();
+  ctx.ellipse(43, 103, 6, 3, -0.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Center Big Lens Assembly (cx: 150, cy: 96)
+  const lensGrad = ctx.createRadialGradient(150, 96, 5, 150, 96, 58);
+  lensGrad.addColorStop(0, '#1F2429');
+  lensGrad.addColorStop(0.75, '#0F1215');
+  lensGrad.addColorStop(1, '#2D3436');
+
+  ctx.fillStyle = lensGrad;
+  ctx.strokeStyle = '#111111';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(150, 96, 58, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#212529';
+  ctx.strokeStyle = '#343A40';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(150, 96, 53, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#181A1B';
+  ctx.beginPath();
+  ctx.arc(150, 96, 48, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Emerald Glass Lens
+  const glassGrad = ctx.createRadialGradient(150 - 5, 96 - 5, 4, 150, 96, 40);
+  glassGrad.addColorStop(0, 'rgba(56, 239, 125, 0.6)');
+  glassGrad.addColorStop(0.25, 'rgba(17, 153, 142, 0.7)');
+  glassGrad.addColorStop(0.6, '#0F2027');
+  glassGrad.addColorStop(1, '#050A0D');
+
+  ctx.fillStyle = glassGrad;
+  ctx.beginPath();
+  ctx.arc(150, 96, 40, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#080D11';
+  ctx.beginPath();
+  ctx.arc(150, 96, 26, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Reflections
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+  ctx.beginPath();
+  ctx.ellipse(138, 82, 10, 6, -0.6, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(56, 239, 125, 0.5)';
+  ctx.beginPath();
+  ctx.ellipse(164, 110, 5, 3, 0.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.beginPath();
+  ctx.arc(145, 89, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Model Badge (208, 92)
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#666666';
+  ctx.font = '900 10px "Arial Black", sans-serif';
+  ctx.fillText('RETRO', 208, 92);
+  ctx.fillStyle = '#EF233C';
+  ctx.font = '900 12px "Arial Black", sans-serif';
+  ctx.fillText('SNAP', 208, 104);
+  ctx.fillStyle = '#F77F00';
+  ctx.fillText('77', 246, 104);
+
+  // Lower Chin (0, 162 to 300, 235)
+  ctx.fillStyle = '#212529';
+  ctx.beginPath();
+  ctx.moveTo(0, 162);
+  ctx.lineTo(300, 162);
+  ctx.lineTo(300, 215);
+  ctx.quadraticCurveTo(300, 235, 274, 235);
+  ctx.lineTo(26, 235);
+  ctx.quadraticCurveTo(0, 235, 0, 215);
+  ctx.closePath();
+  ctx.fill();
+
+  // Ejection Slot
+  ctx.fillStyle = '#0A0A0C';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(25, 174, 250, 10, 4);
+  else ctx.rect(25, 174, 250, 10);
+  ctx.fill();
+
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(30, 176, 240, 4);
+
+  // Rainbow Vintage Stripes (32, 196)
+  const rainbow = ['#D90429', '#F77F00', '#FCBF49', '#2A9D8F', '#457B9D'];
+  rainbow.forEach((col, idx) => {
+    ctx.fillStyle = col;
+    ctx.fillRect(32, 196 + idx * 3, 30, 3);
+  });
+
+  // Brand Label
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#F1FAEE';
+  ctx.font = 'bold 13px "Helvetica Neue", Arial, sans-serif';
+  ctx.fillText('INSTASLOT', 150, 209);
+
+  ctx.restore();
+}
+
+export function drawCuteSillyObjectBadge(ctx, x, y, angle = 0.15, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (angle) ctx.rotate(angle);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 4;
+
+  // White Die-cut outline
+  ctx.fillStyle = '#FFFFFF';
+  ctx.strokeStyle = '#E0E0E0';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(-10, -8, 168, 66, 33);
+  ctx.fill();
+  ctx.stroke();
+
+  // Maroon inner
+  ctx.fillStyle = '#800020';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(-6, -4, 160, 58, 29);
+  ctx.fill();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '900 17px Impact, "Arial Black", sans-serif';
+  ctx.fillText('CUTE SILLY', 74, 22);
+
+  ctx.fillStyle = '#FFD166';
+  ctx.font = '900 22px Impact, "Arial Black", sans-serif';
+  ctx.fillText('OBJECT★', 74, 44);
+
+  ctx.restore();
+}
+
+export function drawPointerArrow3D(ctx, x, y, angle = -0.38, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (angle) ctx.rotate(angle);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 4;
+
+  ctx.fillStyle = '#F8F9FA';
+  ctx.strokeStyle = '#2B2D42';
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(12, 42);
+  ctx.lineTo(22, 30);
+  ctx.lineTo(38, 44);
+  ctx.lineTo(44, 38);
+  ctx.lineTo(28, 24);
+  ctx.lineTo(42, 16);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Bevel facet
+  ctx.fillStyle = '#E9ECEF';
+  ctx.beginPath();
+  ctx.moveTo(4, 7);
+  ctx.lineTo(13, 34);
+  ctx.lineTo(19, 26);
+  ctx.lineTo(36, 40);
+  ctx.lineTo(39, 37);
+  ctx.lineTo(24, 22);
+  ctx.lineTo(36, 16);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
+export function drawCuteStarCharacter(ctx, x, y, angle = -0.17, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (angle) ctx.rotate(angle);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 4;
+
+  // Star body with yellow gradient
+  const starGrad = ctx.createLinearGradient(0, 0, 100, 100);
+  starGrad.addColorStop(0, '#FFF176');
+  starGrad.addColorStop(1, '#FBC02D');
+
+  ctx.fillStyle = starGrad;
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 3.5;
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(50, 5);
+  ctx.lineTo(63, 35);
+  ctx.lineTo(96, 38);
+  ctx.lineTo(71, 60);
+  ctx.lineTo(78, 92);
+  ctx.lineTo(50, 75);
+  ctx.lineTo(22, 92);
+  ctx.lineTo(29, 60);
+  ctx.lineTo(4, 38);
+  ctx.lineTo(37, 35);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Cute eyes
+  ctx.fillStyle = '#1F2429';
+  ctx.beginPath();
+  ctx.ellipse(44, 50, 3.5, 8, 0, 0, Math.PI * 2);
+  ctx.ellipse(56, 50, 3.5, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eye shines
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.arc(43, 47, 1.5, 0, Math.PI * 2);
+  ctx.arc(55, 47, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Rosy cheeks
+  ctx.fillStyle = 'rgba(255, 123, 0, 0.4)';
+  ctx.beginPath();
+  ctx.arc(37, 58, 4, 0, Math.PI * 2);
+  ctx.arc(63, 58, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+export function drawVintagePhoneCordAndHandset(ctx, x, y, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(17, 17, 17, 0.35)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 8;
+
+  // Curled Phone Cable
+  ctx.strokeStyle = '#212529';
+  ctx.lineWidth = 4.5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(28, 0);
+  ctx.quadraticCurveTo(15, 30, 28, 60);
+  ctx.quadraticCurveTo(15, 90, 28, 120);
+  ctx.quadraticCurveTo(15, 150, 28, 180);
+  ctx.quadraticCurveTo(20, 200, 24, 220);
+  ctx.stroke();
+
+  // Inner highlight on cord
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = '#555555';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(28, 0);
+  ctx.quadraticCurveTo(15, 30, 28, 60);
+  ctx.quadraticCurveTo(15, 90, 28, 120);
+  ctx.quadraticCurveTo(15, 150, 28, 180);
+  ctx.quadraticCurveTo(20, 200, 24, 220);
+  ctx.stroke();
+
+  // Black Vintage Handset at y = 205
+  ctx.save();
+  ctx.translate(0, 205);
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 6;
+
+  // Earpiece
+  ctx.fillStyle = '#1A1A1A';
+  ctx.beginPath();
+  ctx.moveTo(12, 20);
+  ctx.bezierCurveTo(5, 20, -2, 32, 4, 46);
+  ctx.bezierCurveTo(10, 60, 25, 58, 26, 45);
+  ctx.bezierCurveTo(27, 32, 20, 20, 12, 20);
+  ctx.fill();
+
+  // Handle
+  ctx.fillStyle = '#2D3136';
+  ctx.beginPath();
+  ctx.moveTo(6, 42);
+  ctx.bezierCurveTo(-10, 80, -10, 105, 6, 140);
+  ctx.bezierCurveTo(14, 128, 15, 55, 6, 42);
+  ctx.fill();
+
+  // Mouthpiece
+  ctx.fillStyle = '#1A1A1A';
+  ctx.beginPath();
+  ctx.moveTo(8, 135);
+  ctx.bezierCurveTo(-1, 148, 6, 168, 18, 168);
+  ctx.bezierCurveTo(30, 168, 34, 148, 24, 136);
+  ctx.bezierCurveTo(18, 130, 12, 128, 8, 135);
+  ctx.fill();
+
+  // Highlights on Handset
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = 'rgba(108, 117, 125, 0.6)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(2, 55);
+  ctx.bezierCurveTo(-5, 80, -5, 100, 3, 125);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.beginPath();
+  ctx.ellipse(14, 32, 6, 4, 0, 0, Math.PI * 2);
+  ctx.ellipse(18, 155, 5, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+  ctx.restore();
+}
+
+export function drawExclamationBadge(ctx, x, y, angle = -0.1, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (angle) ctx.rotate(angle);
+  ctx.scale(scale, scale);
+
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 4;
+
+  // White outline
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.moveTo(14, 6);
+  ctx.lineTo(42, 6);
+  ctx.lineTo(36, 88);
+  ctx.lineTo(18, 88);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#C0392B';
+  ctx.beginPath();
+  ctx.moveTo(17, 10);
+  ctx.lineTo(39, 10);
+  ctx.lineTo(33, 84);
+  ctx.lineTo(21, 84);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#E74C3C';
+  ctx.beginPath();
+  ctx.moveTo(19, 13);
+  ctx.lineTo(37, 13);
+  ctx.lineTo(35, 42);
+  ctx.lineTo(21, 42);
+  ctx.closePath();
+  ctx.fill();
+
+  // Dot
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(15, 96, 24, 24, 4);
+  else ctx.rect(15, 96, 24, 24);
+  ctx.fill();
+
+  ctx.fillStyle = '#C0392B';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(18, 99, 18, 18, 2);
+  else ctx.rect(18, 99, 18, 18);
+  ctx.fill();
+
+  ctx.restore();
+}
+
