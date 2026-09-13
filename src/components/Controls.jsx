@@ -14,6 +14,7 @@ import {
   Sparkles,
   Stamp,
   Trash2,
+  Type,
   Undo2,
   Wand2,
 } from 'lucide-react';
@@ -30,6 +31,7 @@ import {
 } from '../lib/presets.js';
 import { STICKER_CATEGORIES, STICKER_LIBRARY } from '../lib/stickers.js';
 import { getTemplateThumbnail } from '../lib/thumbnails.js';
+import { NON_FORMAL_FONTS } from './TextCanvasEditor.jsx';
 
 export function FilterDefinitions({ filter, adjust, id }) {
   return (
@@ -454,6 +456,9 @@ export function Customizer({
   onRedoStickers,
   onClearStickers,
   photoCount,
+  selectedTextId,
+  onSelectText,
+  onAddText,
 }) {
   const [activeTab, setActiveTab] = useState('templates');
   const [stickerCategory, setStickerCategory] = useState('All');
@@ -505,12 +510,61 @@ export function Customizer({
     { id: 'templates', label: 'Templates', icon: Palette },
     { id: 'layout', label: 'Grid / Layout', icon: Grid },
     { id: 'stickers', label: 'Stickers', icon: Stamp },
+    { id: 'text', label: 'Teks & Font', icon: Type },
     { id: 'filters', label: 'Filters', icon: Sparkles },
     { id: 'effects', label: 'Effects', icon: Wand2 },
     { id: 'adjust', label: 'Adjust & Theme', icon: Sliders },
   ];
 
   const userStickers = Array.isArray(style.userStickers) ? style.userStickers : [];
+
+  const [newTextContent, setNewTextContent] = useState('');
+  const [selectedFont, setSelectedFont] = useState('Caveat');
+  const [selectedTextColor, setSelectedTextColor] = useState('#FFFFFF');
+  const [selectedTextSize, setSelectedTextSize] = useState(36);
+  const [hasBgPill, setHasBgPill] = useState(false);
+  const [bgPillColor, setBgPillColor] = useState('rgba(18, 20, 24, 0.85)');
+
+  const userTexts = Array.isArray(style.userTexts) ? style.userTexts : [];
+
+  function handleCreateText(e) {
+    e?.preventDefault();
+    const content = newTextContent.trim() || 'CissPic Memories ★';
+    const instanceId = 'txt_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+    const maxZ = userTexts.reduce((max, t) => Math.max(max, t.zIndex || 1), 1);
+    const count = userTexts.length;
+    const staggerY = 0.82 + ((count % 3) - 1) * 0.05;
+
+    const newText = {
+      id: instanceId,
+      text: content,
+      font: selectedFont,
+      fontSize: selectedTextSize,
+      color: selectedTextColor,
+      hasBg: hasBgPill,
+      bgColor: bgPillColor,
+      x: 0.50,
+      y: Math.max(0.15, Math.min(0.92, staggerY)),
+      rotation: 0,
+      scale: 1.0,
+      zIndex: maxZ + 1,
+    };
+
+    if (onAddText) {
+      onAddText(newText);
+    } else {
+      const next = [...userTexts, newText];
+      update('userTexts', next);
+      onSelectText?.(instanceId);
+    }
+    setNewTextContent('');
+  }
+
+  function handleDeleteTextItem(id) {
+    const next = userTexts.filter(t => t.id !== id);
+    update('userTexts', next);
+    if (selectedTextId === id) onSelectText?.(null);
+  }
 
   const filteredStickers = STICKER_LIBRARY.filter(s => {
     if (stickerSearch.trim()) {
@@ -773,6 +827,180 @@ export function Customizer({
           </div>
         )}
 
+        {/* TAB: TEKS & NON-FORMAL FONT */}
+        {activeTab === 'text' && (
+          <div className="tab-pane">
+            <div className="tab-pane-header">
+              <h3>Tambah Teks & Font Lucu</h3>
+              <p>Tambahkan teks bebas dengan font estetik (handwriting, marker, pixel, bouncy script). Geser dan atur teks di atas foto!</p>
+            </div>
+
+            <form onSubmit={handleCreateText} className="text-editor-form">
+              <label className="field">
+                Isi Teks / Tulisan:
+                <input
+                  type="text"
+                  maxLength={60}
+                  placeholder="Contoh: BESTIES FOR LIFE ★"
+                  value={newTextContent}
+                  onChange={e => setNewTextContent(e.target.value)}
+                />
+              </label>
+
+              <div className="theme-section" style={{ marginTop: '10px' }}>
+                <span className="label-small">Pilih Gaya Font Estetik:</span>
+                <div className="font-chip-grid">
+                  {NON_FORMAL_FONTS.map(f => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      className={`font-chip ${selectedFont === f.id ? 'active' : ''}`}
+                      onClick={() => setSelectedFont(f.id)}
+                    >
+                      <span className="font-chip-preview" style={{ fontFamily: f.family }}>
+                        {f.preview}
+                      </span>
+                      <span className="font-chip-label">{f.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Text Color & Palette */}
+              <div className="theme-section" style={{ marginTop: '12px' }}>
+                <span className="label-small">Warna Teks:</span>
+                <div className="color-swatches">
+                  {[
+                    { name: 'Putih', value: '#FFFFFF' },
+                    { name: 'Hitam', value: '#18181B' },
+                    { name: 'Rose Pink', value: '#F43F5E' },
+                    { name: 'Canary Gold', value: '#FACC15' },
+                    { name: 'Sky Cyan', value: '#38BDF8' },
+                    { name: 'Lime Green', value: '#A3E635' },
+                    { name: 'Lavender', value: '#C084FC' },
+                    { name: 'Racing Red', value: '#DC2626' },
+                  ].map(sw => (
+                    <button
+                      key={sw.value}
+                      type="button"
+                      className={`color-swatch-circle ${selectedTextColor === sw.value ? 'selected' : ''}`}
+                      style={{ background: sw.value }}
+                      title={sw.name}
+                      onClick={() => setSelectedTextColor(sw.value)}
+                    >
+                      {selectedTextColor === sw.value && (
+                        <Check size={12} color={sw.value === '#FFFFFF' || sw.value === '#FAF6EC' ? '#111' : '#FFF'} />
+                      )}
+                    </button>
+                  ))}
+                  <label className="color-swatch-circle color-picker-custom-swatch" title="Pilih Warna Bebas (Wheel)">
+                    <input
+                      type="color"
+                      value={selectedTextColor}
+                      onChange={e => setSelectedTextColor(e.target.value)}
+                    />
+                    <span style={{ fontSize: '10px' }}>🎨</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Font Size Slider */}
+              <div className="theme-section" style={{ marginTop: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span className="label-small">Ukuran Font:</span>
+                  <span className="label-small" style={{ fontWeight: 700 }}>{selectedTextSize}px</span>
+                </div>
+                <input
+                  type="range"
+                  min={18}
+                  max={64}
+                  value={selectedTextSize}
+                  onChange={e => setSelectedTextSize(Number(e.target.value))}
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              {/* Background Pill Toggle */}
+              <div className="theme-section" style={{ marginTop: '12px' }}>
+                <label className="checkbox-field" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={hasBgPill}
+                    onChange={e => setHasBgPill(e.target.checked)}
+                  />
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Gunakan Latar Belakang Badge / Pill</span>
+                </label>
+
+                {hasBgPill && (
+                  <div className="color-swatches" style={{ marginTop: '8px' }}>
+                    {[
+                      { name: 'Dark Semi-transparent', value: 'rgba(18, 20, 24, 0.85)' },
+                      { name: 'White Solid', value: '#FFFFFF' },
+                      { name: 'Pastel Pink', value: '#F43F5E' },
+                      { name: 'Neon Cyber', value: '#6366F1' },
+                      { name: 'Lemon', value: '#EAB308' },
+                    ].map(sw => (
+                      <button
+                        key={sw.name}
+                        type="button"
+                        className={`color-swatch-circle ${bgPillColor === sw.value ? 'selected' : ''}`}
+                        style={{ background: sw.value }}
+                        title={sw.name}
+                        onClick={() => setBgPillColor(sw.value)}
+                      >
+                        {bgPillColor === sw.value && <Check size={12} color="#fff" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="button primary"
+                style={{ width: '100%', marginTop: '14px' }}
+              >
+                <Plus size={16} />
+                Tambah Teks ke Strip
+              </button>
+            </form>
+
+            {/* List of active texts on strip */}
+            {userTexts.length > 0 && (
+              <div className="active-texts-section" style={{ marginTop: '20px', paddingTop: '12px', borderTop: '1px solid var(--line)' }}>
+                <span className="label-small">Teks yang Sudah Dipasang ({userTexts.length}):</span>
+                <div className="active-texts-list">
+                  {userTexts.map(t => (
+                    <div
+                      key={t.id}
+                      className={`active-text-item ${selectedTextId === t.id ? 'selected' : ''}`}
+                      onClick={() => onSelectText?.(t.id)}
+                    >
+                      <span className="active-text-preview" style={{ fontFamily: t.font || 'Caveat', color: t.color }}>
+                        {t.text}
+                      </span>
+                      <div className="active-text-actions">
+                        <span className="badge-font-tag">{t.font || 'Caveat'}</span>
+                        <button
+                          type="button"
+                          className="button-icon-del"
+                          title="Hapus teks ini"
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleDeleteTextItem(t.id);
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* TAB 4: FILTERS */}
         {activeTab === 'filters' && (
           <div className="tab-pane">
@@ -803,19 +1031,22 @@ export function Customizer({
               <p>Sesuaikan orientasi mirror, background, border, dan detail teks.</p>
             </div>
 
-            {/* Background Color Swatches */}
+            {/* Background Color Swatches & Manual Color Wheel */}
             <div className="theme-section">
-              <span className="label-small">Custom Strip Background:</span>
+              <span className="label-small">Warna Background Frame (Preset / Manual):</span>
               <div className="color-swatches">
                 {[
                   { name: 'Default Template', value: '' },
                   { name: 'Pure White', value: '#FFFFFF' },
-                  { name: 'Midnight', value: '#141318' },
+                  { name: 'Midnight Noir', value: '#141318' },
+                  { name: 'Silver Digicam', value: '#CBD5E1' },
                   { name: 'Baby Pink', value: '#FDF1F4' },
                   { name: 'Baby Blue', value: '#EDF4FB' },
-                  { name: 'Lavender', value: '#ECE6F4' },
+                  { name: 'Lavender Pastel', value: '#ECE6F4' },
                   { name: 'Butter Cream', value: '#FAF6EC' },
-                  { name: 'Mint Green', value: '#F1F7F3' },
+                  { name: 'Matcha Green', value: '#E8EFE9' },
+                  { name: 'Racing Red', value: '#DC2626' },
+                  { name: 'Cyber Violet', value: '#7C3AED' },
                 ].map(sw => (
                   <button
                     key={sw.name}
@@ -825,9 +1056,34 @@ export function Customizer({
                     title={sw.name}
                     onClick={() => update('customBg', sw.value)}
                   >
-                    {style.customBg === sw.value && <Check size={12} color={sw.value === '#141318' ? '#FFF' : '#333'} />}
+                    {style.customBg === sw.value && (
+                      <Check size={12} color={sw.value === '#141318' || sw.value === '#DC2626' || sw.value === '#7C3AED' ? '#FFF' : '#333'} />
+                    )}
                   </button>
                 ))}
+              </div>
+
+              {/* Manual Color Wheel Picker */}
+              <div className="custom-color-picker-row" style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <label className="color-wheel-btn" title="Pilih Warna Bebas (Color Wheel)">
+                  <input
+                    type="color"
+                    value={style.customBg && style.customBg.startsWith('#') ? style.customBg : '#ffffff'}
+                    onChange={e => update('customBg', e.target.value)}
+                  />
+                  <span className="color-wheel-indicator" style={{ background: style.customBg || '#ffffff' }} />
+                  <span>Pilih Warna Manual (Wheel)</span>
+                </label>
+                {style.customBg && (
+                  <button
+                    type="button"
+                    className="button-link-small"
+                    style={{ fontSize: '12px', background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', textDecoration: 'underline' }}
+                    onClick={() => update('customBg', '')}
+                  >
+                    Reset ke Warna Template
+                  </button>
+                )}
               </div>
             </div>
 

@@ -50,6 +50,12 @@ import {
   drawCuteStarCharacter,
   drawVintagePhoneCordAndHandset,
   drawExclamationBadge,
+  drawDigicamSVG,
+  drawCheckeredFlagBorder,
+  drawF1TelemetryHUD,
+  drawF1StartingLights,
+  drawGrandPrixBadge,
+  drawHoloCDRom,
 } from './canvasTextures.js';
 
 export const ADDITIONAL_TEMPLATES = [
@@ -2232,6 +2238,685 @@ export const ADDITIONAL_TEMPLATES = [
         ctx.fill();
       });
       ctx.restore();
+    },
+  },
+
+  // ==========================================
+  // 17. RETRO DIGICAM SUITE (User Custom SVG)
+  // ==========================================
+  {
+    id: 'digicam-trio-3',
+    family: 'digicam-retro',
+    name: 'Retro Digicam Trio',
+    variantLabel: '3 Cut Digicam',
+    category: 'Y2K',
+    description: 'Triple stacked Y2K vintage digital cameras (Silver, Matte Black, Baby Pink) with stickers',
+    background: ['#FFFFFF'],
+    textColor: '#15171C',
+    recommendedPoses: 3,
+    supportedPhotoCounts: [3],
+    defaultFilter: 'retro',
+    canvas: { width: 1080, height: 1920 },
+    photoSlots: [
+      { id: 1, x: 148, y: 182, width: 464, height: 364, borderRadius: 8, frameStyle: 'none' },
+      { id: 2, x: 148, y: 746, width: 476, height: 392, borderRadius: 8, frameStyle: 'none' },
+      { id: 3, x: 148, y: 1422, width: 544, height: 364, borderRadius: 8, frameStyle: 'none' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#FFFFFF';
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw Camera 1: Top Silver (scale 2x from 444x268 -> 888x536)
+      drawDigicamSVG(ctx, 96, 70, 888, 536, 'silver', { stickers: true });
+
+      // Draw Camera 2: Mid Matte Black
+      drawDigicamSVG(ctx, 96, 690, 888, 536, 'black', { stickers: true });
+
+      // Draw Camera 3: Bottom Baby Pink
+      drawDigicamSVG(ctx, 96, 1310, 888, 536, 'pink', { stickers: true });
+    },
+    renderForeground(ctx) {
+      // Screen inner crosshairs & focus rectangles
+      ctx.save();
+      // Camera 1 crosshair
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(380, 364, 24, 0, Math.PI * 2);
+      ctx.moveTo(356, 364);
+      ctx.lineTo(404, 364);
+      ctx.moveTo(380, 340);
+      ctx.lineTo(380, 388);
+      ctx.stroke();
+
+      // Camera 2 crosshair
+      ctx.beginPath();
+      ctx.arc(386, 942, 24, 0, Math.PI * 2);
+      ctx.moveTo(362, 942);
+      ctx.lineTo(410, 942);
+      ctx.moveTo(386, 918);
+      ctx.lineTo(386, 966);
+      ctx.stroke();
+
+      // Camera 3 crosshair
+      ctx.beginPath();
+      ctx.arc(420, 1604, 24, 0, Math.PI * 2);
+      ctx.moveTo(396, 1604);
+      ctx.lineTo(444, 1604);
+      ctx.moveTo(420, 1580);
+      ctx.lineTo(420, 1628);
+      ctx.stroke();
+      ctx.restore();
+    },
+  },
+  {
+    id: 'digicam-silver-1',
+    family: 'digicam-retro',
+    name: 'Silver Digicam Hero',
+    variantLabel: '1 Hero Photo',
+    category: 'Y2K',
+    description: 'Single large retro metallic silver digital camera with vintage tickets & hibiscus flowers',
+    background: ['#FFFFFF'],
+    textColor: '#15171C',
+    recommendedPoses: 1,
+    supportedPhotoCounts: [1],
+    defaultFilter: 'retro',
+    canvas: { width: 1080, height: 1080 },
+    photoSlots: [
+      { id: 1, x: 148, y: 384, width: 464, height: 364, borderRadius: 8, frameStyle: 'none' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#F8FAFC';
+      ctx.fillRect(0, 0, width, height);
+      drawDigicamSVG(ctx, 96, 272, 888, 536, 'silver', { stickers: true });
+    },
+    renderForeground(ctx) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(380, 566, 28, 0, Math.PI * 2);
+      ctx.moveTo(352, 566);
+      ctx.lineTo(408, 566);
+      ctx.moveTo(380, 538);
+      ctx.lineTo(380, 594);
+      ctx.stroke();
+      ctx.restore();
+    },
+  },
+  {
+    id: 'digicam-pink-1',
+    family: 'digicam-retro',
+    name: 'Pink Y2K Digicam',
+    variantLabel: '1 Hero Photo',
+    category: 'Cute',
+    description: 'Charming baby pink metallic digicam with pastel dials and cute controls',
+    background: ['#FFF5F8'],
+    textColor: '#83284B',
+    recommendedPoses: 1,
+    supportedPhotoCounts: [1],
+    defaultFilter: 'pink',
+    canvas: { width: 1080, height: 1080 },
+    photoSlots: [
+      { id: 1, x: 148, y: 384, width: 544, height: 364, borderRadius: 8, frameStyle: 'none' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#FFF5F8';
+      ctx.fillRect(0, 0, width, height);
+      drawDigicamSVG(ctx, 96, 272, 888, 536, 'pink', { stickers: true });
+    },
+    renderForeground(ctx) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(420, 566, 28, 0, Math.PI * 2);
+      ctx.moveTo(392, 566);
+      ctx.lineTo(448, 566);
+      ctx.moveTo(420, 538);
+      ctx.lineTo(420, 594);
+      ctx.stroke();
+      ctx.restore();
+    },
+  },
+  {
+    id: 'digicam-black-1',
+    family: 'digicam-retro',
+    name: 'Matte Black Digicam',
+    variantLabel: '1 Hero Photo',
+    category: 'Y2K',
+    description: 'Sleek matte black digicam with rainbow sticker and smiling Murakami flower',
+    background: ['#181A20'],
+    textColor: '#F8FAFC',
+    recommendedPoses: 1,
+    supportedPhotoCounts: [1],
+    defaultFilter: 'noir',
+    canvas: { width: 1080, height: 1080 },
+    photoSlots: [
+      { id: 1, x: 148, y: 344, width: 476, height: 392, borderRadius: 8, frameStyle: 'none' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#181A20';
+      ctx.fillRect(0, 0, width, height);
+      drawDigicamSVG(ctx, 96, 272, 888, 536, 'black', { stickers: true });
+    },
+    renderForeground(ctx) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(386, 540, 26, 0, Math.PI * 2);
+      ctx.moveTo(360, 540);
+      ctx.lineTo(412, 540);
+      ctx.moveTo(386, 514);
+      ctx.lineTo(386, 566);
+      ctx.stroke();
+      ctx.restore();
+    },
+  },
+  {
+    id: 'digicam-duo-2',
+    family: 'digicam-retro',
+    name: 'Digicam Duo',
+    variantLabel: '2 Cut Duo',
+    category: 'Y2K',
+    description: 'Two digicams (Silver top & Pink bottom) on an aesthetic white photostrip',
+    background: ['#FFFFFF'],
+    textColor: '#1E293B',
+    recommendedPoses: 2,
+    supportedPhotoCounts: [2],
+    defaultFilter: 'retro',
+    canvas: { width: 1080, height: 1440 },
+    photoSlots: [
+      { id: 1, x: 148, y: 182, width: 464, height: 364, borderRadius: 8, frameStyle: 'none' },
+      { id: 2, x: 148, y: 892, width: 544, height: 364, borderRadius: 8, frameStyle: 'none' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#FFFFFF';
+      ctx.fillRect(0, 0, width, height);
+      drawDigicamSVG(ctx, 96, 70, 888, 536, 'silver', { stickers: true });
+      drawDigicamSVG(ctx, 96, 780, 888, 536, 'pink', { stickers: true });
+    },
+  },
+  {
+    id: 'digicam-quad-4',
+    family: 'digicam-retro',
+    name: 'Digicam Quad 4-Cut',
+    variantLabel: '4 Cut Quad',
+    category: 'Y2K',
+    description: 'Four digital camera viewports with crosshairs, battery meters, and retro timestamps',
+    background: ['#F1F5F9'],
+    textColor: '#1E293B',
+    recommendedPoses: 4,
+    supportedPhotoCounts: [4],
+    defaultFilter: 'retro',
+    canvas: { width: 800, height: 2000 },
+    photoSlots: [
+      { id: 1, x: 80, y: 120, width: 640, height: 380, borderRadius: 10, frameStyle: 'none' },
+      { id: 2, x: 80, y: 560, width: 640, height: 380, borderRadius: 10, frameStyle: 'none' },
+      { id: 3, x: 80, y: 1000, width: 640, height: 380, borderRadius: 10, frameStyle: 'none' },
+      { id: 4, x: 80, y: 1440, width: 640, height: 380, borderRadius: 10, frameStyle: 'none' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#EAECEF';
+      ctx.fillRect(0, 0, width, height);
+
+      // Camera monitor frames
+      [120, 560, 1000, 1440].forEach(sy => {
+        ctx.fillStyle = '#2A2D34';
+        ctx.strokeStyle = '#9499A3';
+        ctx.lineWidth = 3;
+        if (ctx.roundRect) ctx.roundRect(64, sy - 16, 672, 412, 14);
+        else ctx.rect(64, sy - 16, 672, 412);
+        ctx.fill();
+        ctx.stroke();
+
+        // Screen bezel
+        ctx.fillStyle = '#0F1115';
+        if (ctx.roundRect) ctx.roundRect(74, sy - 6, 652, 392, 10);
+        else ctx.rect(74, sy - 6, 652, 392);
+        ctx.fill();
+      });
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+
+      [120, 560, 1000, 1440].forEach((sy, idx) => {
+        // Red REC dot
+        ctx.fillStyle = '#EF4444';
+        ctx.beginPath();
+        ctx.arc(105, sy + 25, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 12px "Courier New", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('REC', 120, sy + 29);
+
+        // Battery indicator
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(660, sy + 18, 24, 12);
+        ctx.fillStyle = '#10B981';
+        ctx.fillRect(662, sy + 20, 16, 8);
+        ctx.fillRect(684, sy + 22, 2, 4);
+
+        // Crosshairs
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(400, sy + 190, 22, 0, Math.PI * 2);
+        ctx.moveTo(380, sy + 190);
+        ctx.lineTo(420, sy + 190);
+        ctx.moveTo(400, sy + 170);
+        ctx.lineTo(400, sy + 210);
+        ctx.stroke();
+
+        // Bottom OSD
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.font = '11px "Courier New", monospace';
+        ctx.fillText(`CAM 0${idx + 1}  •  F2.8  1/60s  ISO 200`, 95, sy + 360);
+      });
+
+      // Bottom Bar
+      ctx.fillStyle = '#15171C';
+      ctx.textAlign = 'center';
+      ctx.font = '900 24px "DM Sans", sans-serif';
+      ctx.fillText('CISSPIC DIGITAL ARCHIVE', width / 2, 1910);
+      ctx.font = '12px "Courier New", monospace';
+      ctx.fillStyle = '#64748B';
+      ctx.fillText(date.toLocaleDateString().toUpperCase() + '  •  MADE IN STUDIO', width / 2, 1940);
+    },
+  },
+
+  // ==========================================
+  // 18. FORMULA 1 / MOTORSPORT RACING SUITE
+  // ==========================================
+  {
+    id: 'f1-racing-4',
+    family: 'f1-racing',
+    name: 'F1 Grand Prix Edition',
+    variantLabel: '4 Cut Racing',
+    category: 'Motorsport',
+    description: 'Formula 1 motorsport racing theme with checkered borders, speed telemetry HUD, RPM gauge & DRS',
+    background: ['#121418'],
+    textColor: '#FFFFFF',
+    recommendedPoses: 4,
+    supportedPhotoCounts: [4],
+    defaultFilter: 'cinematic',
+    canvas: { width: 800, height: 2000 },
+    photoSlots: [
+      { id: 1, x: 80, y: 200, width: 640, height: 360, borderRadius: 6, frameStyle: 'white-thin' },
+      { id: 2, x: 80, y: 590, width: 640, height: 360, borderRadius: 6, frameStyle: 'white-thin' },
+      { id: 3, x: 80, y: 980, width: 640, height: 360, borderRadius: 6, frameStyle: 'white-thin' },
+      { id: 4, x: 80, y: 1370, width: 640, height: 360, borderRadius: 6, frameStyle: 'white-thin' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#121418';
+      ctx.fillRect(0, 0, width, height);
+
+      // Carbon fiber racing weave texture
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+      for (let py = 0; py < height; py += 8) {
+        ctx.fillRect(0, py, width, 4);
+      }
+
+      // Red racing curb stripes on margins
+      ctx.fillStyle = '#E10600';
+      ctx.fillRect(20, 0, 12, height);
+      ctx.fillRect(width - 32, 0, 12, height);
+
+      ctx.fillStyle = '#FFFFFF';
+      for (let y = 0; y < height; y += 40) {
+        ctx.fillRect(20, y, 12, 20);
+        ctx.fillRect(width - 32, y, 12, 20);
+      }
+
+      // Top Checkered Flag Ribbon
+      drawCheckeredFlagBorder(ctx, 0, 0, width, 32, 16);
+
+      // Bottom Checkered Flag Ribbon
+      drawCheckeredFlagBorder(ctx, 0, height - 32, width, 32, 16);
+
+      // Telemetry HUD Plate Top
+      drawF1TelemetryHUD(ctx, 60, 52, 680, 115, {
+        rpm: 14200,
+        speed: 334,
+        gear: 8,
+        lap: '58 / 58',
+        sectorTime: '1:18.291',
+        drs: true,
+      });
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+
+      // F1 5 Starting Gantry Lights
+      drawF1StartingLights(ctx, width / 2 - 140, 1760, 280, 42);
+
+      // Grand Prix Crest Badge
+      drawGrandPrixBadge(ctx, width / 2, 1855, 'GRAND PRIX', '2026');
+
+      // Footer Typography
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '900 16px "DM Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('CISSPIC SCUDERIA MOTORSPORT', width / 2, 1925);
+      ctx.font = '600 12px "Courier New", monospace';
+      ctx.fillStyle = '#9CA3AF';
+      ctx.fillText(`POLE POSITION  •  ${date.toDateString().toUpperCase()}`, width / 2, 1948);
+    },
+  },
+  {
+    id: 'f1-monaco-1',
+    family: 'f1-racing',
+    name: 'Monaco GP Victory',
+    variantLabel: '1 Hero Photo',
+    category: 'Motorsport',
+    description: 'Championship victory podium hero with laurels, speedometer HUD, and racing livery',
+    background: ['#0F1117'],
+    textColor: '#FFFFFF',
+    recommendedPoses: 1,
+    supportedPhotoCounts: [1],
+    defaultFilter: 'cinematic',
+    canvas: { width: 1080, height: 1440 },
+    photoSlots: [
+      { id: 1, x: 120, y: 240, width: 840, height: 840, borderRadius: 8, frameStyle: 'white-thin' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#0F1117';
+      ctx.fillRect(0, 0, width, height);
+
+      // Checkered top and bottom banners
+      drawCheckeredFlagBorder(ctx, 0, 0, width, 40, 20);
+      drawCheckeredFlagBorder(ctx, 0, height - 40, width, 40, 20);
+
+      // Top Telemetry Header
+      drawF1TelemetryHUD(ctx, 120, 65, 840, 130, {
+        rpm: 15000,
+        speed: 352,
+        gear: 8,
+        lap: '78 / 78',
+        sectorTime: '1:12.909',
+        drs: true,
+      });
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+
+      drawF1StartingLights(ctx, width / 2 - 160, 1120, 320, 48);
+      drawGrandPrixBadge(ctx, width / 2, 1240, 'MONACO WINNER', 'P1');
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '900 24px "DM Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('1ST PLACE • GRAND PRIX DE MONACO', width / 2, 1330);
+      ctx.font = '600 13px "Courier New", monospace';
+      ctx.fillStyle = '#F59E0B';
+      ctx.fillText(`WORLD CHAMPIONSHIP TROPHY  •  ${date.toDateString().toUpperCase()}`, width / 2, 1360);
+    },
+  },
+  {
+    id: 'f1-pitlane-2',
+    family: 'f1-racing',
+    name: 'F1 Pitlane Duo',
+    variantLabel: '2 Cut Pitstop',
+    category: 'Motorsport',
+    description: 'Split screen pit stop strategy board with 1.82s record tire change stopwatch',
+    background: ['#111317'],
+    textColor: '#FFFFFF',
+    recommendedPoses: 2,
+    supportedPhotoCounts: [2],
+    defaultFilter: 'cinematic',
+    canvas: { width: 800, height: 1600 },
+    photoSlots: [
+      { id: 1, x: 80, y: 160, width: 640, height: 520, borderRadius: 6, frameStyle: 'white-thin' },
+      { id: 2, x: 80, y: 740, width: 640, height: 520, borderRadius: 6, frameStyle: 'white-thin' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#111317';
+      ctx.fillRect(0, 0, width, height);
+
+      drawCheckeredFlagBorder(ctx, 0, 0, width, 30, 15);
+      drawCheckeredFlagBorder(ctx, 0, height - 30, width, 30, 15);
+
+      // Top Title Bar
+      ctx.fillStyle = '#E10600';
+      ctx.fillRect(80, 50, width - 160, 60);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '900 22px "DM Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚡ PIT STOP STRATEGY: BOX NOW ⚡', width / 2, 88);
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+
+      // Pit Stop Timer Badge
+      ctx.fillStyle = 'rgba(15, 17, 21, 0.95)';
+      ctx.strokeStyle = '#10B981';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(100, 1310, 600, 90, 8);
+      else ctx.rect(100, 1310, 600, 90);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#10B981';
+      ctx.font = '900 28px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('⏱ 1.82s WORLD RECORD PIT STOP', width / 2, 1352);
+      ctx.fillStyle = '#9CA3AF';
+      ctx.font = '600 12px "DM Sans", sans-serif';
+      ctx.fillText(`FOUR WHEELS CHANGED  •  P-ZERO SOFT  •  ${date.toLocaleDateString()}`, width / 2, 1380);
+
+      // Footer
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '900 16px "DM Sans", sans-serif';
+      ctx.fillText('CISSPIC MOTORSPORT • TRACKSIDE', width / 2, 1470);
+    },
+  },
+  {
+    id: 'f1-night-race-6',
+    family: 'f1-racing',
+    name: 'Night Race Marina Grid',
+    variantLabel: '6 Cut Night Race',
+    category: 'Motorsport',
+    description: 'Marina Bay night race neon grid with P1 through P6 starting qualifying positions',
+    background: ['#0A0D14'],
+    textColor: '#FFFFFF',
+    recommendedPoses: 6,
+    supportedPhotoCounts: [6],
+    defaultFilter: 'cinematic',
+    canvas: { width: 1200, height: 1800 },
+    photoSlots: [
+      { id: 1, x: 90, y: 200, width: 480, height: 400, borderRadius: 6, frameStyle: 'white-thin' },
+      { id: 2, x: 630, y: 200, width: 480, height: 400, borderRadius: 6, frameStyle: 'white-thin' },
+      { id: 3, x: 90, y: 660, width: 480, height: 400, borderRadius: 6, frameStyle: 'white-thin' },
+      { id: 4, x: 630, y: 660, width: 480, height: 400, borderRadius: 6, frameStyle: 'white-thin' },
+      { id: 5, x: 90, y: 1120, width: 480, height: 400, borderRadius: 6, frameStyle: 'white-thin' },
+      { id: 6, x: 630, y: 1120, width: 480, height: 400, borderRadius: 6, frameStyle: 'white-thin' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#0A0D14';
+      ctx.fillRect(0, 0, width, height);
+
+      drawCheckeredFlagBorder(ctx, 0, 0, width, 36, 18);
+      drawCheckeredFlagBorder(ctx, 0, height - 36, width, 36, 18);
+
+      // Neon Top Header
+      ctx.fillStyle = '#06B6D4';
+      ctx.shadowColor = '#06B6D4';
+      ctx.shadowBlur = 12;
+      ctx.font = '900 32px "DM Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('MARINA BAY NIGHT RACE QUALIFYING', width / 2, 90);
+      ctx.shadowColor = 'transparent';
+
+      ctx.fillStyle = '#E10600';
+      ctx.font = '700 16px "Courier New", monospace';
+      ctx.fillText('OFFICIAL STARTING GRID  •  POSITIONS 01 - 06', width / 2, 130);
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+
+      // Grid Position Badges on each photo
+      const pos = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
+      const coords = [
+        [90, 200], [630, 200],
+        [90, 660], [630, 660],
+        [90, 1120], [630, 1120],
+      ];
+
+      coords.forEach(([px, py], i) => {
+        ctx.save();
+        ctx.fillStyle = i === 0 ? '#F59E0B' : '#E10600';
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(px + 12, py + 12, 54, 32, 4);
+        else ctx.rect(px + 12, py + 12, 54, 32);
+        ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '900 18px "DM Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(pos[i], px + 39, py + 34);
+        ctx.restore();
+      });
+
+      // Footer
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '900 20px "DM Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('CISSPIC RACING TEAM • ALL CARS ON GRID', width / 2, 1640);
+      ctx.font = '12px "Courier New", monospace';
+      ctx.fillStyle = '#9CA3AF';
+      ctx.fillText(date.toDateString().toUpperCase() + '  •  LIGHTS OUT AND AWAY WE GO', width / 2, 1675);
+    },
+  },
+
+  // ==========================================
+  // 19. Y2K HOLOGRAPHIC CD-ROM SUITE
+  // ==========================================
+  {
+    id: 'y2k-cyber-cd-4',
+    family: 'y2k-cd',
+    name: 'Y2K Cyber CD-ROM',
+    variantLabel: '4 Cut Optical',
+    category: 'Y2K',
+    description: 'Iridescent holographic CD-ROM jewel case with rainbow sheen, track player & barcodes',
+    background: ['#EAEFF5'],
+    textColor: '#1E293B',
+    recommendedPoses: 4,
+    supportedPhotoCounts: [4],
+    defaultFilter: 'cool',
+    canvas: { width: 800, height: 2000 },
+    photoSlots: [
+      { id: 1, x: 80, y: 150, width: 640, height: 360, borderRadius: 4, frameStyle: 'white-thin' },
+      { id: 2, x: 80, y: 540, width: 640, height: 360, borderRadius: 4, frameStyle: 'white-thin' },
+      { id: 3, x: 80, y: 930, width: 640, height: 360, borderRadius: 4, frameStyle: 'white-thin' },
+      { id: 4, x: 80, y: 1320, width: 640, height: 360, borderRadius: 4, frameStyle: 'white-thin' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#EAEFF5';
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw 2 Holographic CDs on margins
+      drawHoloCDRom(ctx, 110, 80, 70);
+      drawHoloCDRom(ctx, width - 110, 80, 70);
+
+      // Jewel case metallic lines
+      ctx.strokeStyle = '#CBD5E1';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(30, 30, width - 60, height - 60);
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+
+      drawHoloCDRom(ctx, width / 2, 1790, 85);
+
+      ctx.fillStyle = '#0F172A';
+      ctx.font = '900 24px "DM Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('CISSPIC COMPACT DISC DIGITAL AUDIO', width / 2, 1720);
+
+      ctx.font = '600 12px "Courier New", monospace';
+      ctx.fillStyle = '#64748B';
+      ctx.fillText(`STEREO  •  700MB / 80MIN  •  ${date.toLocaleDateString()}`, width / 2, 1920);
+    },
+  },
+  {
+    id: 'cinema-ticket-4',
+    family: 'cinema-ticket',
+    name: 'Vintage Cinema Ticket',
+    variantLabel: '4 Cut Cinema',
+    category: 'Vintage',
+    description: 'Admit One vintage cinema admission ticket with barcode stub and sprocket perforations',
+    background: ['#FAF3E0'],
+    textColor: '#2E2219',
+    recommendedPoses: 4,
+    supportedPhotoCounts: [4],
+    defaultFilter: 'warm',
+    canvas: { width: 800, height: 2000 },
+    photoSlots: [
+      { id: 1, x: 80, y: 180, width: 640, height: 370, borderRadius: 2, frameStyle: 'paper-perforated' },
+      { id: 2, x: 80, y: 580, width: 640, height: 370, borderRadius: 2, frameStyle: 'paper-perforated' },
+      { id: 3, x: 80, y: 980, width: 640, height: 370, borderRadius: 2, frameStyle: 'paper-perforated' },
+      { id: 4, x: 80, y: 1380, width: 640, height: 370, borderRadius: 2, frameStyle: 'paper-perforated' },
+    ],
+    renderBackground(ctx, canvas, style) {
+      const { width, height } = canvas;
+      ctx.fillStyle = style?.customBg || '#FAF3E0';
+      ctx.fillRect(0, 0, width, height);
+
+      // Aged ticket double border
+      ctx.strokeStyle = '#B37D4E';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(30, 30, width - 60, height - 60);
+      ctx.lineWidth = 1;
+      ctx.strokeRect(36, 36, width - 72, height - 72);
+
+      // Top Ticket Masthead
+      ctx.fillStyle = '#2E2219';
+      ctx.font = '900 32px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('★ ADMIT ONE • CINEMA TICKET ★', width / 2, 95);
+      ctx.font = '700 13px "Courier New", monospace';
+      ctx.fillStyle = '#9C6638';
+      ctx.fillText('CINEMA THEATRE  •  SECTION A  •  ROW 04  •  SEAT 12', width / 2, 130);
+    },
+    renderForeground(ctx, canvas, style, timestamp) {
+      const { width, height } = canvas;
+      const date = timestamp ? new Date(timestamp) : new Date();
+
+      // Barcode at bottom
+      ctx.save();
+      ctx.translate(width / 2 - 120, height - 170);
+      ctx.fillStyle = '#2E2219';
+      for (let bx = 0; bx < 240; bx += 6) {
+        const bw = (bx % 12 === 0) ? 4 : 2;
+        ctx.fillRect(bx, 0, bw, 50);
+      }
+      ctx.restore();
+
+      ctx.font = '700 12px "Courier New", monospace';
+      ctx.fillStyle = '#2E2219';
+      ctx.textAlign = 'center';
+      ctx.fillText('* NO. 08249102-CISSPIC *', width / 2, height - 105);
+      ctx.fillText(`DATE: ${date.toDateString().toUpperCase()}  •  NON-REFUNDABLE`, width / 2, height - 80);
     },
   },
 ];

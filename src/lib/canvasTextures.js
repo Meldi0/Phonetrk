@@ -2648,7 +2648,6 @@ export function drawVintagePhoneCordAndHandset(ctx, x, y, scale = 1) {
   ctx.fill();
 
   ctx.restore();
-  ctx.restore();
 }
 
 export function drawExclamationBadge(ctx, x, y, angle = -0.1, scale = 1) {
@@ -2657,51 +2656,740 @@ export function drawExclamationBadge(ctx, x, y, angle = -0.1, scale = 1) {
   if (angle) ctx.rotate(angle);
   ctx.scale(scale, scale);
 
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
   ctx.shadowBlur = 8;
   ctx.shadowOffsetY = 4;
 
-  // White outline
+  // Starburst outer circle
   ctx.fillStyle = '#FFFFFF';
   ctx.beginPath();
-  ctx.moveTo(14, 6);
-  ctx.lineTo(42, 6);
-  ctx.lineTo(36, 88);
-  ctx.lineTo(18, 88);
-  ctx.closePath();
+  ctx.arc(0, 0, 32, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = '#C0392B';
+  // Vibrant red inner
+  ctx.fillStyle = '#EF4444';
   ctx.beginPath();
-  ctx.moveTo(17, 10);
-  ctx.lineTo(39, 10);
-  ctx.lineTo(33, 84);
-  ctx.lineTo(21, 84);
-  ctx.closePath();
+  ctx.arc(0, 0, 27, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = '#E74C3C';
+  // Exclamation mark
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '900 36px "Impact", "Arial Black", sans-serif';
+  ctx.fillText('!', 0, 2);
+
+  ctx.restore();
+}
+
+/**
+ * ============================================================================
+ * RETRO DIGICAM SVG ENGINE (Silver, Matte Black, Baby Pink)
+ * High-fidelity vector rendering derived from the user's custom SVG
+ * ============================================================================
+ */
+export function drawDigicamSVG(ctx, x, y, width, height, theme = 'silver', options = {}) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  const baseW = 444;
+  const baseH = 268;
+  const scale = Math.min(width / baseW, height / baseH);
+  ctx.scale(scale, scale);
+
+  // Soft drop shadow
+  ctx.shadowColor = 'rgba(21, 27, 38, 0.25)';
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 10;
+
+  // 1. Camera Body Gradients
+  let bodyGrad, bevelGrad, dialGrad, screenBezelGrad;
+  if (theme === 'black') {
+    bodyGrad = ctx.createLinearGradient(0, 0, 0, baseH);
+    bodyGrad.addColorStop(0, '#32363d');
+    bodyGrad.addColorStop(0.35, '#24272c');
+    bodyGrad.addColorStop(0.8, '#191b1f');
+    bodyGrad.addColorStop(1, '#101114');
+
+    bevelGrad = ctx.createLinearGradient(0, 0, 0, baseH);
+    bevelGrad.addColorStop(0, '#555a64');
+    bevelGrad.addColorStop(1, '#090a0c');
+
+    screenBezelGrad = ctx.createLinearGradient(0, 0, 0, 212);
+    screenBezelGrad.addColorStop(0, '#0c0d0f');
+    screenBezelGrad.addColorStop(1, '#2c3036');
+  } else if (theme === 'pink') {
+    bodyGrad = ctx.createLinearGradient(0, 0, 0, baseH);
+    bodyGrad.addColorStop(0, '#fad2e1');
+    bodyGrad.addColorStop(0.25, '#f2b5ce');
+    bodyGrad.addColorStop(0.7, '#e89cb9');
+    bodyGrad.addColorStop(1, '#d47fa1');
+
+    bevelGrad = ctx.createLinearGradient(0, 0, 0, baseH);
+    bevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+    bevelGrad.addColorStop(1, 'rgba(168, 73, 112, 0.5)');
+
+    dialGrad = ctx.createRadialGradient(baseW * 0.8, 140, 2, baseW * 0.8, 140, 35);
+    dialGrad.addColorStop(0, '#ffffff');
+    dialGrad.addColorStop(0.6, '#edd1dd');
+    dialGrad.addColorStop(1, '#b5879a');
+  } else {
+    // Silver default
+    bodyGrad = ctx.createLinearGradient(0, 0, 0, baseH);
+    bodyGrad.addColorStop(0, '#ebeae6');
+    bodyGrad.addColorStop(0.3, '#dedcd6');
+    bodyGrad.addColorStop(0.7, '#cbc7be');
+    bodyGrad.addColorStop(1, '#b8b3a8');
+
+    bevelGrad = ctx.createLinearGradient(0, 0, 0, baseH);
+    bevelGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+    bevelGrad.addColorStop(1, 'rgba(138, 133, 123, 0.6)');
+
+    dialGrad = ctx.createRadialGradient(340, 74, 2, 340, 74, 30);
+    dialGrad.addColorStop(0, '#ffffff');
+    dialGrad.addColorStop(0.6, '#d8d4cb');
+    dialGrad.addColorStop(1, '#9e998e');
+  }
+
+  // Draw Main Body
+  ctx.fillStyle = bodyGrad;
+  ctx.strokeStyle = theme === 'black' ? '#1c1e22' : theme === 'pink' ? '#b56788' : '#a19c92';
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(19, 13);
-  ctx.lineTo(37, 13);
-  ctx.lineTo(35, 42);
-  ctx.lineTo(21, 42);
+  if (ctx.roundRect) ctx.roundRect(0, 0, baseW, baseH, 24);
+  else ctx.rect(0, 0, baseW, baseH);
+  ctx.fill();
+  ctx.stroke();
+
+  // Draw Bevel Inner Highlight
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = bevelGrad;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(3, 3, baseW - 6, baseH - 6, 21);
+  else ctx.rect(3, 3, baseW - 6, baseH - 6);
+  ctx.stroke();
+
+  // Corner Screws
+  const screwColor = theme === 'black' ? '#33373e' : theme === 'pink' ? '#c48da3' : '#8c877d';
+  const screwBorder = theme === 'black' ? '#1b1d22' : theme === 'pink' ? '#8a4361' : '#5e5a52';
+  [[15, 15], [baseW - 15, 15], [15, baseH - 15], [baseW - 15, baseH - 15]].forEach(([sx, sy]) => {
+    ctx.fillStyle = screwColor;
+    ctx.strokeStyle = screwBorder;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(sx, sy, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  });
+
+  // Top Viewfinder & Optical Sensors
+  if (theme === 'silver') {
+    ctx.fillStyle = '#a8a49c';
+    ctx.strokeStyle = '#837f76';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(200, 10, 70, 26, 8);
+    else ctx.rect(200, 10, 70, 26);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#1b1f24';
+    ctx.beginPath();
+    ctx.arc(218, 23, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#38ef7d';
+    ctx.beginPath();
+    ctx.arc(219, 22, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#d9534f';
+    ctx.beginPath();
+    ctx.arc(256, 23, 3, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (theme === 'black') {
+    // Top ridge
+    ctx.fillStyle = '#444952';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(150, 2, 100, 6, 3);
+    else ctx.rect(150, 2, 100, 6);
+    ctx.fill();
+
+    // Red record button
+    ctx.fillStyle = '#24272c';
+    ctx.strokeStyle = '#444952';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(378, 30, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#e63946';
+    ctx.beginPath();
+    ctx.arc(378, 30, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (theme === 'pink') {
+    ctx.fillStyle = '#4a2538';
+    ctx.strokeStyle = '#7e405e';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(64, 12, 36, 24, 6);
+    else ctx.rect(64, 12, 36, 24);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#1b151a';
+    ctx.beginPath();
+    ctx.arc(82, 24, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Indicator LEDs
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.arc(140, 20, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.arc(148, 20, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Zoom toggle
+    ctx.fillStyle = '#e8c2d2';
+    ctx.strokeStyle = '#9e5675';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(365, 12, 64, 26, 13);
+    else ctx.rect(365, 12, 64, 26);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Right Control Panel (Dials, Buttons, Speaker Grille)
+  if (theme === 'silver') {
+    // Mode toggle
+    ctx.fillStyle = '#cac5ba';
+    ctx.strokeStyle = '#948f85';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(290, 14, 76, 20, 4);
+    else ctx.rect(290, 14, 76, 20);
+    ctx.fill();
+    ctx.stroke();
+
+    // Speaker grille dots
+    ctx.fillStyle = '#5e5a52';
+    const dots = [[390, 68], [397, 68], [404, 68], [393.5, 74], [400.5, 74], [397, 80]];
+    dots.forEach(([dx, dy]) => {
+      ctx.beginPath();
+      ctx.arc(dx, dy, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Multi-Selector Wheel (D-pad)
+    ctx.save();
+    ctx.translate(356, 145);
+    ctx.fillStyle = dialGrad || '#d8d4cb';
+    ctx.strokeStyle = '#7e7a72';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 46, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#d2cdc3';
+    ctx.strokeStyle = '#a8a399';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 38, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Direction arrows
+    ctx.fillStyle = '#4a463f';
+    [[0, -32, -4, -26, 4, -26], [0, 32, -4, 26, 4, 26], [-32, 0, -26, -4, -26, 4], [32, 0, 26, -4, 26, 4]].forEach(
+      ([p1, p2, p3, p4, p5, p6]) => {
+        ctx.beginPath();
+        ctx.moveTo(p1, p2);
+        ctx.lineTo(p3, p4);
+        ctx.lineTo(p5, p6);
+        ctx.closePath();
+        ctx.fill();
+      }
+    );
+
+    // Center button
+    ctx.fillStyle = dialGrad || '#ffffff';
+    ctx.strokeStyle = '#7e7a72';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, 18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // Bottom Function Buttons
+    ctx.fillStyle = dialGrad || '#d8d4cb';
+    ctx.strokeStyle = '#8e897e';
+    ctx.lineWidth = 1.2;
+    [[325, 222], [387, 222]].forEach(([bx, by]) => {
+      ctx.beginPath();
+      ctx.arc(bx, by, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    });
+  } else if (theme === 'black') {
+    // Buttons & D-Pad for Black Digicam
+    ctx.fillStyle = '#2a2e35';
+    ctx.strokeStyle = '#444953';
+    ctx.lineWidth = 1.2;
+    [[310, 80], [366, 80], [310, 204], [366, 204]].forEach(([bx, by]) => {
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(bx, by, 46, 22, 5);
+      else ctx.rect(bx, by, 46, 22);
+      ctx.fill();
+      ctx.stroke();
+    });
+
+    // Center D-Pad
+    ctx.save();
+    ctx.translate(360, 150);
+    ctx.fillStyle = '#24272d';
+    ctx.strokeStyle = '#40454f';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 34, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#1b1c20';
+    ctx.strokeStyle = '#33373e';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  } else if (theme === 'pink') {
+    // Mode Dial Top
+    ctx.save();
+    ctx.translate(376, 92);
+    ctx.fillStyle = dialGrad || '#f4e4ec';
+    ctx.strokeStyle = '#8c4765';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 30, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // D-Pad
+    ctx.save();
+    ctx.translate(368, 192);
+    ctx.fillStyle = dialGrad || '#f4e4ec';
+    ctx.strokeStyle = '#9e5675';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(0, 0, 28, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 2. THEMED OVERLAY STICKERS FROM USER SVG
+  if (options.stickers !== false) {
+    if (theme === 'silver') {
+      // "I ♥ YOU" ticket (top left)
+      ctx.save();
+      ctx.translate(14, -10);
+      ctx.rotate(-0.07);
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+      ctx.shadowBlur = 6;
+      ctx.fillStyle = '#fdfbf7';
+      ctx.strokeStyle = '#caa27d';
+      ctx.lineWidth = 1.2;
+      ctx.fillRect(0, 0, 78, 34);
+      ctx.strokeRect(0, 0, 78, 34);
+
+      ctx.fillStyle = '#e63946';
+      ctx.font = 'bold 12px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('I ♥ YOU', 39, 21);
+      ctx.restore();
+
+      // Cute Pink Hibiscus Flower (top right)
+      ctx.save();
+      ctx.translate(390, -10);
+      ctx.fillStyle = '#ff758f';
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * Math.PI * 2) / 5;
+        const fx = Math.cos(angle) * 14;
+        const fy = Math.sin(angle) * 14;
+        ctx.arc(fx, fy, 8, 0, Math.PI * 2);
+      }
+      ctx.fill();
+      ctx.fillStyle = '#ffb703';
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    } else if (theme === 'black') {
+      // Row of colorful hearts above screen
+      const heartColors = ['#ff758f', '#fbbf24', '#ef4444', '#a855f7', '#38bdf8'];
+      heartColors.forEach((hc, i) => {
+        ctx.save();
+        ctx.translate(28 + i * 20, 10);
+        ctx.fillStyle = hc;
+        ctx.beginPath();
+        ctx.arc(-3, -3, 3, Math.PI, 0);
+        ctx.arc(3, -3, 3, Math.PI, 0);
+        ctx.lineTo(0, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // Rainbow & Cloud Sticker (top right)
+      ctx.save();
+      ctx.translate(310, 12);
+      ctx.rotate(-0.1);
+      const rainbowColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7'];
+      rainbowColors.forEach((rc, ri) => {
+        ctx.strokeStyle = rc;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(36, 36, 26 - ri * 3, Math.PI, 0);
+        ctx.stroke();
+      });
+      // Clouds
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(12, 36, 8, 0, Math.PI * 2);
+      ctx.arc(60, 36, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Murakami Rainbow Smiling Flower (mid right)
+      ctx.save();
+      ctx.translate(325, 126);
+      const murakamiCols = ['#fbbf24', '#fb923c', '#f87171', '#ec4899', '#a855f7', '#60a5fa', '#34d399', '#a3e635'];
+      murakamiCols.forEach((mc, mi) => {
+        const ma = (mi * Math.PI * 2) / 8;
+        ctx.fillStyle = mc;
+        ctx.beginPath();
+        ctx.arc(Math.cos(ma) * 14, Math.sin(ma) * 14, 6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.fillStyle = '#fef08a';
+      ctx.strokeStyle = '#ca8a04';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Smile
+      ctx.fillStyle = '#1f2937';
+      ctx.beginPath();
+      ctx.arc(-3, -2, 1.2, 0, Math.PI * 2);
+      ctx.arc(3, -2, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#dc2626';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(0, 1, 4, 0.2, Math.PI - 0.2);
+      ctx.stroke();
+      ctx.restore();
+
+      // Yellow Cute Chick (bottom left)
+      ctx.save();
+      ctx.translate(-10, 215);
+      ctx.rotate(0.08);
+      ctx.fillStyle = '#ffdd00';
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.ellipse(20, 20, 16, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Eye & beak
+      ctx.fillStyle = '#111827';
+      ctx.beginPath();
+      ctx.arc(16, 16, 1.8, 0, Math.PI * 2);
+      ctx.arc(24, 16, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ea580c';
+      ctx.beginPath();
+      ctx.moveTo(20, 18);
+      ctx.lineTo(17, 22);
+      ctx.lineTo(23, 22);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  ctx.restore();
+}
+
+/**
+ * ============================================================================
+ * FORMULA 1 / MOTORSPORT VECTOR GRAPHICS ENGINE
+ * ============================================================================
+ */
+
+/**
+ * Checkered racing flag border pattern
+ */
+export function drawCheckeredFlagBorder(ctx, x, y, width, height, tileSize = 16) {
+  ctx.save();
+  const cols = Math.ceil(width / tileSize);
+  const rows = Math.ceil(height / tileSize);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      ctx.fillStyle = (r + c) % 2 === 0 ? '#111111' : '#FFFFFF';
+      ctx.fillRect(x + c * tileSize, y + r * tileSize, tileSize, tileSize);
+    }
+  }
+  ctx.restore();
+}
+
+/**
+ * Formula 1 Speed & Telemetry HUD Overlay
+ */
+export function drawF1TelemetryHUD(ctx, x, y, width, height, options = {}) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  const {
+    rpm = 13500,
+    speed = 328,
+    gear = 7,
+    lap = '44 / 44',
+    sectorTime = '1:21.432',
+    drs = true,
+  } = options;
+
+  // Carbon fiber badge plate
+  ctx.fillStyle = 'rgba(15, 17, 21, 0.94)';
+  ctx.strokeStyle = '#DC2626';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(0, 0, width, height, 10);
+  else ctx.rect(0, 0, width, height);
+  ctx.fill();
+  ctx.stroke();
+
+  // Top Red Accent Line
+  ctx.fillStyle = '#E10600';
+  ctx.fillRect(4, 4, width - 8, 4);
+
+  // Tachometer / RPM LED Bar
+  const totalLeds = 15;
+  const ledW = (width - 40) / totalLeds;
+  for (let i = 0; i < totalLeds; i++) {
+    let ledColor = '#10B981'; // Green
+    if (i >= 6 && i < 11) ledColor = '#F59E0B'; // Amber
+    if (i >= 11) ledColor = '#EF4444'; // Red shift indicator
+    ctx.fillStyle = i < 13 ? ledColor : '#374151';
+    ctx.fillRect(20 + i * ledW, 16, ledW - 3, 8);
+  }
+
+  // Speed & Gear Display
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '900 36px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(`${speed}`, 20, 68);
+
+  ctx.font = '700 14px "DM Sans", sans-serif';
+  ctx.fillStyle = '#9CA3AF';
+  ctx.fillText('KM/H', 88, 55);
+
+  // Large Gear Indicator
+  ctx.fillStyle = '#F59E0B';
+  ctx.font = '900 42px "Courier New", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${gear}`, width / 2, 70);
+
+  // DRS Status Box
+  ctx.save();
+  ctx.fillStyle = drs ? '#10B981' : '#4B5563';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(width - 100, 36, 80, 24, 4);
+  else ctx.rect(width - 100, 36, 80, 24);
+  ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '900 11px "DM Sans", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('DRS ACTIVE', width - 60, 52);
+  ctx.restore();
+
+  // Bottom Status Bar: Lap & Sector Time
+  ctx.fillStyle = '#E5E7EB';
+  ctx.font = '600 12px "Courier New", monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(`LAP ${lap}  •  BEST ${sectorTime}`, 20, 94);
+
+  // Pirelli Tire Compound Tag (Right)
+  ctx.fillStyle = '#E10600';
+  ctx.beginPath();
+  ctx.arc(width - 28, 90, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '900 9px "DM Sans", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('S', width - 28, 93);
+
+  ctx.restore();
+}
+
+/**
+ * F1 Starting Lights (5 red gantry lights)
+ */
+export function drawF1StartingLights(ctx, x, y, width = 240, height = 36) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Gantry casing
+  ctx.fillStyle = '#111827';
+  ctx.strokeStyle = '#374151';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(0, 0, width, height, 6);
+  else ctx.rect(0, 0, width, height);
+  ctx.fill();
+  ctx.stroke();
+
+  const lightGap = width / 6;
+  for (let i = 1; i <= 5; i++) {
+    const lx = i * lightGap;
+    const ly = height / 2;
+    // Outer black bezel
+    ctx.fillStyle = '#1F2937';
+    ctx.beginPath();
+    ctx.arc(lx, ly, 10, 0, Math.PI * 2);
+    ctx.fill();
+    // Glowing red bulb
+    ctx.fillStyle = '#EF4444';
+    ctx.shadowColor = '#EF4444';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(lx, ly, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    // Glass highlight
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(lx - 2, ly - 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Grand Prix Monaco Laurel Wreath / Champion Badge
+ */
+export function drawGrandPrixBadge(ctx, x, y, title = 'MONACO GP', year = '2004') {
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Gold Crest Shield
+  ctx.fillStyle = '#151515';
+  ctx.strokeStyle = '#F59E0B';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-45, -35);
+  ctx.lineTo(45, -35);
+  ctx.lineTo(40, 20);
+  ctx.lineTo(0, 45);
+  ctx.lineTo(-40, 20);
   ctx.closePath();
   ctx.fill();
+  ctx.stroke();
 
-  // Dot
+  // Gold Star
+  ctx.fillStyle = '#F59E0B';
+  ctx.beginPath();
+  ctx.arc(0, -16, 6, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Typography
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '900 10px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(title, 0, 4);
+
+  ctx.font = '700 8px "Courier New", monospace';
+  ctx.fillStyle = '#F59E0B';
+  ctx.fillText(`★ ${year} ★`, 0, 18);
+
+  ctx.restore();
+}
+
+/**
+ * Holographic CD-ROM Disc with iridescent rainbow sheen
+ */
+export function drawHoloCDRom(ctx, x, y, radius = 120) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Outer drop shadow
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+  ctx.shadowBlur = 18;
+  ctx.shadowOffsetY = 8;
+
+  // Base metallic disc
+  const discGrad = ctx.createRadialGradient(0, 0, radius * 0.15, 0, 0, radius);
+  discGrad.addColorStop(0, '#E5E7EB');
+  discGrad.addColorStop(0.35, '#F3F4F6');
+  discGrad.addColorStop(0.7, '#D1D5DB');
+  discGrad.addColorStop(1, '#9CA3AF');
+  ctx.fillStyle = discGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Spectral Rainbow Iridescent Sheen
+  ctx.shadowColor = 'transparent';
+  ctx.globalAlpha = 0.45;
+  const specGrad = ctx.createLinearGradient(-radius, -radius, radius, radius);
+  specGrad.addColorStop(0, '#F43F5E');
+  specGrad.addColorStop(0.2, '#FB923C');
+  specGrad.addColorStop(0.4, '#FACC15');
+  specGrad.addColorStop(0.6, '#34D399');
+  specGrad.addColorStop(0.8, '#38BDF8');
+  specGrad.addColorStop(1, '#C084FC');
+  ctx.fillStyle = specGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius - 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1.0;
+
+  // Track Grooves
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.lineWidth = 1;
+  [0.45, 0.6, 0.75, 0.88].forEach(pct => {
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * pct, 0, Math.PI * 2);
+    ctx.stroke();
+  });
+
+  // Center Clear Spindle Ring & Center Hole
   ctx.fillStyle = '#FFFFFF';
   ctx.beginPath();
-  if (ctx.roundRect) ctx.roundRect(15, 96, 24, 24, 4);
-  else ctx.rect(15, 96, 24, 24);
+  ctx.arc(0, 0, radius * 0.35, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = '#C0392B';
+  ctx.fillStyle = '#E5E7EB';
   ctx.beginPath();
-  if (ctx.roundRect) ctx.roundRect(18, 99, 18, 18, 2);
-  else ctx.rect(18, 99, 18, 18);
+  ctx.arc(0, 0, radius * 0.26, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Hole Cutout
+  ctx.fillStyle = '#222222';
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.14, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.restore();
 }
+
 

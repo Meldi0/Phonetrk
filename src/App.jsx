@@ -3,6 +3,7 @@ import { Camera, Check, Download, Image as ImageIcon, MessageCircle, Moon, Print
 import StudioCamera from './components/StudioCamera.jsx';
 import { Customizer, FilterDefinitions } from './components/Controls.jsx';
 import { StickerCanvasEditor } from './components/StickerCanvasEditor.jsx';
+import { TextCanvasEditor } from './components/TextCanvasEditor.jsx';
 import Gallery from './components/Gallery.jsx';
 import Modal from './components/Modal.jsx';
 import { useCamera } from './hooks/useCamera.js';
@@ -53,6 +54,7 @@ export default function App() {
   const [saving, setSaving] = useState(false), [copies, setCopies] = useState(1), [paper, setPaper] = useState('Glossy');
   const [waInput, setWaInput] = useState('');
   const [selectedStickerId, setSelectedStickerId] = useState(null);
+  const [selectedTextId, setSelectedTextId] = useState(null);
   const [stickerHistory, setStickerHistory] = useState(() => [style.userStickers || []]);
   const [historyIdx, setHistoryIdx] = useState(0);
   const savedKey = useRef(''), savingRef = useRef(false);
@@ -163,12 +165,14 @@ export default function App() {
       ...cur,
       customBg: '',
       userStickers: [],
+      userTexts: [],
       borderStyle: 'default',
     }));
     setSelectedStickerId(null);
+    setSelectedTextId(null);
     setStickerHistory([[]]);
     setHistoryIdx(0);
-    setNotice('Filter, efek visual, stiker, dan tone adjustments telah dikembalikan ke default.');
+    setNotice('Filter, efek visual, stiker, teks, dan tone adjustments telah dikembalikan ke default.');
   }
 
   function handleStickersChange(nextStickers) {
@@ -235,6 +239,23 @@ export default function App() {
       setSelectedStickerId(null);
       handleStickersCommit([]);
     }
+  }
+
+  function handleTextsChange(nextTexts) {
+    setStyle(cur => ({ ...cur, userTexts: nextTexts }));
+  }
+
+  function handleTextsCommit(nextTexts) {
+    setStyle(cur => ({ ...cur, userTexts: nextTexts }));
+  }
+
+  function handleAddText(txt) {
+    const currentTexts = style.userTexts || [];
+    const next = [...currentTexts, txt];
+    setSelectedTextId(txt.id);
+    setSelectedStickerId(null);
+    handleTextsCommit(next);
+    setNotice('Teks berhasil ditambahkan! Geser teks ke posisi yang kamu inginkan di atas strip foto.');
   }
 
   function handlePoseCountChange(count) {
@@ -343,20 +364,42 @@ export default function App() {
   const preview = (
     <div className={`strip-stage ${style.layout?.includes('wide') || style.layout === 'grid' ? 'landscape' : ''}`} aria-busy={capture.photos.length > 0 && !strip.ready}>
       {strip.result ? (
-        <div className="strip-canvas-wrapper" style={{ position: 'relative', display: 'inline-block', lineHeight: 0 }}>
+        <div
+          className="strip-canvas-wrapper"
+          style={{ position: 'relative', display: 'inline-block', lineHeight: 0 }}
+          onClick={() => {
+            setSelectedStickerId(null);
+            setSelectedTextId(null);
+          }}
+        >
           <img
             className="strip-image"
             src={tab === 'customize' ? (strip.result.baseUrl || strip.result.url) : strip.result.url}
             alt="Your finished CissPic photostrip"
           />
           {tab === 'customize' && (
-            <StickerCanvasEditor
-              userStickers={style.userStickers || []}
-              onChange={handleStickersChange}
-              onCommit={handleStickersCommit}
-              selectedId={selectedStickerId}
-              onSelect={setSelectedStickerId}
-            />
+            <>
+              <StickerCanvasEditor
+                userStickers={style.userStickers || []}
+                onChange={handleStickersChange}
+                onCommit={handleStickersCommit}
+                selectedId={selectedStickerId}
+                onSelect={id => {
+                  setSelectedStickerId(id);
+                  if (id) setSelectedTextId(null);
+                }}
+              />
+              <TextCanvasEditor
+                userTexts={style.userTexts || []}
+                onChange={handleTextsChange}
+                onCommit={handleTextsCommit}
+                selectedId={selectedTextId}
+                onSelect={id => {
+                  setSelectedTextId(id);
+                  if (id) setSelectedStickerId(null);
+                }}
+              />
+            </>
           )}
         </div>
       ) : (
@@ -558,13 +601,22 @@ export default function App() {
                   onMirrorAll={setMirrorAll}
                   onResetAll={resetEditing}
                   selectedStickerId={selectedStickerId}
-                  onSelectSticker={setSelectedStickerId}
+                  onSelectSticker={id => {
+                    setSelectedStickerId(id);
+                    if (id) setSelectedTextId(null);
+                  }}
                   onAddSticker={handleAddSticker}
                   canUndoStickers={historyIdx > 0}
                   canRedoStickers={historyIdx < stickerHistory.length - 1}
                   onUndoStickers={handleUndoStickers}
                   onRedoStickers={handleRedoStickers}
                   onClearStickers={handleClearStickers}
+                  selectedTextId={selectedTextId}
+                  onSelectText={id => {
+                    setSelectedTextId(id);
+                    if (id) setSelectedStickerId(null);
+                  }}
+                  onAddText={handleAddText}
                 />
                 {actions}
               </section>

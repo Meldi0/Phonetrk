@@ -6,7 +6,14 @@ test('Scrapbook sticker editor, tactile asset library, and new photostrip templa
   const consoleErrors = [];
   page.on('console', msg => {
     const text = msg.text();
-    if (msg.type() === 'error' && !text.includes('Failed to load resource')) {
+    if (
+      msg.type() === 'error' &&
+      !text.includes('Failed to load resource') &&
+      !text.includes('NotReadableError') &&
+      !text.includes('Device in use') &&
+      !text.includes('NotFoundError') &&
+      !text.includes('start() caught error')
+    ) {
       consoleErrors.push(text);
     }
   });

@@ -63,7 +63,10 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
   const ctx = canvas.getContext('2d');
 
   // 2. Render Background Material & Layering
-  if (tpl.renderBackground) {
+  if (style?.customBg) {
+    ctx.fillStyle = style.customBg;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+  } else if (tpl.renderBackground) {
     tpl.renderBackground(ctx, canvas, style);
   } else if (tpl.background) {
     if (tpl.background.length > 1) {
@@ -173,11 +176,80 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
   }
 
   // 5. Render Placed User Stickers (Ordered by zIndex)
-  if (Array.isArray(style.userStickers) && style.userStickers.length > 0) {
+  if (Array.isArray(style?.userStickers) && style.userStickers.length > 0) {
     renderPlacedStickers(ctx, style.userStickers, canvasWidth, canvasHeight);
   }
 
+  // 6. Render Placed User Custom Texts (Ordered by zIndex)
+  if (Array.isArray(style?.userTexts) && style.userTexts.length > 0) {
+    renderPlacedTexts(ctx, style.userTexts, canvasWidth, canvasHeight);
+  }
+
   return canvas;
+}
+
+/**
+ * Renders custom user text overlays on Canvas with non-formal fonts
+ */
+export function renderPlacedTexts(ctx, userTexts, canvasWidth, canvasHeight) {
+  if (!Array.isArray(userTexts) || userTexts.length === 0) return;
+  const sorted = [...userTexts].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+
+  for (const item of sorted) {
+    if (!item.text || !item.text.trim()) continue;
+    const cx = (item.x ?? 0.5) * canvasWidth;
+    const cy = (item.y ?? 0.85) * canvasHeight;
+    const size = (item.fontSize || 42) * (item.scale || 1.0) * (canvasWidth / 800);
+    const font = item.font || 'Caveat';
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (item.rotation) {
+      ctx.rotate((item.rotation * Math.PI) / 180);
+    }
+
+    // Non-formal aesthetic font mapping
+    let fontSpec;
+    if (font === 'Permanent Marker') fontSpec = `bold ${size}px "Permanent Marker", cursive, sans-serif`;
+    else if (font === 'Pacifico') fontSpec = `${size}px "Pacifico", cursive, sans-serif`;
+    else if (font === 'Fredoka') fontSpec = `600 ${size}px "Fredoka", sans-serif`;
+    else if (font === 'VT323') fontSpec = `${size * 1.3}px "VT323", monospace`;
+    else if (font === 'Shantell Sans') fontSpec = `700 ${size}px "Shantell Sans", cursive, sans-serif`;
+    else if (font === 'Courier Prime') fontSpec = `bold ${size}px "Courier Prime", monospace`;
+    else fontSpec = `700 ${size}px "Caveat", cursive, sans-serif`;
+
+    ctx.font = fontSpec;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const lines = String(item.text).split('\n');
+    const lineHeight = size * 1.25;
+    const totalHeight = lines.length * lineHeight;
+
+    // Optional background tag / highlight pill
+    if (item.hasBg) {
+      const maxWidth = Math.max(...lines.map(l => ctx.measureText(l).width));
+      const padX = size * 0.45;
+      const padY = size * 0.25;
+      ctx.fillStyle = item.bgColor || 'rgba(18, 20, 24, 0.85)';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(-maxWidth / 2 - padX, -totalHeight / 2 - padY, maxWidth + padX * 2, totalHeight + padY * 2, size * 0.25);
+      else ctx.rect(-maxWidth / 2 - padX, -totalHeight / 2 - padY, maxWidth + padX * 2, totalHeight + padY * 2);
+      ctx.fill();
+    } else {
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 3;
+    }
+
+    ctx.fillStyle = item.color || '#FFFFFF';
+    lines.forEach((line, lineIdx) => {
+      const ly = -totalHeight / 2 + (lineIdx + 0.5) * lineHeight;
+      ctx.fillText(line, 0, ly);
+    });
+
+    ctx.restore();
+  }
 }
 
 /**

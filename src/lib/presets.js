@@ -47,7 +47,6 @@ export const LAYOUT_OPTIONS = [
 import { ARTISTIC_TEMPLATES } from './artisticTemplates.js';
 
 const RAW_STRIP_TEMPLATES = [
-  ...ARTISTIC_TEMPLATES,
   // CLEAN
   {
     id: 'clean-white',
@@ -539,14 +538,34 @@ const RAW_STRIP_TEMPLATES = [
       { type: 'sticker', stickerType: 'heart-chrome', x: 0.5, y: 0.89, size: 40 },
     ],
   },
+  ...ARTISTIC_TEMPLATES,
 ];
 
 export const STRIP_TEMPLATES = Array.from(
-  new Map(RAW_STRIP_TEMPLATES.map(t => [t.id, t])).values()
+  new Map(RAW_STRIP_TEMPLATES.map(t => {
+    // Ensure every template has proper photoSlots and canvas defined
+    if (!t.photoSlots) {
+      return [t.id, {
+        ...t,
+        canvas: t.canvas || { width: 800, height: 2000 },
+        supportedPhotoCounts: t.supportedPhotoCounts || [1, 2, 4, 6],
+        photoSlots: [
+          { id: 1, x: 80, y: 120, width: 640, height: 380, borderRadius: 4, frameStyle: t.border || 'white-thin' },
+          { id: 2, x: 80, y: 530, width: 640, height: 380, borderRadius: 4, frameStyle: t.border || 'white-thin' },
+          { id: 3, x: 80, y: 940, width: 640, height: 380, borderRadius: 4, frameStyle: t.border || 'white-thin' },
+          { id: 4, x: 80, y: 1350, width: 640, height: 380, borderRadius: 4, frameStyle: t.border || 'white-thin' },
+        ],
+      }];
+    }
+    return [t.id, t];
+  })).values()
 );
 
 export const TEMPLATE_CATEGORIES = [
   'All',
+  'Favorites',
+  'Y2K',
+  'Motorsport',
   'Cute',
   'Clean',
   'Scrapbook',
@@ -557,13 +576,12 @@ export const TEMPLATE_CATEGORIES = [
   'Minimal',
   'Playful',
   'Retro',
-  'Y2K',
-  'Favorites',
 ];
 
 export const RECOMMENDED_TEMPLATES = {
   1: 'polaroid-hero-1',
   2: 'denim-lace-2',
+  3: 'digicam-trio-3',
   4: 'airmail-love-4',
   6: 'contact-sheet-6',
 };
@@ -601,6 +619,7 @@ export const DEFAULT_STYLE = {
   poseCount: 4,
   sticker: '',
   userStickers: [],
+  userTexts: [],
   customBg: '',
   borderStyle: 'default',
   header: '',

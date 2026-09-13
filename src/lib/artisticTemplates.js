@@ -654,6 +654,8 @@ const BASE_ARTISTIC_TEMPLATES = [
     name: 'Clean Studio White',
     category: 'Minimal',
     description: 'Minimalist clean white Korean self-photo studio strip',
+    header: 'CISSPIC',
+    subHeader: 'AESTHETIC SELF PHOTO STUDIO',
     background: ['#FFFFFF'],
     textColor: '#1D1D21',
     recommendedPoses: 4,
@@ -1016,6 +1018,9 @@ export const ARTISTIC_TEMPLATES = [...ADDITIONAL_TEMPLATES, ...ENRICHED_BASE_TEM
 
 export const ARTISTIC_CATEGORIES = [
   'All',
+  'Favorites',
+  'Y2K',
+  'Motorsport',
   'Cute',
   'Clean',
   'Scrapbook',
@@ -1024,7 +1029,5 @@ export const ARTISTIC_CATEGORIES = [
   'Film',
   'Polaroid',
   'Minimal',
-  'Y2K',
-  'Favorites',
 ];
 
