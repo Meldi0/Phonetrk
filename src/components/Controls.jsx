@@ -460,7 +460,7 @@ export function Customizer({
   const [stickerSearch, setStickerSearch] = useState('');
   const [favorites, setFavorites] = useState(() => {
     try {
-      const stored = localStorage.getItem('snapbooth_template_favorites');
+      const stored = localStorage.getItem('cisspic_template_favorites') || localStorage.getItem('snapbooth_template_favorites');
       return stored ? JSON.parse(stored) : ['lavender-minimal', 'sakura-day', 'clean-white'];
     } catch {
       return ['lavender-minimal', 'sakura-day'];
@@ -469,7 +469,7 @@ export function Customizer({
 
   const [favoriteStickers, setFavoriteStickers] = useState(() => {
     try {
-      const stored = localStorage.getItem('snapbooth_sticker_favorites');
+      const stored = localStorage.getItem('cisspic_sticker_favorites') || localStorage.getItem('snapbooth_sticker_favorites');
       return stored ? JSON.parse(stored) : ['red-stitched-star', 'burgundy-lily', 'chrome-star-3d'];
     } catch {
       return ['red-stitched-star', 'burgundy-lily'];
@@ -480,6 +480,7 @@ export function Customizer({
     setFavorites(prev => {
       const next = prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id];
       try {
+        localStorage.setItem('cisspic_template_favorites', JSON.stringify(next));
         localStorage.setItem('snapbooth_template_favorites', JSON.stringify(next));
       } catch {}
       return next;
@@ -491,6 +492,7 @@ export function Customizer({
     setFavoriteStickers(prev => {
       const next = prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id];
       try {
+        localStorage.setItem('cisspic_sticker_favorites', JSON.stringify(next));
         localStorage.setItem('snapbooth_sticker_favorites', JSON.stringify(next));
       } catch {}
       return next;

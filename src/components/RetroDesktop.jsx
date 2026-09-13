@@ -19,7 +19,7 @@ export function RetroStatusBar() {
   return (
     <div className="retro-status-bar" aria-hidden="true">
       <div className="status-left">
-        <span className="status-carrier">SnapBooth Studio</span>
+        <span className="status-carrier">CissPic Studio</span>
         <Wifi size={12} strokeWidth={2} />
         <span className="status-signal">
           <i /><i /><i /><i />
@@ -28,7 +28,7 @@ export function RetroStatusBar() {
       <div className="status-center">
         <div className="status-search-pill">
           <Search size={10} />
-          <span>diary.snapbooth.app</span>
+          <span>diary.cisspic.app</span>
         </div>
       </div>
       <div className="status-right">
@@ -95,7 +95,7 @@ export function DiaryIntro({ editing }) {
   return (
     <section className="diary-intro">
       <div className="diary-masthead">
-        <p className="eyebrow">A SNAPBOOTH ORIGINAL / K-STYLE SELF PHOTO STUDIO</p>
+        <p className="eyebrow">A CISSPIC ORIGINAL / AESTHETIC SELF PHOTO STUDIO</p>
         
         <div className="editorial-title-stack">
           <div className="serif-hero-display" aria-hidden="true">
@@ -153,7 +153,84 @@ function PhotoArt({ photo, filterId, mirrored, variant }) {
   );
 }
 
-export function DiaryCollage({ photos = [], filterId, mirrored }) {
+export function ThemePaletteDock({
+  currentTheme = 'sky',
+  onSelectTheme,
+  customColor = '#BFD7E8',
+  onCustomColorChange,
+  className = 'mini-desktop-dock'
+}) {
+  const colorInputRef = React.useRef(null);
+
+  const themeOptions = [
+    { id: 'sky', label: 'Sky Blue (Classic)', cls: 'dock-finder' },
+    { id: 'ocean', label: 'Deep Ocean Blue', cls: 'dock-safari' },
+    { id: 'sage', label: 'Matcha / Sage Green', cls: 'dock-messages' },
+    { id: 'slate', label: 'Vintage Slate Gray', cls: 'dock-camera' },
+    { id: 'custom', label: 'Custom Color Wheel (Click to pick color)', cls: 'dock-photos', isCustom: true },
+    { id: 'cream', label: 'Aged Linen / Warm Cream', cls: 'dock-trash' },
+  ];
+
+  return (
+    <div className={className} role="radiogroup" aria-label="Background Color Palette">
+      {themeOptions.map(t => {
+        const isActive = currentTheme === t.id;
+        if (t.isCustom) {
+          return (
+            <button
+              key={t.id}
+              type="button"
+              className={`dock-item ${t.cls} ${isActive ? 'active' : ''}`}
+              title={`${t.label}${isActive ? ' (Active)' : ''}`}
+              aria-label={t.label}
+              aria-checked={isActive}
+              role="radio"
+              onClick={() => {
+                onSelectTheme?.('custom');
+                colorInputRef.current?.click();
+              }}
+            >
+              <input
+                ref={colorInputRef}
+                type="color"
+                className="dock-color-input"
+                aria-label="Custom color picker"
+                value={customColor || '#BFD7E8'}
+                onClick={e => e.stopPropagation()}
+                onChange={e => {
+                  onSelectTheme?.('custom');
+                  onCustomColorChange?.(e.target.value);
+                }}
+              />
+            </button>
+          );
+        }
+        return (
+          <button
+            key={t.id}
+            type="button"
+            className={`dock-item ${t.cls} ${isActive ? 'active' : ''}`}
+            title={`${t.label}${isActive ? ' (Active)' : ''}`}
+            aria-label={t.label}
+            aria-checked={isActive}
+            role="radio"
+            onClick={() => onSelectTheme?.(t.id)}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+export function DiaryCollage({
+  photos = [],
+  filterId,
+  mirrored,
+  theme = 'sky',
+  onSelectTheme,
+  customColor = '#BFD7E8',
+  onCustomColorChange,
+}) {
   const photoList = Array.isArray(photos) ? photos : [];
 
   return (
@@ -251,15 +328,13 @@ export function DiaryCollage({ photos = [], filterId, mirrored }) {
         </div>
       </div>
 
-      {/* 8. Mini Desktop Dock Bar (from Reference Image) */}
-      <div className="mini-desktop-dock" aria-hidden="true">
-        <div className="dock-item dock-finder" title="Finder" />
-        <div className="dock-item dock-safari" title="Safari" />
-        <div className="dock-item dock-messages" title="Messages" />
-        <div className="dock-item dock-camera" title="Camera" />
-        <div className="dock-item dock-photos" title="Photos" />
-        <div className="dock-item dock-trash" title="Trash" />
-      </div>
+      {/* 8. Mini Desktop Dock Bar (Interactive Theme Palette) */}
+      <ThemePaletteDock
+        currentTheme={theme}
+        onSelectTheme={onSelectTheme}
+        customColor={customColor}
+        onCustomColorChange={onCustomColorChange}
+      />
 
       {/* 9. Self Photo Studio Stamp */}
       <div className="diary-stamp">

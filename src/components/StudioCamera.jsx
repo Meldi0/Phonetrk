@@ -33,7 +33,7 @@ export default function StudioCamera({
         <div>
           <span className="window-dots" aria-hidden="true"><i /><i /><i /></span>
           <span className={`live-dot ${camera.status === 'ready' ? 'on' : ''}`} />
-          <span className="eyebrow">SnapBooth Camera</span>
+          <span className="eyebrow">CissPic Camera</span>
           <span className="camera-filter-name">{activeFilterObj.name}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

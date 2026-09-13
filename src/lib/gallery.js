@@ -6,7 +6,7 @@ function database() {
     request.onupgradeneeded = () => request.result.createObjectStore('strips', { keyPath: 'id' });
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
-    request.onblocked = () => reject(new Error('Close other SnapBooth tabs to enable local storage.'));
+    request.onblocked = () => reject(new Error('Close other CissPic tabs to enable local storage.'));
   });
 }
 async function transaction(mode, action) {

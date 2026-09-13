@@ -248,7 +248,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.textAlign = 'center';
       ctx.fillStyle = '#1D3557';
       ctx.font = '900 36px "DM Sans", sans-serif';
-      ctx.fillText(style.header || 'SNAPBOOTH AIRMAIL ARCHIVE', width / 2, 1510);
+      ctx.fillText(style.header || 'CISSPIC AIRMAIL ARCHIVE', width / 2, 1510);
       ctx.fillStyle = '#C0392B';
       ctx.font = 'bold 20px "Courier New", monospace';
       ctx.fillText('6-POSE MEMORY COLLECTION • ' + dateFormatted, width / 2, 1555);
@@ -288,7 +288,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.fillText('cherished moments ✦', width - 40, 75);
       ctx.font = '600 14px "DM Sans", sans-serif';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.fillText('SNAPBOOTH • DENIM & LACE EDITION', width - 40, height - 50);
+      ctx.fillText('CISSPIC • DENIM & LACE EDITION', width - 40, height - 50);
       ctx.restore();
     },
   },
@@ -422,7 +422,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.fillText(style.header || 'DENIM PHOTO DUO', width / 2, 1540);
       ctx.fillStyle = '#DDB055';
       ctx.font = '600 18px "Courier New", monospace';
-      ctx.fillText('SNAPBOOTH JEANS CO.', width / 2, 1585);
+      ctx.fillText('CISSPIC JEANS CO.', width / 2, 1585);
       ctx.restore();
     },
   },
@@ -456,7 +456,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.fillStyle = '#FFFFFF';
       ctx.textAlign = 'center';
       ctx.font = '900 36px "DM Sans", sans-serif';
-      ctx.fillText(style.header || 'SNAPBOOTH DENIM', width / 2, 1870);
+      ctx.fillText(style.header || 'CISSPIC DENIM', width / 2, 1870);
       ctx.fillStyle = '#DDB055';
       ctx.font = '600 18px "Courier New", monospace';
       ctx.fillText('AUTHENTIC JEANSWEAR MEMORIES', width / 2, 1915);
@@ -578,7 +578,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.fillText(style.header || 'Sweet Diary', width / 2, 1330);
       ctx.font = '500 20px "DM Sans", sans-serif';
       ctx.fillStyle = '#B06377';
-      ctx.fillText('SNAPBOOTH • LOVELY MOMENTS', width / 2, 1385);
+      ctx.fillText('CISSPIC • LOVELY MOMENTS', width / 2, 1385);
       drawFabricBow(ctx, width / 2, 1490, 65, '#D94364');
       ctx.restore();
     },
@@ -621,7 +621,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.fillText(style.header || 'Sweet Ribbon Diary', width / 2, 1720);
       ctx.font = '500 18px "DM Sans", sans-serif';
       ctx.fillStyle = '#B06377';
-      ctx.fillText('SNAPBOOTH • LOVELY MOMENTS', width / 2, 1770);
+      ctx.fillText('CISSPIC • LOVELY MOMENTS', width / 2, 1770);
       drawFabricBow(ctx, width / 2, 1860, 65, '#D94364');
       ctx.restore();
     },
@@ -732,7 +732,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.fillText(style.header || 'CHERRY PICNIC', width / 2, 1720);
       ctx.font = 'bold 18px "Courier New", monospace';
       ctx.fillStyle = '#C9184A';
-      ctx.fillText('SNAPBOOTH • SWEET MOMENTS', width / 2, 1770);
+      ctx.fillText('CISSPIC • SWEET MOMENTS', width / 2, 1770);
       drawCuteCherries(ctx, width / 2, 1860, 60);
       ctx.restore();
     },
@@ -871,7 +871,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.textAlign = 'center';
       ctx.fillStyle = '#1D1D20';
       ctx.font = '900 36px "DM Sans", sans-serif';
-      ctx.fillText(style.header || 'SNAPBOOTH STUDIO', width / 2, 1390);
+      ctx.fillText(style.header || 'CISSPIC STUDIO', width / 2, 1390);
       ctx.fillStyle = '#6E6D7A';
       ctx.font = '500 18px "DM Sans", sans-serif';
       ctx.fillText(date.toDateString().toUpperCase(), width / 2, 1440);
@@ -906,7 +906,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.textAlign = 'center';
       ctx.fillStyle = '#1D1D20';
       ctx.font = '900 36px "DM Sans", sans-serif';
-      ctx.fillText(style.header || 'SNAPBOOTH STUDIO', width / 2, 1750);
+      ctx.fillText(style.header || 'CISSPIC STUDIO', width / 2, 1750);
       ctx.fillStyle = '#6E6D7A';
       ctx.font = '500 18px "DM Sans", sans-serif';
       ctx.fillText('SEOUL SELF PHOTO STUDIO', width / 2, 1800);
@@ -1008,7 +1008,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.textAlign = 'center';
       ctx.fillStyle = '#F5F4F8';
       ctx.font = '900 36px "DM Sans", sans-serif';
-      ctx.fillText(style.header || 'SNAPBOOTH NOIR', width / 2, 1390);
+      ctx.fillText(style.header || 'CISSPIC NOIR', width / 2, 1390);
       ctx.fillStyle = '#ACA2C7';
       ctx.font = '500 18px "DM Sans", sans-serif';
       ctx.fillText(date.toDateString().toUpperCase(), width / 2, 1440);
@@ -1043,7 +1043,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.textAlign = 'center';
       ctx.fillStyle = '#F5F4F8';
       ctx.font = '900 36px "DM Sans", sans-serif';
-      ctx.fillText(style.header || 'SNAPBOOTH NOIR', width / 2, 1750);
+      ctx.fillText(style.header || 'CISSPIC NOIR', width / 2, 1750);
       ctx.fillStyle = '#ACA2C7';
       ctx.font = '500 18px "DM Sans", sans-serif';
       ctx.fillText('STUDIO EDITION • MONOCHROME', width / 2, 1800);
@@ -1154,7 +1154,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.font = 'bold 26px "Courier New", monospace';
       ctx.textAlign = 'center';
       ctx.fillText(style.header || 'KODAK SAFETY FILM 5063', width / 2, 1750);
-      ctx.fillText('SNAPBOOTH ANALOG DARKROOM • ' + date.toDateString().toUpperCase(), width / 2, 1800);
+      ctx.fillText('CISSPIC ANALOG DARKROOM • ' + date.toDateString().toUpperCase(), width / 2, 1800);
       ctx.restore();
     },
   },
@@ -1193,7 +1193,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.fillStyle = '#E59866';
       ctx.font = 'bold 24px "Courier New", monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(style.header || 'SNAPBOOTH CONTACT PROOF SHEET', width / 2, 1580);
+      ctx.fillText(style.header || 'CISSPIC CONTACT PROOF SHEET', width / 2, 1580);
       ctx.restore();
     },
   },
@@ -1371,7 +1371,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.fillStyle = '#20252A';
       ctx.font = '500 16px "DM Mono", monospace';
       ctx.textAlign = 'left';
-      ctx.fillText('SnapBooth Studio  •  Wifi  ••••', 30, 26);
+      ctx.fillText('CissPic Studio  •  Wifi  ••••', 30, 26);
       ctx.textAlign = 'right';
       ctx.fillText('100% [=] 12:00', width - 30, 26);
 
@@ -1379,7 +1379,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.textAlign = 'left';
       ctx.fillStyle = '#33495D';
       ctx.font = '600 14px "DM Mono", monospace';
-      ctx.fillText('A SNAPBOOTH ORIGINAL / K-STYLE SELF PHOTO STUDIO', 80, 80);
+      ctx.fillText('A CISSPIC ORIGINAL / AESTHETIC SELF PHOTO STUDIO', 80, 80);
 
       ctx.font = 'italic 700 76px "Libre Caslon Display", Georgia, serif';
       ctx.fillStyle = '#20252A';
@@ -1481,7 +1481,7 @@ export const ADDITIONAL_TEMPLATES = [
 
       ctx.font = '13px "DM Mono", monospace';
       ctx.fillStyle = '#657D8E';
-      ctx.fillText('END OF PAGE — KEEP THE MEMORIES / SNAPBOOTH', width / 2, 1685);
+      ctx.fillText('END OF PAGE — KEEP THE MEMORIES / CISSPIC', width / 2, 1685);
       ctx.restore();
     },
   },
@@ -1673,7 +1673,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 16px "DM Mono", monospace';
       ctx.textAlign = 'left';
-      ctx.fillText('📁 C:\\SnapBooth\\Memories\\Archive_2004', winX + 16, winY + 26);
+      ctx.fillText('📁 C:\\CissPic\\Memories\\Archive_2004', winX + 16, winY + 26);
 
       // Window controls [ _ ] [ □ ] [ X ]
       const cx = winX + winW - 90;
@@ -1703,7 +1703,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.fillStyle = '#1D2A35';
       ctx.font = '14px "DM Mono", monospace';
       ctx.textAlign = 'left';
-      ctx.fillText('Address: https://diary.snapbooth.app/archive/2004', winX + 16, winY + 64);
+      ctx.fillText('Address: https://diary.cisspic.app/archive/2004', winX + 16, winY + 64);
 
       // Photo slot borders
       [270, 590, 910, 1230].forEach(sy => {
@@ -1745,7 +1745,7 @@ export const ADDITIONAL_TEMPLATES = [
       ctx.fillStyle = '#1D2A35';
       ctx.font = '13px "DM Mono", monospace';
       ctx.textAlign = 'left';
-      ctx.fillText(`4 object(s)  •  ${dateFormatted}  •  ${style.text || 'SnapBooth Memory System'}`, winX + 16, bottomBarY + 20);
+      ctx.fillText(`4 object(s)  •  ${dateFormatted}  •  ${style.text || 'CissPic Memory System'}`, winX + 16, bottomBarY + 20);
 
       ctx.textAlign = 'right';
       ctx.fillText('Local Intranet', winX + winW - 16, bottomBarY + 20);

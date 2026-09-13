@@ -50,7 +50,7 @@ test('real MediaStream → 4 frames → retake → customization → PNG → per
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Simpan Strip Foto' }).click();
   const file = await download;
-  expect(file.suggestedFilename()).toMatch(/^SnapBooth-\d{8}-\d{4}\.png$/);
+  expect(file.suggestedFilename()).toMatch(/^CissPic-\d{8}-\d{4}\.png$/);
   await file.saveAs('artifacts/snapbooth-export.png');
   await expect(page.getByRole('status')).toContainText('PNG download started');
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Gallery', exact: true }).click();
@@ -152,4 +152,27 @@ test('cancelling capture and navigating away stops tracks and pending countdowns
   await expect(page.getByRole('button', { name: 'Start 4-Cut Session' })).toBeEnabled();
   await expect(page.locator('.pose-tile > img')).toHaveCount(0);
 });
+
+test('interactive background theme palette switches themes and persists selection', async ({ page }) => {
+  await ready(page);
+  const app = page.locator('.snapbooth');
+  await expect(app).toHaveClass(/theme-sky/);
+
+  // Click Deep Ocean in header or dock
+  await page.locator('.dock-safari').first().click();
+  await expect(app).toHaveClass(/theme-ocean/);
+
+  // Click Matcha Sage
+  await page.locator('.dock-messages').first().click();
+  await expect(app).toHaveClass(/theme-sage/);
+
+  // Click Vintage Cream
+  await page.locator('.dock-trash').first().click();
+  await expect(app).toHaveClass(/theme-cream/);
+
+  // Reload and verify persistence
+  await page.reload();
+  await expect(page.locator('.snapbooth')).toHaveClass(/theme-cream/);
+});
+
 

@@ -57,8 +57,8 @@ const RAW_STRIP_TEMPLATES = [
     textColor: '#242329',
     accentColor: '#7061A8',
     border: 'none',
-    header: 'SNAPBOOTH',
-    subHeader: 'K-STYLE SELF PHOTO STUDIO',
+    header: 'CISSPIC',
+    subHeader: 'AESTHETIC SELF PHOTO STUDIO',
     font: 'sans',
     decorations: [],
   },
@@ -70,7 +70,7 @@ const RAW_STRIP_TEMPLATES = [
     textColor: '#F5F4F8',
     accentColor: '#ACA2C7',
     border: 'none',
-    header: 'SNAPBOOTH',
+    header: 'CISSPIC',
     subHeader: 'STUDIO EDITION • MONOCHROME',
     font: 'sans',
     decorations: [],
@@ -83,7 +83,7 @@ const RAW_STRIP_TEMPLATES = [
     textColor: '#36343E',
     accentColor: '#6B627D',
     border: 'none',
-    header: 'SNAPBOOTH',
+    header: 'CISSPIC',
     subHeader: 'MINIMAL ARCHIVE',
     font: 'sans',
     decorations: [],
@@ -96,7 +96,7 @@ const RAW_STRIP_TEMPLATES = [
     textColor: '#483E34',
     accentColor: '#8C7764',
     border: 'subtle',
-    header: 'SnapBooth Studio',
+    header: 'CissPic Studio',
     subHeader: 'KEEPSAKE MEMOIR',
     font: 'serif',
     decorations: [],
@@ -109,7 +109,7 @@ const RAW_STRIP_TEMPLATES = [
     textColor: '#423755',
     accentColor: '#705F94',
     border: 'none',
-    header: 'SNAPBOOTH',
+    header: 'CISSPIC',
     subHeader: 'SEOUL MEMORIES',
     font: 'sans',
     decorations: [],
@@ -647,5 +647,5 @@ export function cropRect(width, height, ratio = 4 / 3) {
 export function filename(date) {
   const d = new Date(date),
     pad = n => String(n).padStart(2, '0');
-  return `SnapBooth-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.png`;
+  return `CissPic-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.png`;
 }

@@ -264,10 +264,10 @@ export function composeStrip(processed, style, timestamp) {
   ctx.fillStyle = template.textColor;
   ctx.textAlign = 'center';
 
-  const headerTitle = style.header ? style.header : template.header || 'SNAPBOOTH';
+  const headerTitle = style.header ? style.header : template.header || 'CISSPIC';
   fitText(ctx, headerTitle, width / 2, 78, width - pad * 2, 38, '700', fontFamily);
 
-  const subHeaderTitle = template.subHeader || 'K-STYLE SELF PHOTO STUDIO';
+  const subHeaderTitle = template.subHeader || 'AESTHETIC SELF PHOTO STUDIO';
   ctx.fillStyle = template.accentColor || template.textColor;
   fitText(ctx, subHeaderTitle, width / 2, 116, width - pad * 2, 18, '500', fontFamily);
   ctx.restore();
@@ -318,7 +318,7 @@ export function composeStrip(processed, style, timestamp) {
   // Brand Stamp
   if (style.showBrand) {
     ctx.fillStyle = template.accentColor || template.textColor;
-    fitText(ctx, `SNAPBOOTH • ${date.getFullYear()}`, width / 2, height - 24, width - pad * 2, 16, '700', fontFamily);
+    fitText(ctx, `CISSPIC • ${date.getFullYear()}`, width / 2, height - 24, width - pad * 2, 16, '700', fontFamily);
   }
 
   return canvas;
@@ -348,7 +348,7 @@ export async function shareBlob(blob, name) {
   const file = new File([blob], name, { type: 'image/png' });
   if (navigator.share && navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: 'My SnapBooth photostrip' });
+      await navigator.share({ files: [file], title: 'My CissPic photostrip' });
       return 'shared';
     } catch (error) {
       if (error.name === 'AbortError') return 'cancelled';

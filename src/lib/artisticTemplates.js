@@ -314,7 +314,7 @@ const BASE_ARTISTIC_TEMPLATES = [
       ctx.textAlign = 'left';
       ctx.fillStyle = '#222';
       ctx.font = 'bold 16px "DM Sans", sans-serif';
-      ctx.fillText(style.header || 'SNAPBOOTH ARCHIVE', 38, 54);
+      ctx.fillText(style.header || 'CISSPIC ARCHIVE', 38, 54);
       ctx.font = '12px "Courier New", monospace';
       ctx.fillStyle = '#666';
       ctx.fillText('COLLECTED POLAROIDS • VOLUME 01', 38, 76);
@@ -438,7 +438,7 @@ const BASE_ARTISTIC_TEMPLATES = [
       ctx.font = '700 24px "DM Sans", sans-serif';
       ctx.fillText(style.text || 'AIRMAIL SPECIAL EDITION', width / 2, 1600);
 
-      drawPostmark(ctx, 240, 1810, 62, 'SNAPBOOTH EXPRESS', dateFormatted, 'rgba(226, 232, 240, 0.7)');
+      drawPostmark(ctx, 240, 1810, 62, 'CISSPIC EXPRESS', dateFormatted, 'rgba(226, 232, 240, 0.7)');
       ctx.restore();
     },
   },
@@ -533,7 +533,7 @@ const BASE_ARTISTIC_TEMPLATES = [
       ctx.fillText('35MM COLOR FILM • ISO 400', width / 2, 1830);
       ctx.fillStyle = '#CCC';
       ctx.font = '14px "DM Sans", sans-serif';
-      ctx.fillText(style.header || 'SNAPBOOTH ANALOG ARCHIVE', width / 2, 1865);
+      ctx.fillText(style.header || 'CISSPIC ANALOG ARCHIVE', width / 2, 1865);
       ctx.fillText(date.toDateString().toUpperCase(), width / 2, 1895);
       ctx.restore();
     },
@@ -604,7 +604,7 @@ const BASE_ARTISTIC_TEMPLATES = [
       ctx.fillText(style.header || 'PINNED MOMENTS', width / 2, height - 120);
       ctx.font = '16px Georgia, serif';
       ctx.fillStyle = '#787265';
-      ctx.fillText('SnapBooth Keepsake Memoir', width / 2, height - 85);
+      ctx.fillText('CissPic Keepsake Memoir', width / 2, height - 85);
       ctx.restore();
     },
   },
@@ -676,10 +676,10 @@ const BASE_ARTISTIC_TEMPLATES = [
       ctx.textAlign = 'center';
       ctx.fillStyle = '#1D1D21';
       ctx.font = '900 32px "DM Sans", sans-serif';
-      ctx.fillText(style.header || 'SNAPBOOTH', width / 2, height - 160);
+      ctx.fillText(style.header || 'CISSPIC', width / 2, height - 160);
       ctx.font = '500 16px "DM Sans", sans-serif';
       ctx.fillStyle = '#7061A8';
-      ctx.fillText('K-STYLE SELF PHOTO STUDIO', width / 2, height - 120);
+      ctx.fillText('AESTHETIC SELF PHOTO STUDIO', width / 2, height - 120);
       ctx.fillStyle = '#999';
       ctx.font = '13px monospace';
       ctx.fillText(date.toDateString().toUpperCase(), width / 2, height - 85);
@@ -714,7 +714,7 @@ const BASE_ARTISTIC_TEMPLATES = [
       ctx.textAlign = 'center';
       ctx.fillStyle = '#FFFFFF';
       ctx.font = '900 32px "DM Sans", sans-serif';
-      ctx.fillText(style.header || 'SNAPBOOTH', width / 2, height - 160);
+      ctx.fillText(style.header || 'CISSPIC', width / 2, height - 160);
       ctx.font = '500 16px "DM Sans", sans-serif';
       ctx.fillStyle = '#A0A0B0';
       ctx.fillText('MONOCHROME STUDIO EDITION', width / 2, height - 120);

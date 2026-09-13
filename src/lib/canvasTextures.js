@@ -242,7 +242,7 @@ export function drawPostmark(ctx, cx, cy, radius = 64, title = 'LUCKY IN LOVE', 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(title, 0, -radius * 0.35);
-  ctx.fillText('★ SNAPBOOTH ★', 0, radius * 0.35);
+  ctx.fillText('★ CISSPIC ★', 0, radius * 0.35);
 
   // Date in center
   ctx.font = `900 ${Math.round(radius * 0.22)}px "DM Sans", sans-serif`;
@@ -467,7 +467,7 @@ export function drawVinylRecord(ctx, cx, cy, radius = 340, labelText = 'STEREO')
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = 'bold 15px "DM Sans", sans-serif';
-  ctx.fillText('SNAPBOOTH', 0, -labelR * 0.52);
+  ctx.fillText('CISSPIC', 0, -labelR * 0.52);
 
   ctx.font = '800 11px monospace';
   ctx.fillText(labelText, 0, -labelR * 0.28);
@@ -520,7 +520,7 @@ export function drawReceipt(ctx, x, y, width, height) {
   ctx.textAlign = 'left';
 
   let py = 24;
-  ctx.fillText('ORDER #0001 FOR SNAPBOOTH', 14, py); py += 16;
+  ctx.fillText('ORDER #0001 FOR CISSPIC', 14, py); py += 16;
   ctx.fillText('SEP 12, 2026 12:00 PM', 14, py); py += 22;
 
   ctx.font = '900 13px "Courier New", monospace';

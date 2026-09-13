@@ -33,8 +33,8 @@ test('warmth moves red and blue oppositely while preserving alpha', () => {
   assert.deepEqual(warm.slice(15), [0, 0, 0, 1, 0]);
 });
 
-test('download names use local capture date with padding', () => {
-  assert.equal(filename(new Date(2026, 0, 2, 3, 4)), 'SnapBooth-20260102-0304.png');
+test('download names use local capture date with padding and CissPic prefix', () => {
+  assert.equal(filename(new Date(2026, 0, 2, 3, 4)), 'CissPic-20260102-0304.png');
 });
 
 test('studio filters collection includes at least 16 tasteful filters', () => {
@@ -289,4 +289,13 @@ test('dedicated 1-person SVG frame templates (Lego Pop iOS, Meow Arcade, Polaroi
   assert.equal(polaroidEject.recommendedFor, 1);
 });
 
+test('clean and minimal templates use CISSPIC branding', () => {
+  const cleanWhite = STRIP_TEMPLATES.find(t => t.id === 'clean-white');
+  assert.ok(cleanWhite);
+  assert.equal(cleanWhite.header, 'CISSPIC');
+  assert.equal(cleanWhite.subHeader, 'AESTHETIC SELF PHOTO STUDIO');
 
+  const creamPaper = STRIP_TEMPLATES.find(t => t.id === 'cream-paper');
+  assert.ok(creamPaper);
+  assert.equal(creamPaper.header, 'CissPic Studio');
+});

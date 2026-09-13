@@ -203,10 +203,10 @@ function convertLegacyTemplate(legacy) {
       ctx.textAlign = 'center';
       ctx.fillStyle = legacy.textColor || '#222';
       ctx.font = '900 32px "DM Sans", sans-serif';
-      ctx.fillText(style.header || legacy.header || 'SNAPBOOTH', width / 2, height - 140);
+      ctx.fillText(style.header || legacy.header || 'CISSPIC', width / 2, height - 140);
       ctx.font = '500 16px "DM Sans", sans-serif';
       ctx.fillStyle = legacy.accentColor || '#7061A8';
-      ctx.fillText(legacy.subHeader || 'K-STYLE SELF PHOTO STUDIO', width / 2, height - 105);
+      ctx.fillText(legacy.subHeader || 'AESTHETIC SELF PHOTO STUDIO', width / 2, height - 105);
       ctx.restore();
     },
   };
