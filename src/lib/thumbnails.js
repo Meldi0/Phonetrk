@@ -7,9 +7,11 @@
 import { ARTISTIC_TEMPLATES } from './artisticTemplates.js';
 import { renderArtworkStrip } from './templateRenderer.js';
 import { makeCanvas } from './photos.js';
+import { IMAGE_FRAMES } from './imageFrames.js';
 
 // Cache generated thumbnail URLs so they are only rendered once
 const thumbnailCache = new Map();
+
 
 /**
  * Creates dummy sample portrait photos for thumbnail rendering
@@ -85,9 +87,15 @@ const samplePhotos = createSamplePhotos();
  * Returns a high quality rendered thumbnail data URL for a given template ID
  */
 export function getTemplateThumbnail(templateId) {
+  const imgFrame = IMAGE_FRAMES.find(f => f.id === templateId);
+  if (imgFrame) {
+    return imgFrame.src;
+  }
+
   if (thumbnailCache.has(templateId)) {
     return thumbnailCache.get(templateId);
   }
+
 
   try {
     const tpl = ARTISTIC_TEMPLATES.find(t => t.id === templateId) || ARTISTIC_TEMPLATES[0];

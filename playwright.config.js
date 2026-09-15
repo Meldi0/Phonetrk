@@ -9,7 +9,6 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:5173',
     channel: 'chrome',
     permissions: ['camera'],
-    viewport: { width: 1440, height: 1000 },
     launchOptions: {
       args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'],
     },

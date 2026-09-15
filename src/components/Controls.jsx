@@ -1,6 +1,9 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useId, useMemo, useState, memo } from 'react';
 import {
   Check,
+  Contrast,
+  Droplets,
+  Flame,
   FlipHorizontal,
   Grid,
   Heart,
@@ -13,6 +16,7 @@ import {
   Sliders,
   Sparkles,
   Stamp,
+  Sun,
   Trash2,
   Type,
   Undo2,
@@ -22,7 +26,9 @@ import {
   DEFAULT_ADJUST,
   DEFAULT_EFFECT,
   EFFECTS,
+  EFFECT_CATEGORIES,
   FILTERS,
+  FILTER_CATEGORIES,
   LAYOUT_OPTIONS,
   STRIP_TEMPLATES,
   TEMPLATE_CATEGORIES,
@@ -45,75 +51,189 @@ export function FilterDefinitions({ filter, adjust, id }) {
   );
 }
 
-export function FilterSelector({ value, onChange, disabled, sample }) {
+export const FilterSelector = memo(function FilterSelector({ value, onChange, disabled, sample }) {
   const uid = useId().replaceAll(':', '');
+  const [filterCategory, setFilterCategory] = useState('All');
+  const [filterFavorites, setFilterFavorites] = useState(() => {
+    try {
+      const stored = localStorage.getItem('cisspic_filter_favorites');
+      return stored ? JSON.parse(stored) : ['korean', 'natural', 'sakura', 'vintage'];
+    } catch {
+      return ['korean', 'natural'];
+    }
+  });
+
+  const toggleFilterFavorite = (id, e) => {
+    e.stopPropagation();
+    setFilterFavorites(prev => {
+      const next = prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id];
+      try { localStorage.setItem('cisspic_filter_favorites', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
+  const filteredFilters = useMemo(() => {
+    return FILTERS.filter(f => {
+      if (filterCategory === 'All') return true;
+      if (filterCategory === 'Favorites') return filterFavorites.includes(f.id);
+      return f.category === filterCategory;
+    });
+  }, [filterCategory, filterFavorites]);
+
   return (
-    <div className="filter-rail" aria-label="Photo filters">
-      {FILTERS.map(f => (
-        <button
-          key={f.id}
-          className={`filter-item ${value === f.id ? 'selected' : ''}`}
-          aria-pressed={value === f.id}
-          disabled={disabled}
-          onClick={() => onChange(f.id)}
-          title={f.name}
-        >
-          <FilterDefinitions id={`${uid}-${f.id}`} filter={f.id} adjust={DEFAULT_ADJUST} />
-          <span className="filter-thumbnail" style={{ filter: `url(#${uid}-${f.id})` }}>
-            {sample ? (
-              <img src={sample} alt="" />
-            ) : (
-              <svg viewBox="0 0 100 75" aria-hidden="true">
-                <rect width="100" height="75" fill="#d6c4b8" />
-                <path d="M0 49L100 36V75H0Z" fill="#ece5d9" />
-                <ellipse cx="49" cy="63" rx="28" ry="5" fill="#bcb2a6" />
-                <path d="M35 31H65L61 62H39Z" fill="#f5ede2" />
-                <path d="M49 35Q35 6 29 14Q28 30 49 35M50 34Q67 5 72 13Q75 27 50 34" fill="#708673" />
-                <path d="M50 40V15" stroke="#657967" strokeWidth="2" />
-                <circle cx="49" cy="12" r="8" fill="#c88880" />
-              </svg>
-            )}
-          </span>
-          <span>{f.name}</span>
-        </button>
-      ))}
+    <div className="filter-selector-container">
+      {/* Category Pills Rail */}
+      <div className="category-pill-rail" role="tablist" aria-label="Filter categories">
+        {FILTER_CATEGORIES.map(cat => (
+          <button
+            key={cat}
+            type="button"
+            role="tab"
+            aria-selected={filterCategory === cat}
+            className={`category-pill ${filterCategory === cat ? 'active' : ''}`}
+            onClick={() => setFilterCategory(cat)}
+          >
+            {cat === 'Favorites' ? `♥ Fav (${filterFavorites.length})` : cat}
+          </button>
+        ))}
+      </div>
+
+      <div className="filter-rail" aria-label="Photo filters">
+        {filteredFilters.map(f => {
+          const isFav = filterFavorites.includes(f.id);
+          return (
+            <button
+              key={f.id}
+              className={`filter-item ${value === f.id ? 'selected' : ''}`}
+              aria-pressed={value === f.id}
+              disabled={disabled}
+              onClick={() => onChange(f.id)}
+              title={f.name}
+            >
+              <FilterDefinitions id={`${uid}-${f.id}`} filter={f.id} adjust={DEFAULT_ADJUST} />
+              <span className="filter-thumbnail" style={{ filter: `url(#${uid}-${f.id})`, position: 'relative' }}>
+                {sample ? (
+                  <img src={sample} alt="" />
+                ) : (
+                  <svg viewBox="0 0 100 75" aria-hidden="true">
+                    <rect width="100" height="75" fill="#d6c4b8" />
+                    <path d="M0 49L100 36V75H0Z" fill="#ece5d9" />
+                    <ellipse cx="49" cy="63" rx="28" ry="5" fill="#bcb2a6" />
+                    <path d="M35 31H65L61 62H39Z" fill="#f5ede2" />
+                    <path d="M49 35Q35 6 29 14Q28 30 49 35M50 34Q67 5 72 13Q75 27 50 34" fill="#708673" />
+                    <path d="M50 40V15" stroke="#657967" strokeWidth="2" />
+                    <circle cx="49" cy="12" r="8" fill="#c88880" />
+                  </svg>
+                )}
+                <span
+                  className={`filter-fav-btn ${isFav ? 'active' : ''}`}
+                  onClick={e => toggleFilterFavorite(f.id, e)}
+                  title={isFav ? 'Hapus favorit' : 'Favoritkan filter'}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <Heart size={10} fill={isFav ? '#E53935' : 'transparent'} color={isFav ? '#E53935' : '#FFF'} />
+                </span>
+              </span>
+              <span>{f.name}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
-}
+});
 
-export function TemplateSelector({ value, onChange, onToggleFavorite, favorites = [], photoCount = 4 }) {
+export const TemplateSelector = memo(function TemplateSelector({ value, onChange, onToggleFavorite, favorites = [], photoCount = 4 }) {
   const [countFilter, setCountFilter] = useState(photoCount || 4);
   const [activeCategory, setActiveCategory] = useState('All');
-
-  // Sync count filter when photoCount changes externally
-  useEffect(() => {
-    if (photoCount) {
-      setCountFilter(photoCount);
-    }
-  }, [photoCount]);
 
   const COUNT_TABS = [
     { value: 1, label: '1 Foto' },
     { value: 2, label: '2 Cut' },
+    { value: 3, label: '3 Cut' },
     { value: 4, label: '4 Cut' },
     { value: 6, label: '6 Cut' },
     { value: 'all', label: 'Semua' },
   ];
 
-  const filteredTemplates = STRIP_TEMPLATES.filter(t => {
-    // 1. Photo Count matching
-    if (countFilter !== 'all') {
-      const supported = t.supportedPhotoCounts || [t.photoSlots?.length || t.recommendedPoses || 4];
-      if (!supported.includes(Number(countFilter))) {
-        return false;
-      }
-    }
+  const PLAIN_BOX_TEMPLATES = useMemo(() => new Set([
+    'berry-milk', 'clean-white', 'minimal-black', 'soft-grey', 'cream-paper',
+    'lavender-minimal', 'studio-beige', 'sakura-day', 'ribbon-diary', 'cloudy-blue',
+    'lucky-clover', 'lavender-bunny',
+    'clean-black', 'clean-pink', 'clean-lavender', 'clean-sage', 'clean-sky',
+    'clean-butter', 'clean-coral', 'clean-mocha', 'clean-slate',
+    'pastel-candy', 'pastel-mint', 'pastel-lilac', 'pastel-peach', 'pastel-sky',
+    'playful-sticker', 'playful-checker', 'playful-pop', 'playful-comic', 'playful-doodle',
+    'retro-analog', 'photobooth-2000', 'vintage-cream', 'old-camera-black',
+    'y2k-cyber', 'y2k-metallic', 'y2k-bubblegum', 'y2k-star', 'version-1-clean',
+  ]), []);
 
-    // 2. Category matching
-    if (activeCategory === 'All') return true;
-    if (activeCategory === 'Favorites') return favorites.includes(t.id);
-    return t.category === activeCategory;
-  });
+  const filteredTemplates = useMemo(() => {
+    const list = STRIP_TEMPLATES.filter(t => {
+      // 0. Filter out plain repetitive solid-color box grids as requested by user
+      if (PLAIN_BOX_TEMPLATES.has(t.id)) return false;
+      if (t.id.startsWith('themed-') && !t.renderBackground && !t.renderForeground) return false;
+
+      // 1. Photo Count matching
+      if (countFilter !== 'all') {
+        const supported = t.supportedPhotoCounts || [t.photoSlots?.length || t.recommendedPoses || 4];
+        if (!supported.includes(Number(countFilter))) {
+          return false;
+        }
+      }
+
+      // 2. Category matching
+      if (activeCategory === 'All') return true;
+      if (activeCategory === 'Favorites') return favorites.includes(t.id);
+      return t.category === activeCategory;
+    });
+
+    // Prioritize authentic asset frames from frame_foto, followed by girl-appeal aesthetic templates
+    const priorityFamilies = [
+      'frame-vintage-burgundy',
+      'frame-vinyl-indie',
+      'frame-midnight-starry',
+      'frame-star-clipboard',
+      'frame-sunshine-cat',
+      'frame-agate-kunst',
+      'frame-kodak',
+      'frame-kunst',
+      'frame-spiderman',
+      'frame-babygirl',
+      'frame-snoopy',
+      'frame-toystory',
+      'frame-zootopia',
+      'frame-denim',
+      'frame-vintage',
+      'frame-teddy',
+      'frame-minions',
+      'frame-vinyl',
+      'frame-film',
+      'frame-kiki',
+      'frame-newspaper',
+      'spider-gwen-punk',
+      'coquette-pearl',
+      'vintage-spider-comic',
+      'midnight-kuromi',
+      'shoujo-manga',
+      'meow-cafe',
+      'cyber-angel',
+      'spider-comic',
+      'kraft-gingham-spidey',
+      'denim-ocean-digicam',
+    ];
+
+    return list.sort((a, b) => {
+      const aFam = a.family || a.id.replace(/-\d+$/, '');
+      const bFam = b.family || b.id.replace(/-\d+$/, '');
+      const aIdx = priorityFamilies.indexOf(aFam);
+      const bIdx = priorityFamilies.indexOf(bFam);
+      const aScore = aIdx !== -1 ? aIdx : 999;
+      const bScore = bIdx !== -1 ? bIdx : 999;
+      return aScore - bScore;
+    });
+  }, [countFilter, activeCategory, favorites, PLAIN_BOX_TEMPLATES]);
 
   return (
     <div className="template-selector-container">
@@ -246,18 +366,20 @@ export function TemplateSelector({ value, onChange, onToggleFavorite, favorites 
       )}
     </div>
   );
-}
+});
 
-export function EffectsSelector({ value, onChange }) {
+export const EffectsSelector = memo(function EffectsSelector({ value, onChange }) {
   const [effectCategory, setEffectCategory] = useState('All');
   const effectId = value?.id || 'none';
   const intensity = value?.intensity ?? 50;
   const privacyBox = value?.privacyBox || { x: 0.25, y: 0.2, width: 0.5, height: 0.35 };
 
-  const filteredEffects = EFFECTS.filter(e => {
-    if (effectCategory === 'All') return true;
-    return e.category === effectCategory;
-  });
+  const filteredEffects = useMemo(() => {
+    return EFFECTS.filter(e => {
+      if (effectCategory === 'All') return true;
+      return e.category === effectCategory;
+    });
+  }, [effectCategory]);
 
   function selectEffect(id) {
     const eff = EFFECTS.find(e => e.id === id);
@@ -295,7 +417,7 @@ export function EffectsSelector({ value, onChange }) {
     <div className="effects-panel">
       {/* Category Pills */}
       <div className="category-pill-rail">
-        {['All', 'Creative', 'Privacy'].map(cat => (
+        {EFFECT_CATEGORIES.map(cat => (
           <button
             key={cat}
             type="button"
@@ -387,7 +509,7 @@ export function EffectsSelector({ value, onChange }) {
       )}
     </div>
   );
-}
+});
 
 export function Toggle({ label, checked, onChange }) {
   return (
@@ -399,40 +521,66 @@ export function Toggle({ label, checked, onChange }) {
   );
 }
 
+const ADJUST_CONTROLS = [
+  { id: 'brightness', label: 'Brightness', name: 'Kecerahan', icon: Sun, min: -35, max: 35 },
+  { id: 'contrast', label: 'Contrast', name: 'Kontras', icon: Contrast, min: -35, max: 35 },
+  { id: 'saturation', label: 'Saturation', name: 'Saturasi', icon: Droplets, min: -35, max: 35 },
+  { id: 'warmth', label: 'Warmth', name: 'Kehangatan', icon: Flame, min: -35, max: 35 },
+];
+
 export function AdjustPanel({ value, onChange }) {
   return (
     <div className="adjust-panel">
-      {['brightness', 'contrast', 'saturation', 'warmth'].map(name => (
-        <label className="slider-label" key={name}>
-          <span>
-            <span className="capitalize">{name}</span>
-            <span aria-hidden="true">
-              {value[name] > 0 ? '+' : ''}
-              {value[name]}
-            </span>
-          </span>
-          <input
-            type="range"
-            aria-label={name[0].toUpperCase() + name.slice(1)}
-            min="-35"
-            max="35"
-            step="1"
-            value={value[name]}
-            onChange={e => onChange({ ...value, [name]: Number(e.target.value) })}
-          />
-        </label>
-      ))}
-      <Toggle label="Soft Glow" checked={value.glow} onChange={glow => onChange({ ...value, glow })} />
-      <p className="hint">A gentle lift in light and softer contrast. Your features stay your own.</p>
-      <button className="text-button" onClick={() => onChange({ ...DEFAULT_ADJUST })}>
-        <RotateCcw size={14} />
-        Reset adjustments
-      </button>
+      <div className="adjust-sliders-grid">
+        {ADJUST_CONTROLS.map(ctrl => (
+          <div className="adjust-slider-card" key={ctrl.id}>
+            <div className="adjust-slider-header">
+              <span className="adjust-slider-title">
+                <ctrl.icon size={13} className="adjust-slider-icon" />
+                <span>{ctrl.label}</span>
+                <span className="adjust-slider-sub">({ctrl.name})</span>
+              </span>
+              <span
+                className={`adjust-value-chip ${value[ctrl.id] !== 0 ? 'active' : ''}`}
+                aria-hidden="true"
+              >
+                {value[ctrl.id] > 0 ? `+${value[ctrl.id]}` : value[ctrl.id]}
+              </span>
+            </div>
+            <input
+              type="range"
+              className="adjust-range-slider"
+              aria-label={ctrl.label}
+              min={ctrl.min}
+              max={ctrl.max}
+              step="1"
+              value={value[ctrl.id]}
+              onChange={e => onChange({ ...value, [ctrl.id]: Number(e.target.value) })}
+            />
+          </div>
+        ))}
+      </div>
+
+      <div className="adjust-bottom-bar">
+        <div className="adjust-glow-wrapper">
+          <Toggle label="Soft Glow" checked={value.glow} onChange={glow => onChange({ ...value, glow })} />
+          <span className="adjust-glow-hint">Efek kulit halus & pencahayaan natural</span>
+        </div>
+        <button
+          type="button"
+          className="text-button adjust-reset-btn"
+          onClick={() => onChange({ ...DEFAULT_ADJUST })}
+          title="Kembalikan semua slider tone ke default"
+        >
+          <RotateCcw size={13} />
+          <span>Reset adjustments</span>
+        </button>
+      </div>
     </div>
   );
 }
 
-export function Customizer({
+export const Customizer = memo(function Customizer({
   style,
   onChange,
   filter,
@@ -526,6 +674,26 @@ export function Customizer({
   const [bgPillColor, setBgPillColor] = useState('rgba(18, 20, 24, 0.85)');
 
   const userTexts = Array.isArray(style.userTexts) ? style.userTexts : [];
+  const activeSelectedText = userTexts.find(t => t.id === selectedTextId);
+
+  function updateActiveText(patch) {
+    if (!selectedTextId) return;
+    const next = userTexts.map(t => (t.id === selectedTextId ? { ...t, ...patch } : t));
+    update('userTexts', next);
+  }
+
+  const displayFontSize = activeSelectedText
+    ? (activeSelectedText.fontSize || 36)
+    : selectedTextSize;
+
+  function handleFontSizeChange(size) {
+    const validSize = Math.max(14, Math.min(84, Math.round(size)));
+    if (activeSelectedText) {
+      updateActiveText({ fontSize: validSize, scale: 1.0 });
+    } else {
+      setSelectedTextSize(validSize);
+    }
+  }
 
   function handleCreateText(e) {
     e?.preventDefault();
@@ -648,7 +816,7 @@ export function Customizer({
           <div className="tab-pane">
             <div className="tab-pane-header">
               <h3>Strip Grid & Pose Count</h3>
-              <p>Pilih jumlah foto dan tata letak grid (1, 2, 4, atau 6 foto).</p>
+              <p>Pilih jumlah foto dan tata letak grid (1, 2, 3, 4, atau 6 foto).</p>
             </div>
 
             <div className="layout-card-grid">
@@ -831,38 +999,71 @@ export function Customizer({
         {activeTab === 'text' && (
           <div className="tab-pane">
             <div className="tab-pane-header">
-              <h3>Tambah Teks & Font Lucu</h3>
-              <p>Tambahkan teks bebas dengan font estetik (handwriting, marker, pixel, bouncy script). Geser dan atur teks di atas foto!</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <h3 style={{ margin: 0 }}>{activeSelectedText ? 'Edit Teks Terpilih' : 'Tambah Teks & Font'}</h3>
+                {activeSelectedText && (
+                  <button
+                    type="button"
+                    className="button secondary"
+                    style={{ padding: '3px 8px', fontSize: '11px', borderRadius: '6px' }}
+                    onClick={() => onSelectText?.(null)}
+                  >
+                    + Teks Baru
+                  </button>
+                )}
+              </div>
+              <p style={{ marginTop: '4px' }}>
+                {activeSelectedText
+                  ? 'Ubah isi tulisan, font, warna, atau ukuran teks yang sedang dipilih di kanvas.'
+                  : 'Tambahkan teks bebas dengan font estetik (handwriting, marker, pixel, doodle).'}
+              </p>
             </div>
 
-            <form onSubmit={handleCreateText} className="text-editor-form">
+            <form onSubmit={activeSelectedText ? e => { e.preventDefault(); onSelectText?.(null); } : handleCreateText} className="text-editor-form">
               <label className="field">
                 Isi Teks / Tulisan:
                 <input
                   type="text"
                   maxLength={60}
                   placeholder="Contoh: BESTIES FOR LIFE ★"
-                  value={newTextContent}
-                  onChange={e => setNewTextContent(e.target.value)}
+                  value={activeSelectedText ? (activeSelectedText.text || '') : newTextContent}
+                  onChange={e => {
+                    if (activeSelectedText) {
+                      updateActiveText({ text: e.target.value });
+                    } else {
+                      setNewTextContent(e.target.value);
+                    }
+                  }}
                 />
               </label>
 
               <div className="theme-section" style={{ marginTop: '10px' }}>
                 <span className="label-small">Pilih Gaya Font Estetik:</span>
                 <div className="font-chip-grid">
-                  {NON_FORMAL_FONTS.map(f => (
-                    <button
-                      key={f.id}
-                      type="button"
-                      className={`font-chip ${selectedFont === f.id ? 'active' : ''}`}
-                      onClick={() => setSelectedFont(f.id)}
-                    >
-                      <span className="font-chip-preview" style={{ fontFamily: f.family }}>
-                        {f.preview}
-                      </span>
-                      <span className="font-chip-label">{f.name}</span>
-                    </button>
-                  ))}
+                  {NON_FORMAL_FONTS.map(f => {
+                    const isActive = activeSelectedText
+                      ? (activeSelectedText.font || 'Caveat') === f.id
+                      : selectedFont === f.id;
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        className={`font-chip ${isActive ? 'active' : ''}`}
+                        onClick={() => {
+                          if (activeSelectedText) {
+                            updateActiveText({ font: f.id });
+                          } else {
+                            setSelectedFont(f.id);
+                          }
+                        }}
+                      >
+                        <span className="font-chip-preview" style={{ fontFamily: f.family }}>
+                          {f.preview}
+                        </span>
+                        <span className="font-chip-label">{f.name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -879,45 +1080,82 @@ export function Customizer({
                     { name: 'Lime Green', value: '#A3E635' },
                     { name: 'Lavender', value: '#C084FC' },
                     { name: 'Racing Red', value: '#DC2626' },
-                  ].map(sw => (
-                    <button
-                      key={sw.value}
-                      type="button"
-                      className={`color-swatch-circle ${selectedTextColor === sw.value ? 'selected' : ''}`}
-                      style={{ background: sw.value }}
-                      title={sw.name}
-                      onClick={() => setSelectedTextColor(sw.value)}
-                    >
-                      {selectedTextColor === sw.value && (
-                        <Check size={12} color={sw.value === '#FFFFFF' || sw.value === '#FAF6EC' ? '#111' : '#FFF'} />
-                      )}
-                    </button>
-                  ))}
+                  ].map(sw => {
+                    const currentColor = activeSelectedText ? (activeSelectedText.color || '#FFFFFF') : selectedTextColor;
+                    const isSelected = currentColor.toLowerCase() === sw.value.toLowerCase();
+                    return (
+                      <button
+                        key={sw.value}
+                        type="button"
+                        className={`color-swatch-circle ${isSelected ? 'selected' : ''}`}
+                        style={{ background: sw.value }}
+                        title={sw.name}
+                        onClick={() => {
+                          if (activeSelectedText) {
+                            updateActiveText({ color: sw.value });
+                          } else {
+                            setSelectedTextColor(sw.value);
+                          }
+                        }}
+                      >
+                        {isSelected && (
+                          <Check size={12} color={sw.value === '#FFFFFF' || sw.value === '#FAF6EC' ? '#111' : '#FFF'} />
+                        )}
+                      </button>
+                    );
+                  })}
                   <label className="color-swatch-circle color-picker-custom-swatch" title="Pilih Warna Bebas (Wheel)">
                     <input
                       type="color"
-                      value={selectedTextColor}
-                      onChange={e => setSelectedTextColor(e.target.value)}
+                      value={activeSelectedText ? (activeSelectedText.color || '#FFFFFF') : selectedTextColor}
+                      onChange={e => {
+                        if (activeSelectedText) {
+                          updateActiveText({ color: e.target.value });
+                        } else {
+                          setSelectedTextColor(e.target.value);
+                        }
+                      }}
                     />
                     <span style={{ fontSize: '10px' }}>🎨</span>
                   </label>
                 </div>
               </div>
 
-              {/* Font Size Slider */}
-              <div className="theme-section" style={{ marginTop: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+              {/* Font Size Control Group with Zero Overlap */}
+              <div className="text-size-control-group" style={{ marginTop: '12px' }}>
+                <div className="font-size-header">
                   <span className="label-small">Ukuran Font:</span>
-                  <span className="label-small" style={{ fontWeight: 700 }}>{selectedTextSize}px</span>
+                  <span className="font-size-badge">{displayFontSize}px</span>
                 </div>
-                <input
-                  type="range"
-                  min={18}
-                  max={64}
-                  value={selectedTextSize}
-                  onChange={e => setSelectedTextSize(Number(e.target.value))}
-                  style={{ width: '100%' }}
-                />
+                <div className="font-size-slider-row">
+                  <span className="font-size-min-hint">A</span>
+                  <input
+                    type="range"
+                    min={14}
+                    max={84}
+                    value={displayFontSize}
+                    onChange={e => handleFontSizeChange(Number(e.target.value))}
+                    className="font-size-range-input"
+                  />
+                  <span className="font-size-max-hint">A</span>
+                </div>
+                <div className="font-size-presets">
+                  {[
+                    { label: 'Kecil', size: 20 },
+                    { label: 'Sedang', size: 32 },
+                    { label: 'Besar', size: 48 },
+                    { label: 'Ekstra', size: 64 },
+                  ].map(preset => (
+                    <button
+                      key={preset.size}
+                      type="button"
+                      className={`font-size-preset-btn ${displayFontSize === preset.size ? 'active' : ''}`}
+                      onClick={() => handleFontSizeChange(preset.size)}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Background Pill Toggle */}
@@ -925,13 +1163,19 @@ export function Customizer({
                 <label className="checkbox-field" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
-                    checked={hasBgPill}
-                    onChange={e => setHasBgPill(e.target.checked)}
+                    checked={activeSelectedText ? Boolean(activeSelectedText.hasBg) : hasBgPill}
+                    onChange={e => {
+                      if (activeSelectedText) {
+                        updateActiveText({ hasBg: e.target.checked });
+                      } else {
+                        setHasBgPill(e.target.checked);
+                      }
+                    }}
                   />
                   <span style={{ fontSize: '13px', fontWeight: 600 }}>Gunakan Latar Belakang Badge / Pill</span>
                 </label>
 
-                {hasBgPill && (
+                {(activeSelectedText ? activeSelectedText.hasBg : hasBgPill) && (
                   <div className="color-swatches" style={{ marginTop: '8px' }}>
                     {[
                       { name: 'Dark Semi-transparent', value: 'rgba(18, 20, 24, 0.85)' },
@@ -939,30 +1183,62 @@ export function Customizer({
                       { name: 'Pastel Pink', value: '#F43F5E' },
                       { name: 'Neon Cyber', value: '#6366F1' },
                       { name: 'Lemon', value: '#EAB308' },
-                    ].map(sw => (
-                      <button
-                        key={sw.name}
-                        type="button"
-                        className={`color-swatch-circle ${bgPillColor === sw.value ? 'selected' : ''}`}
-                        style={{ background: sw.value }}
-                        title={sw.name}
-                        onClick={() => setBgPillColor(sw.value)}
-                      >
-                        {bgPillColor === sw.value && <Check size={12} color="#fff" />}
-                      </button>
-                    ))}
+                    ].map(sw => {
+                      const curBg = activeSelectedText ? (activeSelectedText.bgColor || 'rgba(18, 20, 24, 0.85)') : bgPillColor;
+                      const isBgSelected = curBg === sw.value;
+                      return (
+                        <button
+                          key={sw.name}
+                          type="button"
+                          className={`color-swatch-circle ${isBgSelected ? 'selected' : ''}`}
+                          style={{ background: sw.value }}
+                          title={sw.name}
+                          onClick={() => {
+                            if (activeSelectedText) {
+                              updateActiveText({ bgColor: sw.value });
+                            } else {
+                              setBgPillColor(sw.value);
+                            }
+                          }}
+                        >
+                          {isBgSelected && <Check size={12} color="#fff" />}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
-              <button
-                type="submit"
-                className="button primary"
-                style={{ width: '100%', marginTop: '14px' }}
-              >
-                <Plus size={16} />
-                Tambah Teks ke Strip
-              </button>
+              {activeSelectedText ? (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
+                  <button
+                    type="submit"
+                    className="button primary"
+                    style={{ flex: 1 }}
+                  >
+                    <Check size={16} />
+                    Selesai Edit Teks
+                  </button>
+                  <button
+                    type="button"
+                    className="button"
+                    style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', padding: '0 14px' }}
+                    title="Hapus teks ini"
+                    onClick={() => handleDeleteTextItem(activeSelectedText.id)}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  className="button primary"
+                  style={{ width: '100%', marginTop: '14px' }}
+                >
+                  <Plus size={16} />
+                  Tambah Teks ke Strip
+                </button>
+              )}
             </form>
 
             {/* List of active texts on strip */}
@@ -1183,4 +1459,4 @@ export function Customizer({
       </div>
     </div>
   );
-}
+});

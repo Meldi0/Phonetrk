@@ -29,8 +29,13 @@ export function TextCanvasEditor({
 
   const stage = containerRef?.current || localContainerRef.current;
 
+  const isDraggingRef = useRef(false);
+  const activeDragRef = useRef(null);
+  activeDragRef.current = activeDrag;
+
   // Deselect when clicking outside texts
   function handleBackgroundClick(e) {
+    if (isDraggingRef.current) return;
     if (e.target.classList.contains('text-canvas-overlay')) {
       onSelect(null);
     }
@@ -69,9 +74,84 @@ export function TextCanvasEditor({
     if (selectedId === item.id) onSelect(null);
   }
 
+  // Global window listeners for pointermove and pointerup while dragging
+  useEffect(() => {
+    if (!activeDrag) return;
+
+    function onWindowPointerMove(e) {
+      const drag = activeDragRef.current;
+      if (!drag) return;
+      e.preventDefault();
+
+      if (drag.type === 'move') {
+        const dx = (e.clientX - drag.startX) / drag.rectW;
+        const dy = (e.clientY - drag.startY) / drag.rectH;
+        const newX = Math.max(0.05, Math.min(0.95, drag.initialItemX + dx));
+        const newY = Math.max(0.05, Math.min(0.95, drag.initialItemY + dy));
+
+        onChange(
+          userTexts.map(t =>
+            t.id === drag.id ? { ...t, x: newX, y: newY } : t
+          )
+        );
+      } else if (drag.type === 'resize') {
+        const currentDist = Math.hypot(e.clientX - drag.cx, e.clientY - drag.cy);
+        const factor = currentDist / drag.initialDist;
+        // Direct synchronization with fontSize (between 14px and 96px), keeping scale 1.0
+        const newFontSize = Math.round(Math.max(14, Math.min(96, drag.initialFontSize * factor)));
+
+        onChange(
+          userTexts.map(t =>
+            t.id === drag.id ? { ...t, fontSize: newFontSize, scale: 1.0 } : t
+          )
+        );
+      } else if (drag.type === 'rotate') {
+        const dx = e.clientX - drag.cx;
+        const dy = e.clientY - drag.cy;
+        let angle = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+        if (angle < 0) angle += 360;
+
+        // Snapping to common angles
+        const snaps = [0, 45, 90, 135, 180, 225, 270, 315, 360];
+        for (const snap of snaps) {
+          if (Math.abs(angle - snap) < 4) {
+            angle = snap % 360;
+            break;
+          }
+        }
+
+        onChange(
+          userTexts.map(t =>
+            t.id === drag.id ? { ...t, rotation: Math.round(angle) } : t
+          )
+        );
+      }
+    }
+
+    function onWindowPointerUp(e) {
+      if (activeDragRef.current) {
+        isDraggingRef.current = true;
+        setTimeout(() => { isDraggingRef.current = false; }, 120);
+        setActiveDrag(null);
+        onCommit?.(userTexts);
+      }
+    }
+
+    window.addEventListener('pointermove', onWindowPointerMove, { passive: false });
+    window.addEventListener('pointerup', onWindowPointerUp);
+    window.addEventListener('pointercancel', onWindowPointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', onWindowPointerMove);
+      window.removeEventListener('pointerup', onWindowPointerUp);
+      window.removeEventListener('pointercancel', onWindowPointerUp);
+    };
+  }, [activeDrag, onChange, onCommit, userTexts]);
+
   // Pointer interaction: MOVE
   function handlePointerDownMove(e, item) {
     e.stopPropagation();
+    e.preventDefault();
     onSelect(item.id);
 
     if (!stage) return;
@@ -88,39 +168,41 @@ export function TextCanvasEditor({
       startY,
       initialItemX,
       initialItemY,
-      rectW: rect.width,
-      rectH: rect.height,
+      rectW: rect.width || 1,
+      rectH: rect.height || 1,
     });
-
-    e.currentTarget.setPointerCapture(e.pointerId);
   }
 
   // Pointer interaction: RESIZE / SCALE
   function handlePointerDownResize(e, item) {
     e.stopPropagation();
+    e.preventDefault();
+    onSelect(item.id);
+
     if (!stage) return;
     const rect = stage.getBoundingClientRect();
 
     const cx = rect.left + (item.x ?? 0.5) * rect.width;
     const cy = rect.top + (item.y ?? 0.85) * rect.height;
     const initialDist = Math.hypot(e.clientX - cx, e.clientY - cy);
-    const initialScale = item.scale || 1.0;
+    const initialFontSize = item.fontSize || 36;
 
     setActiveDrag({
       type: 'resize',
       id: item.id,
       cx,
       cy,
-      initialDist: Math.max(10, initialDist),
-      initialScale,
+      initialDist: Math.max(12, initialDist),
+      initialFontSize,
     });
-
-    e.currentTarget.setPointerCapture(e.pointerId);
   }
 
   // Pointer interaction: ROTATE
   function handlePointerDownRotate(e, item) {
     e.stopPropagation();
+    e.preventDefault();
+    onSelect(item.id);
+
     if (!stage) return;
     const rect = stage.getBoundingClientRect();
 
@@ -133,65 +215,6 @@ export function TextCanvasEditor({
       cx,
       cy,
     });
-
-    e.currentTarget.setPointerCapture(e.pointerId);
-  }
-
-  function handlePointerMove(e) {
-    if (!activeDrag) return;
-
-    if (activeDrag.type === 'move') {
-      const dx = (e.clientX - activeDrag.startX) / activeDrag.rectW;
-      const dy = (e.clientY - activeDrag.startY) / activeDrag.rectH;
-      const newX = Math.max(0.05, Math.min(0.95, activeDrag.initialItemX + dx));
-      const newY = Math.max(0.05, Math.min(0.95, activeDrag.initialItemY + dy));
-
-      onChange(
-        userTexts.map(t =>
-          t.id === activeDrag.id ? { ...t, x: newX, y: newY } : t
-        )
-      );
-    } else if (activeDrag.type === 'resize') {
-      const currentDist = Math.hypot(e.clientX - activeDrag.cx, e.clientY - activeDrag.cy);
-      const factor = currentDist / activeDrag.initialDist;
-      const newScale = Math.max(0.4, Math.min(3.0, activeDrag.initialScale * factor));
-
-      onChange(
-        userTexts.map(t =>
-          t.id === activeDrag.id ? { ...t, scale: Number(newScale.toFixed(2)) } : t
-        )
-      );
-    } else if (activeDrag.type === 'rotate') {
-      const dx = e.clientX - activeDrag.cx;
-      const dy = e.clientY - activeDrag.cy;
-      let angle = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
-      if (angle < 0) angle += 360;
-
-      // Snapping to common angles
-      const snaps = [0, 45, 90, 135, 180, 225, 270, 315, 360];
-      for (const snap of snaps) {
-        if (Math.abs(angle - snap) < 4) {
-          angle = snap % 360;
-          break;
-        }
-      }
-
-      onChange(
-        userTexts.map(t =>
-          t.id === activeDrag.id ? { ...t, rotation: Math.round(angle) } : t
-        )
-      );
-    }
-  }
-
-  function handlePointerUp(e) {
-    if (activeDrag) {
-      try {
-        e.currentTarget?.releasePointerCapture?.(e.pointerId);
-      } catch {}
-      setActiveDrag(null);
-      onCommit?.(userTexts);
-    }
   }
 
   return (
@@ -199,9 +222,6 @@ export function TextCanvasEditor({
       ref={localContainerRef}
       className="text-canvas-overlay"
       onClick={handleBackgroundClick}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
     >
       {userTexts.map(item => {
         if (!item.text || !item.text.trim()) return null;
@@ -222,6 +242,10 @@ export function TextCanvasEditor({
               transform: `translate(-50%, -50%) rotate(${rot}deg) scale(${scale})`,
               zIndex: item.zIndex || 2,
             }}
+            onClick={e => {
+              e.stopPropagation();
+              onSelect(item.id);
+            }}
             onPointerDown={e => handlePointerDownMove(e, item)}
           >
             <div
@@ -238,26 +262,30 @@ export function TextCanvasEditor({
 
             {/* Selection Bounding Box & Handles */}
             {isSelected && (
-              <div className="text-transform-box">
+              <div className="text-transform-box" onClick={e => e.stopPropagation()}>
                 {/* 4 Corner Resize Handles */}
                 <span
                   className="text-handle handle-nw"
                   aria-label="Resize text"
+                  onClick={e => e.stopPropagation()}
                   onPointerDown={e => handlePointerDownResize(e, item)}
                 />
                 <span
                   className="text-handle handle-ne"
                   aria-label="Resize text"
+                  onClick={e => e.stopPropagation()}
                   onPointerDown={e => handlePointerDownResize(e, item)}
                 />
                 <span
                   className="text-handle handle-se"
                   aria-label="Resize text"
+                  onClick={e => e.stopPropagation()}
                   onPointerDown={e => handlePointerDownResize(e, item)}
                 />
                 <span
                   className="text-handle handle-sw"
                   aria-label="Resize text"
+                  onClick={e => e.stopPropagation()}
                   onPointerDown={e => handlePointerDownResize(e, item)}
                 />
 
@@ -267,13 +295,14 @@ export function TextCanvasEditor({
                   type="button"
                   className="text-handle handle-rotate"
                   aria-label="Rotate text"
+                  onClick={e => e.stopPropagation()}
                   onPointerDown={e => handlePointerDownRotate(e, item)}
                 >
                   <RotateCw size={11} />
                 </button>
 
                 {/* Floating Quick Action Toolbar */}
-                <div className="text-toolbar" onPointerDown={e => e.stopPropagation()}>
+                <div className="text-toolbar" onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()}>
                   <button
                     type="button"
                     title="Toggle background badge"

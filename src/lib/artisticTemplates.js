@@ -40,6 +40,8 @@ import {
   drawWashiTapeStrip,
 } from './canvasTextures.js';
 import { ADDITIONAL_TEMPLATES } from './additionalTemplates.js';
+import { THEMED_TEMPLATES } from './themedTemplates.js';
+import { SCRAPBOOK_MASTERPIECE_TEMPLATES } from './scrapbookTemplates.js';
 
 const BASE_ARTISTIC_TEMPLATES = [
   // ==========================================
@@ -1014,7 +1016,12 @@ const ENRICHED_BASE_TEMPLATES = BASE_ARTISTIC_TEMPLATES.map(t => ({
   ...t,
 }));
 
-export const ARTISTIC_TEMPLATES = [...ADDITIONAL_TEMPLATES, ...ENRICHED_BASE_TEMPLATES];
+export const ARTISTIC_TEMPLATES = [
+  ...SCRAPBOOK_MASTERPIECE_TEMPLATES,
+  ...ADDITIONAL_TEMPLATES,
+  ...THEMED_TEMPLATES,
+  ...ENRICHED_BASE_TEMPLATES,
+];
 
 export const ARTISTIC_CATEGORIES = [
   'All',

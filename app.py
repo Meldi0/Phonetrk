@@ -370,6 +370,28 @@ def create_app(test_config=None):
                 return send_from_directory(str(candidate), filename)
         return jsonify(error="Sticker not found"), 404
 
+    @application.get("/frames/<path:filename>")
+    def snapbooth_frames(filename):
+        candidates = [
+            BASE_DIR / "dist" / "snapbooth" / "frames",
+            BASE_DIR / "public" / "frames",
+            BASE_DIR / "src" / "assets" / "frames",
+            BASE_DIR / "frame_foto",
+        ]
+        for candidate in candidates:
+            if candidate.exists() and (candidate / filename).exists():
+                return send_from_directory(str(candidate), filename)
+        alt_filename = None
+        if filename.endswith(".jpg"):
+            alt_filename = filename[:-4] + ".jfif"
+        elif filename.endswith(".jfif"):
+            alt_filename = filename[:-5] + ".jpg"
+        if alt_filename:
+            for candidate in candidates:
+                if candidate.exists() and (candidate / alt_filename).exists():
+                    return send_from_directory(str(candidate), alt_filename)
+        return jsonify(error="Frame not found"), 404
+
     @application.get("/")
     @application.get("/track")
     @application.get("/track.py")

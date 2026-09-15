@@ -24,6 +24,7 @@ export function StickerCanvasEditor({
 
   // Deselect when clicking outside stickers
   function handleBackgroundClick(e) {
+    if (isDraggingRef.current) return;
     if (e.target.classList.contains('sticker-canvas-overlay')) {
       onSelect(null);
     }
@@ -79,9 +80,88 @@ export function StickerCanvasEditor({
     if (selectedId === stk.instanceId) onSelect(null);
   }
 
+  const isDraggingRef = useRef(false);
+  const activeDragRef = useRef(null);
+  activeDragRef.current = activeDrag;
+
+  // Global window listeners for pointermove and pointerup while dragging
+  useEffect(() => {
+    if (!activeDrag) return;
+
+    function onWindowPointerMove(e) {
+      const drag = activeDragRef.current;
+      if (!drag) return;
+      e.preventDefault();
+
+      if (drag.type === 'move') {
+        const dx = (e.clientX - drag.startX) / drag.rectW;
+        const dy = (e.clientY - drag.startY) / drag.rectH;
+        const newX = Math.max(0.04, Math.min(0.96, drag.initialStkX + dx));
+        const newY = Math.max(0.04, Math.min(0.96, drag.initialStkY + dy));
+
+        onChange(
+          userStickers.map(s =>
+            s.instanceId === drag.instanceId ? { ...s, x: newX, y: newY } : s
+          )
+        );
+      } else if (drag.type === 'resize') {
+        const currentDist = Math.hypot(e.clientX - drag.cx, e.clientY - drag.cy);
+        const factor = currentDist / drag.initialDist;
+        // Strict aspect-ratio preserving scale between 0.08 and 0.85
+        const newScale = Math.max(0.08, Math.min(0.85, drag.initialScale * factor));
+
+        onChange(
+          userStickers.map(s =>
+            s.instanceId === drag.instanceId ? { ...s, scale: Number(newScale.toFixed(3)) } : s
+          )
+        );
+      } else if (drag.type === 'rotate') {
+        const dx = e.clientX - drag.cx;
+        const dy = e.clientY - drag.cy;
+        let angle = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+        if (angle < 0) angle += 360;
+
+        // Snapping within 4 degrees to 0, 45, 90, 180, etc.
+        const snaps = [0, 45, 90, 135, 180, 225, 270, 315, 360];
+        for (const snap of snaps) {
+          if (Math.abs(angle - snap) < 4) {
+            angle = snap % 360;
+            break;
+          }
+        }
+
+        onChange(
+          userStickers.map(s =>
+            s.instanceId === drag.instanceId ? { ...s, rotation: Math.round(angle) } : s
+          )
+        );
+      }
+    }
+
+    function onWindowPointerUp(e) {
+      if (activeDragRef.current) {
+        isDraggingRef.current = true;
+        setTimeout(() => { isDraggingRef.current = false; }, 120);
+        setActiveDrag(null);
+        onCommit?.(userStickers);
+      }
+    }
+
+    window.addEventListener('pointermove', onWindowPointerMove, { passive: false });
+    window.addEventListener('pointerup', onWindowPointerUp);
+    window.addEventListener('pointercancel', onWindowPointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', onWindowPointerMove);
+      window.removeEventListener('pointerup', onWindowPointerUp);
+      window.removeEventListener('pointercancel', onWindowPointerUp);
+    };
+  }, [activeDrag, onChange, onCommit, userStickers]);
+
   // Pointer interaction: MOVE
   function handlePointerDownMove(e, stk) {
     e.stopPropagation();
+    e.preventDefault();
     onSelect(stk.instanceId);
 
     if (!stage) return;
@@ -98,20 +178,21 @@ export function StickerCanvasEditor({
       startY,
       initialStkX,
       initialStkY,
-      rectW: rect.width,
-      rectH: rect.height,
+      rectW: rect.width || 1,
+      rectH: rect.height || 1,
     });
-
-    e.currentTarget.setPointerCapture(e.pointerId);
   }
 
   // Pointer interaction: RESIZE
   function handlePointerDownResize(e, stk, handleCorner) {
     e.stopPropagation();
+    e.preventDefault();
+    onSelect(stk.instanceId);
+
     if (!stage) return;
     const rect = stage.getBoundingClientRect();
 
-    // Center of the sticker in pixels
+    // Center of the sticker in viewport coordinates
     const cx = rect.left + stk.x * rect.width;
     const cy = rect.top + stk.y * rect.height;
     const initialDist = Math.hypot(e.clientX - cx, e.clientY - cy);
@@ -122,16 +203,17 @@ export function StickerCanvasEditor({
       instanceId: stk.instanceId,
       cx,
       cy,
-      initialDist: Math.max(10, initialDist),
+      initialDist: Math.max(12, initialDist),
       initialScale,
     });
-
-    e.currentTarget.setPointerCapture(e.pointerId);
   }
 
   // Pointer interaction: ROTATE
   function handlePointerDownRotate(e, stk) {
     e.stopPropagation();
+    e.preventDefault();
+    onSelect(stk.instanceId);
+
     if (!stage) return;
     const rect = stage.getBoundingClientRect();
 
@@ -144,65 +226,6 @@ export function StickerCanvasEditor({
       cx,
       cy,
     });
-
-    e.currentTarget.setPointerCapture(e.pointerId);
-  }
-
-  function handlePointerMove(e) {
-    if (!activeDrag) return;
-
-    if (activeDrag.type === 'move') {
-      const dx = (e.clientX - activeDrag.startX) / activeDrag.rectW;
-      const dy = (e.clientY - activeDrag.startY) / activeDrag.rectH;
-      const newX = Math.max(0.02, Math.min(0.98, activeDrag.initialStkX + dx));
-      const newY = Math.max(0.02, Math.min(0.98, activeDrag.initialStkY + dy));
-
-      onChange(
-        userStickers.map(s =>
-          s.instanceId === activeDrag.instanceId ? { ...s, x: newX, y: newY } : s
-        )
-      );
-    } else if (activeDrag.type === 'resize') {
-      const currentDist = Math.hypot(e.clientX - activeDrag.cx, e.clientY - activeDrag.cy);
-      const factor = currentDist / activeDrag.initialDist;
-      const newScale = Math.max(0.06, Math.min(0.65, activeDrag.initialScale * factor));
-
-      onChange(
-        userStickers.map(s =>
-          s.instanceId === activeDrag.instanceId ? { ...s, scale: newScale } : s
-        )
-      );
-    } else if (activeDrag.type === 'rotate') {
-      const dx = e.clientX - activeDrag.cx;
-      const dy = e.clientY - activeDrag.cy;
-      let angle = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
-      if (angle < 0) angle += 360;
-
-      // Optional snap to 0, 45, 90, 180 within 4 degrees
-      const snaps = [0, 45, 90, 135, 180, 225, 270, 315, 360];
-      for (const snap of snaps) {
-        if (Math.abs(angle - snap) < 4) {
-          angle = snap % 360;
-          break;
-        }
-      }
-
-      onChange(
-        userStickers.map(s =>
-          s.instanceId === activeDrag.instanceId ? { ...s, rotation: Math.round(angle) } : s
-        )
-      );
-    }
-  }
-
-  function handlePointerUp(e) {
-    if (activeDrag) {
-      try {
-        e.currentTarget?.releasePointerCapture?.(e.pointerId);
-      } catch {}
-      setActiveDrag(null);
-      onCommit?.(userStickers);
-    }
   }
 
   return (
@@ -210,9 +233,6 @@ export function StickerCanvasEditor({
       ref={localContainerRef}
       className="sticker-canvas-overlay"
       onClick={handleBackgroundClick}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
     >
       {userStickers.map(stk => {
         const isSelected = selectedId === stk.instanceId;
@@ -238,6 +258,10 @@ export function StickerCanvasEditor({
               transform: `translate(-50%, -50%) rotate(${rot}deg) scaleX(${flip})`,
               zIndex: stk.zIndex || 1,
             }}
+            onClick={e => {
+              e.stopPropagation();
+              onSelect(stk.instanceId);
+            }}
             onPointerDown={e => handlePointerDownMove(e, stk)}
           >
             <img
@@ -252,26 +276,31 @@ export function StickerCanvasEditor({
               <div
                 className="sticker-transform-box"
                 style={{ transform: `scaleX(${flip})` }} // Counter-flip handles so they stay normal
+                onClick={e => e.stopPropagation()}
               >
                 {/* 4 Corner Resize Handles */}
                 <span
                   className="sticker-handle handle-nw"
                   aria-label="Resize sticker"
+                  onClick={e => e.stopPropagation()}
                   onPointerDown={e => handlePointerDownResize(e, stk, 'nw')}
                 />
                 <span
                   className="sticker-handle handle-ne"
                   aria-label="Resize sticker"
+                  onClick={e => e.stopPropagation()}
                   onPointerDown={e => handlePointerDownResize(e, stk, 'ne')}
                 />
                 <span
                   className="sticker-handle handle-se"
                   aria-label="Resize sticker"
+                  onClick={e => e.stopPropagation()}
                   onPointerDown={e => handlePointerDownResize(e, stk, 'se')}
                 />
                 <span
                   className="sticker-handle handle-sw"
                   aria-label="Resize sticker"
+                  onClick={e => e.stopPropagation()}
                   onPointerDown={e => handlePointerDownResize(e, stk, 'sw')}
                 />
 
@@ -281,13 +310,14 @@ export function StickerCanvasEditor({
                   type="button"
                   className="sticker-handle handle-rotate"
                   aria-label="Rotate sticker"
+                  onClick={e => e.stopPropagation()}
                   onPointerDown={e => handlePointerDownRotate(e, stk)}
                 >
                   <RotateCw size={11} />
                 </button>
 
                 {/* Floating Quick Action Toolbar */}
-                <div className="sticker-toolbar" onPointerDown={e => e.stopPropagation()}>
+                <div className="sticker-toolbar" onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()}>
                   <button
                     type="button"
                     title="Duplicate sticker"

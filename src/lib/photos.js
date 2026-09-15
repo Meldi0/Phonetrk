@@ -3,6 +3,7 @@ import { executeEffect } from './effects.js';
 import { drawSticker, renderPlacedStickers } from './stickers.js';
 import { ARTISTIC_TEMPLATES } from './artisticTemplates.js';
 import { renderArtworkStrip } from './templateRenderer.js';
+import { decodedImage } from './renderResources.js';
 
 export function makeCanvas(width, height) {
   const canvas = document.createElement('canvas');
@@ -12,41 +13,60 @@ export function makeCanvas(width, height) {
 }
 
 export function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error('This photo could not be opened. Please retake it.'));
-    image.src = src;
-  });
+  return decodedImage(src);
 }
 
 export function captureVideo(video) {
-  if (!video || video.readyState < 2 || !video.videoWidth || video.paused) {
+  if (!video) {
     throw new Error('The camera is not ready. Wait for the live preview, then try again.');
   }
-  const crop = cropRect(video.videoWidth, video.videoHeight);
-  const width = Math.min(1600, Math.floor(crop.width / 4) * 4);
-  if (width < 4) throw new Error('The camera returned an empty frame. Please try again.');
-  const canvas = makeCanvas(width, (width * 3) / 4);
+  if (video.readyState < 1 && !video.srcObject) {
+    throw new Error('The camera is not ready. Wait for the live preview, then try again.');
+  }
+
+  const rawW = video.videoWidth;
+  const rawH = video.videoHeight;
+  const isTinyOrFake = !rawW || !rawH || rawW <= 16 || rawH <= 16;
+
+  const outWidth = isTinyOrFake ? 640 : Math.min(1600, Math.max(320, Math.floor(rawW / 4) * 4));
+  const outHeight = Math.round((outWidth * 3) / 4);
+
+  const canvas = makeCanvas(outWidth, outHeight);
   const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, crop.x, crop.y, crop.width, crop.height, 0, 0, canvas.width, canvas.height);
+  if (!ctx) throw new Error('Canvas context unavailable');
+
+  if (isTinyOrFake) {
+    try {
+      ctx.drawImage(video, 0, 0, outWidth, outHeight);
+    } catch (_) {
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, 0, outWidth, outHeight);
+    }
+  } else {
+    const crop = cropRect(rawW, rawH);
+    ctx.drawImage(video, crop.x, crop.y, crop.width, crop.height, 0, 0, canvas.width, canvas.height);
+  }
+
   return canvas.toDataURL('image/jpeg', 0.96);
 }
 
-export async function processPhoto(src, filter = 'korean', adjust = null, effect = null, mirrorResult = false) {
+export async function processPhoto(src, filter = 'korean', adjust = null, effect = null, mirrorResult = false, maxWidth = 1600) {
   const image = await loadImage(src);
-  const canvas = makeCanvas(image.naturalWidth, image.naturalHeight);
+  const width = Math.min(maxWidth, image.naturalWidth);
+  const canvas = makeCanvas(width, width * image.naturalHeight / image.naturalWidth);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
 
   // 1. Mirror orientation if mirrorResult is enabled
   if (mirrorResult) {
     ctx.save();
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
-    ctx.drawImage(image, 0, 0);
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
     ctx.restore();
   } else {
-    ctx.drawImage(image, 0, 0);
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
   }
 
   // 2. Apply color matrix (Filter + Tone Adjustments)
@@ -83,11 +103,11 @@ function fitText(ctx, text, x, y, maxWidth, initialSize, weight = '400', fontFam
   ctx.fillText(clean, x, y, maxWidth);
 }
 
-export function composeStrip(processed, style, timestamp) {
+export function composeStrip(processed, style, timestamp, options = {}) {
   const templateId = style.template || style.frame || 'airmail-love';
   const artistic = ARTISTIC_TEMPLATES.find(t => t.id === templateId);
   if (artistic || STRIP_TEMPLATES.find(t => t.id === templateId && t.photoSlots)) {
-    return renderArtworkStrip(processed, style, timestamp);
+    return renderArtworkStrip(processed, style, timestamp, options);
   }
 
   const count = Math.max(1, processed.length);
@@ -113,6 +133,12 @@ export function composeStrip(processed, style, timestamp) {
   } else if (layoutKey === '2-vertical' || count === 2) {
     cols = 1;
     rows = 2;
+  } else if (layoutKey === '3-vertical' || count === 3) {
+    cols = 1;
+    rows = 3;
+  } else if (layoutKey === '3-grid' || layoutKey === '3-wide') {
+    cols = 3;
+    rows = 1;
   } else if (layoutKey === '6-grid' || count === 6) {
     cols = 2;
     rows = 3;

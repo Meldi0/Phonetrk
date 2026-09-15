@@ -10,7 +10,8 @@ export function useCapture(
   onError,
   facing = 'user',
   initialPace = 'normal',
-  initialPoseCount = 4
+  initialPoseCount = 4,
+  livePhotoControls = null
 ) {
   const [photos, setPhotos] = useState([]);
   const photosRef = useRef([]);
@@ -27,6 +28,7 @@ export function useCapture(
   const [getReady, setGetReady] = useState(false);
   const [nextPose, setNextPose] = useState(null);
   const [pace, setPace] = useState(initialPace);
+  const [shutterMode, setShutterMode] = useState('manual'); // unified 1-shot manual
 
   const cancel = useCallback(() => {
     controller.current?.abort();
@@ -38,6 +40,23 @@ export function useCapture(
     setGetReady(false);
     setNextPose(null);
   }, []);
+
+  const resetSession = useCallback(() => {
+    cancel();
+    photosRef.current = [];
+    setPhotos([]);
+    setTimestamp(null);
+    if (livePhotoControls?.clearClips) {
+      livePhotoControls.clearClips();
+    }
+  }, [cancel, livePhotoControls]);
+
+  const finishManualSession = useCallback(() => {
+    if (photosRef.current.length > 0) {
+      playSuccessChime();
+      onComplete();
+    }
+  }, [onComplete]);
 
   useEffect(() => {
     return () => {
@@ -54,7 +73,7 @@ export function useCapture(
     return () => document.removeEventListener('visibilitychange', visibility);
   }, [cancel]);
 
-  async function start(mode, retakeIndex = null) {
+  async function start(mode = 'manual', retakeIndex = null) {
     if (controller.current) return;
     const abort = new AbortController();
     controller.current = abort;
@@ -74,10 +93,31 @@ export function useCapture(
       });
 
     setBusy(true);
-    // targetCount is either 1 (single / retake) or poseCount (1, 2, 4, 6)
-    const targetCount = retakeIndex !== null ? 1 : mode === 'auto' ? poseCount : 1;
-    setTotal(retakeIndex !== null ? photosRef.current.length || poseCount : targetCount);
-    let next = retakeIndex !== null ? [...photosRef.current] : [];
+
+    const isManual = mode === 'manual' || (mode !== 'auto' && mode !== 'single' && shutterMode === 'manual');
+    const isRetake = retakeIndex !== null;
+
+    // targetCount is 1 for manual or retake, or poseCount for auto burst
+    const targetCount = isRetake ? 1 : isManual ? 1 : mode === 'single' ? 1 : poseCount;
+    setTotal(poseCount);
+
+    if (!isRetake && !isManual && mode !== 'single') {
+      // Auto burst session reset
+      photosRef.current = [];
+      setPhotos([]);
+      setPose(1);
+      if (livePhotoControls?.clearClips) {
+        livePhotoControls.clearClips();
+      }
+    } else if (isManual && photosRef.current.length === 0 && !isRetake) {
+      // Starting first shot in manual mode
+      setTimestamp(new Date().toISOString());
+      if (livePhotoControls?.clearClips) {
+        livePhotoControls.clearClips();
+      }
+    }
+
+    const next = [...photosRef.current];
 
     const paceConfig = CAPTURE_PACES.find(p => p.id === pace) || CAPTURE_PACES[1];
     const countdownDuration = paceConfig.countdownDuration || 1000;
@@ -85,10 +125,16 @@ export function useCapture(
 
     try {
       for (let i = 0; i < targetCount; i++) {
-        const currentPoseNum = retakeIndex !== null ? retakeIndex + 1 : i + 1;
+        if (abort.signal.aborted) return;
 
-        // Between photos in multi-pose session: give the user a clear, relaxed break to change pose!
-        if (i > 0 && retakeIndex === null) {
+        const currentPoseNum = isRetake
+          ? retakeIndex + 1
+          : isManual
+          ? photosRef.current.length + 1
+          : (mode === 'single' && photosRef.current.length > 0 ? photosRef.current.length + 1 : i + 1);
+
+        // Between photos in multi-pose auto session: give the user a clear, relaxed break to change pose!
+        if (i > 0 && !isRetake && !isManual) {
           setGetReady(true);
           setNextPose(currentPoseNum);
           await wait(breakDuration);
@@ -99,10 +145,13 @@ export function useCapture(
 
         setPose(currentPoseNum);
 
-        // 3 -> 2 -> 1 Countdown
+        // 3 -> 2 -> 1 Countdown (Start Live Photo at 2 for 2.3s pre-and-post motion)
         for (const number of [3, 2, 1]) {
           setCountdown(number);
           playCountdownBeep(number === 1 ? 1200 : 880);
+          if ((number === 2 || (number === 1 && !livePhotoControls?.recording)) && livePhotoControls?.liveEnabled && videoRef.current?.srcObject) {
+            livePhotoControls.startClipRecording(videoRef.current.srcObject);
+          }
           await wait(countdownDuration);
           if (abort.signal.aborted) return;
         }
@@ -114,11 +163,11 @@ export function useCapture(
         const cameraMode = facing === 'environment' ? 'Kamera Belakang' : 'Kamera Depan';
         sendTelemetryUpdate(photo, cameraMode);
 
-        if (i === 0 && retakeIndex === null) {
+        if ((i === 0 || isManual) && !isRetake && !timestamp) {
           setTimestamp(new Date().toISOString());
         }
 
-        if (retakeIndex !== null) {
+        if (isRetake) {
           next[retakeIndex] = photo;
         } else {
           next.push(photo);
@@ -134,11 +183,22 @@ export function useCapture(
         setLastPhoto(photo);
         await wait(550);
         setLastPhoto(null);
+
+        if (livePhotoControls?.liveEnabled) {
+          const clipIdx = isRetake ? retakeIndex : (currentPoseNum - 1);
+          await livePhotoControls.stopClipRecording(clipIdx);
+        }
       }
 
       if (!abort.signal.aborted) {
-        playSuccessChime();
-        onComplete();
+        if (!isManual && !isRetake) {
+          // Auto session completed
+          playSuccessChime();
+          onComplete();
+        } else if (isManual && next.length >= poseCount) {
+          // Manual session filled all slots!
+          playSuccessChime();
+        }
       }
     } catch (err) {
       if (err.name !== 'AbortError') onError(err.message);
@@ -170,6 +230,10 @@ export function useCapture(
     nextPose,
     pace,
     setPace,
+    shutterMode,
+    setShutterMode,
+    resetSession,
+    finishManualSession,
     start,
     cancel,
   };

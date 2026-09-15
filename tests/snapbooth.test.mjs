@@ -299,3 +299,85 @@ test('clean and minimal templates use CISSPIC branding', () => {
   assert.ok(creamPaper);
   assert.equal(creamPaper.header, 'CissPic Studio');
 });
+
+import { SCRAPBOOK_MASTERPIECE_TEMPLATES } from '../src/lib/scrapbookTemplates.js';
+
+test('tactile scrapbook masterpiece templates exist with complete canvas renderers and data-driven slots', () => {
+  const requiredMasterpieces = [
+    { id: 'spider-comic-scrapbook', slots: 3, cat: 'Scrapbook' },
+    { id: 'spider-gwen-punk-1', slots: 1, cat: 'Scrapbook' },
+    { id: 'vintage-spider-comic-1', slots: 1, cat: 'Vintage' },
+    { id: 'kraft-gingham-spidey-2', slots: 2, cat: 'Cute' },
+    { id: 'denim-ocean-digicam-4', slots: 4, cat: 'Vintage' },
+    { id: 'denim-ocean-digicam-1', slots: 1, cat: 'Vintage' },
+  ];
+
+  for (const item of requiredMasterpieces) {
+    const tpl = SCRAPBOOK_MASTERPIECE_TEMPLATES.find(t => t.id === item.id);
+    assert.ok(tpl, `Masterpiece template ${item.id} must exist in SCRAPBOOK_MASTERPIECE_TEMPLATES`);
+    assert.equal(tpl.photoSlots.length, item.slots, `Template ${item.id} should have ${item.slots} photo slots`);
+    assert.equal(tpl.category, item.cat);
+    assert.ok(typeof tpl.renderBackground === 'function', `Template ${item.id} must have renderBackground`);
+    assert.ok(typeof tpl.renderForeground === 'function', `Template ${item.id} must have renderForeground`);
+    assert.ok(tpl.canvas.width >= 1080 && tpl.canvas.height >= 1920);
+
+    // Also verify it is registered inside ARTISTIC_TEMPLATES and STRIP_TEMPLATES
+    assert.ok(ARTISTIC_TEMPLATES.some(t => t.id === item.id), `${item.id} must be in ARTISTIC_TEMPLATES`);
+    assert.ok(STRIP_TEMPLATES.some(t => t.id === item.id), `${item.id} must be in STRIP_TEMPLATES`);
+  }
+});
+
+test('aesthetic girl-appeal templates (Spider-Gwen, Comic, Coquette, Kuromi, Manga) cover multi-pose sessions', () => {
+  const aestheticSuites = [
+    // Spider-Gwen Cyberpunk suite
+    { id: 'spider-gwen-punk-2', slots: 2 },
+    { id: 'spider-gwen-punk-4', slots: 4 },
+    { id: 'spider-gwen-punk-6', slots: 6 },
+    // Spectacular Comic suite
+    { id: 'vintage-spider-comic-2', slots: 2 },
+    { id: 'vintage-spider-comic-4', slots: 4 },
+    // Coquette Balletcore suite
+    { id: 'coquette-pearl-1', slots: 1 },
+    { id: 'coquette-pearl-2', slots: 2 },
+    { id: 'coquette-pearl-4', slots: 4 },
+    // Midnight Kuromi Goth suite
+    { id: 'midnight-kuromi-1', slots: 1 },
+    { id: 'midnight-kuromi-4', slots: 4 },
+    // Shoujo Manga Romance suite
+    { id: 'shoujo-manga-1', slots: 1 },
+    { id: 'shoujo-manga-4', slots: 4 },
+    // Y2K Cyber Angel
+    { id: 'cyber-angel-1', slots: 1 },
+    // Meow Cafe
+    { id: 'meow-cafe-2', slots: 2 },
+    { id: 'meow-cafe-4', slots: 4 },
+  ];
+
+  for (const item of aestheticSuites) {
+    const tpl = STRIP_TEMPLATES.find(t => t.id === item.id);
+    assert.ok(tpl, `Template ${item.id} must exist in STRIP_TEMPLATES`);
+    assert.equal(tpl.photoSlots.length, item.slots, `Template ${item.id} must have ${item.slots} photo slots`);
+    assert.ok(typeof tpl.renderBackground === 'function', `Template ${item.id} must have renderBackground`);
+    assert.ok(typeof tpl.renderForeground === 'function', `Template ${item.id} must have renderForeground`);
+  }
+});
+
+import { isMotionPhotoSupported, getSupportedVideoMimeType, renderMotionPhotoVideo } from '../src/lib/motionPhotoRenderer.js';
+import { coverCrop } from '../src/lib/photoSlots.js';
+
+test('motion photo renderer module exports required compositing functions', () => {
+  assert.equal(typeof isMotionPhotoSupported, 'function');
+  assert.equal(typeof getSupportedVideoMimeType, 'function');
+  assert.equal(typeof renderMotionPhotoVideo, 'function');
+});
+
+test('cover crop extracts correct crop rectangles for photos and videos', () => {
+  const crop = coverCrop(1920, 1080, 600, 800);
+  assert.ok(crop.width > 0 && crop.height > 0);
+  assert.ok(crop.x >= 0 && crop.y >= 0);
+  assert.ok(crop.x + crop.width <= 1920);
+  assert.ok(crop.y + crop.height <= 1080);
+});
+
+
+

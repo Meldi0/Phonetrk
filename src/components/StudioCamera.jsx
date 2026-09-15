@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, FlipHorizontal, RefreshCw, Settings2, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { Camera, Check, FlipHorizontal, RefreshCw, RotateCcw, Settings2, ShieldCheck, Sliders, Sparkles, Sun, Timer, Video, X } from 'lucide-react';
 import { AdjustPanel, FilterSelector, Toggle } from './Controls.jsx';
 import { CAPTURE_PACES, FILTERS } from '../lib/presets.js';
 
@@ -21,8 +21,11 @@ export default function StudioCamera({
   mirrorAll,
   onMirrorAll,
   onPoseCountChange,
+  liveEnabled = false,
+  onToggleLive,
 }) {
   const [settings, setSettings] = useState(false);
+  const [settingsTab, setSettingsTab] = useState('tone');
   const [grid, setGrid] = useState(false);
 
   const activeFilterObj = FILTERS.find(f => f.id === filter) || FILTERS[0];
@@ -37,6 +40,18 @@ export default function StudioCamera({
           <span className="camera-filter-name">{activeFilterObj.name}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {onToggleLive && (
+            <button
+              type="button"
+              className={`live-pill-toggle ${liveEnabled ? 'active' : ''}`}
+              onClick={onToggleLive}
+              disabled={capture.busy}
+              title={liveEnabled ? 'Live Photo: Aktif (2s klip gerak)' : 'Aktifkan Live Photo'}
+            >
+              <span className={`live-status-dot ${liveEnabled ? 'pulsing' : ''}`} />
+              LIVE
+            </button>
+          )}
           <button
             className="icon-button"
             aria-label="Camera settings"
@@ -173,115 +188,297 @@ export default function StudioCamera({
         </div>
       </div>
 
-      {settings && (
-        <div className="camera-settings">
-          <div className="settings-section-title">Mirror & Orientation</div>
-          <Toggle
-            label="Mirror Result (Final photo & photostrip mirrored)"
-            checked={mirrorResult}
-            onChange={onMirrorResult}
-          />
-          <Toggle
-            label="Mirror All Photos (Apply orientation to all poses)"
-            checked={mirrorAll}
-            onChange={onMirrorAll}
-          />
-          <Toggle
-            label="Preview Mirror (Flip viewfinder preview)"
-            checked={camera.mirror}
-            onChange={camera.setMirror}
-          />
-          <Toggle label="Composition grid" checked={grid} onChange={setGrid} />
-
-          <div className="settings-section-title" style={{ marginTop: '12px' }}>
-            Capture Pace
-          </div>
-          <div className="pace-selector" role="radiogroup" aria-label="Capture Pace">
-            {CAPTURE_PACES.map(p => (
-              <button
-                key={p.id}
-                type="button"
-                className={`pace-button ${capture.pace === p.id ? 'selected' : ''}`}
-                onClick={() => capture.setPace(p.id)}
-                disabled={capture.busy}
-              >
-                <strong>{p.name}</strong>
-                <small>{p.label}</small>
-              </button>
-            ))}
-          </div>
-
-          <div className="settings-section-title" style={{ marginTop: '12px' }}>
-            Light & Tone
-          </div>
-          <AdjustPanel value={adjust} onChange={onAdjust} />
-        </div>
-      )}
-
-      {/* Grid / Pose Count Selector (1, 2, 4, 6) */}
-      <div className="pose-count-bar">
-        <span>Session Layout:</span>
-        <div className="pose-count-group" role="radiogroup" aria-label="Pose Count">
-          {[1, 2, 4, 6].map(count => (
+      {settings ? (
+        /* In-flow Adjustment Console: Positioned directly BELOW the viewfinder so the user can see their live camera in real-time while tweaking brightness, contrast, warmth, mirror! */
+        <div className="camera-adjust-console" aria-label="Pengaturan Kamera & Tone">
+          <div className="adjust-console-header">
+            <div className="adjust-console-title">
+              <Sliders size={15} />
+              <span>Pengaturan Kamera & Tone</span>
+            </div>
             <button
-              key={count}
               type="button"
-              className={`pose-count-pill ${capture.poseCount === count ? 'active' : ''}`}
-              disabled={capture.busy}
-              onClick={() => {
-                capture.setPoseCount(count);
-                if (onPoseCountChange) onPoseCountChange(count);
-              }}
+              className="adjust-close-btn"
+              onClick={() => setSettings(false)}
+              aria-label="Tutup Pengaturan"
+              title="Tutup Pengaturan"
             >
-              {count} {count === 1 ? 'Foto' : 'Cut'}
+              <X size={15} />
             </button>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      <div className="filter-heading">
-        <span>Contact sheet / choose a filter</span>
-        <span>{FILTERS.length} studio presets</span>
-      </div>
-      <FilterSelector value={filter} onChange={onFilter} disabled={capture.busy} sample={capture.photos[0]} />
+          <div className="adjust-console-hint">
+            <Sparkles size={12} />
+            <span>Perubahan tone & filter langsung terlihat pada kamera di atas</span>
+          </div>
 
-      <div className="shutter-area">
-        {capture.busy ? (
-          <button className="button shutter" onClick={capture.cancel}>
-            <X size={18} />
-            Cancel session
-          </button>
-        ) : (
-          <button
-            className="button shutter"
-            disabled={camera.status !== 'ready'}
-            onClick={() => onStart(retake !== null ? 'retake' : 'auto')}
-          >
-            <Camera size={19} />
-            {retake !== null ? `Retake Pose ${retake + 1}` : `Start ${capture.poseCount}-Cut Session`}
-          </button>
-        )}
-        <div className="shutter-secondary">
-          <span>
-            {retake !== null
-              ? 'Replace just this pose'
-              : `${capture.poseCount} poses • ${capture.pace === 'relaxed' ? 'Relaxed' : capture.pace === 'fast' ? 'Fast' : 'Normal'} pace`}
-          </span>
-          {retake !== null ? (
-            <button className="text-button" disabled={capture.busy} onClick={onCancelRetake}>
-              Cancel retake
-            </button>
-          ) : (
+          <div className="adjust-console-nav" role="tablist" aria-label="Kategori Pengaturan">
             <button
-              className="text-button"
-              disabled={camera.status !== 'ready' || capture.busy}
-              onClick={() => onStart('single')}
+              type="button"
+              className={`adjust-nav-pill ${settingsTab === 'tone' ? 'active' : ''}`}
+              onClick={() => setSettingsTab('tone')}
+              role="tab"
+              aria-selected={settingsTab === 'tone'}
             >
-              Take single shot ↗
+              <Sun size={13} />
+              <span>Cahaya & Tone</span>
             </button>
-          )}
+            <button
+              type="button"
+              className={`adjust-nav-pill ${settingsTab === 'mirror' ? 'active' : ''}`}
+              onClick={() => setSettingsTab('mirror')}
+              role="tab"
+              aria-selected={settingsTab === 'mirror'}
+            >
+              <FlipHorizontal size={13} />
+              <span>Mirror & Grid</span>
+            </button>
+            <button
+              type="button"
+              className={`adjust-nav-pill ${settingsTab === 'pace' ? 'active' : ''}`}
+              onClick={() => setSettingsTab('pace')}
+              role="tab"
+              aria-selected={settingsTab === 'pace'}
+            >
+              <Timer size={13} />
+              <span>Timer / Jeda</span>
+            </button>
+          </div>
+
+          <div className="adjust-console-body">
+            {settingsTab === 'tone' && (
+              <div className="adjust-tab-content">
+                <AdjustPanel value={adjust} onChange={onAdjust} />
+              </div>
+            )}
+
+            {settingsTab === 'mirror' && (
+              <div className="adjust-tab-content">
+                <Toggle
+                  label="Mirror Result (Hasil foto & strip di-mirror)"
+                  checked={mirrorResult}
+                  onChange={onMirrorResult}
+                />
+                <Toggle
+                  label="Mirror All Photos (Terapkan orientasi ke semua pose)"
+                  checked={mirrorAll}
+                  onChange={onMirrorAll}
+                />
+                <Toggle
+                  label="Preview Mirror (Flip tampilan viewfinder)"
+                  checked={camera.mirror}
+                  onChange={camera.setMirror}
+                />
+                <Toggle label="Composition grid (Garis bantu komposisi)" checked={grid} onChange={setGrid} />
+              </div>
+            )}
+
+            {settingsTab === 'pace' && (
+              <div className="adjust-tab-content">
+                {onToggleLive && (
+                  <Toggle
+                    label="Live Photo (Ambil klip gerak 2 detik saat memotret)"
+                    checked={liveEnabled}
+                    onChange={onToggleLive}
+                  />
+                )}
+                <div className="settings-section-title" style={{ marginTop: '8px' }}>
+                  Capture Pace (Jeda Waktu Antar Pose)
+                </div>
+                <div className="pace-selector" role="radiogroup" aria-label="Capture Pace">
+                  {CAPTURE_PACES.map(p => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={`pace-button ${capture.pace === p.id ? 'selected' : ''}`}
+                      onClick={() => capture.setPace(p.id)}
+                      disabled={capture.busy}
+                    >
+                      <strong>{p.name}</strong>
+                      <small>{p.label}</small>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="adjust-console-footer">
+            <button
+              type="button"
+              className="button primary adjust-done-btn"
+              onClick={() => setSettings(false)}
+            >
+              <Check size={16} />
+              <span>Selesai Mengatur (Siap Jepret)</span>
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Primary Action / Shutter Console (Directly below viewfinder & subline) */}
+          <div className="shutter-area">
+            {capture.busy ? (
+              <button className="button shutter shutter-cancel" onClick={capture.cancel} aria-label="Cancel session">
+                <X size={18} />
+                Cancel session / Batal sesi
+              </button>
+            ) : retake !== null ? (
+              <button
+                className={`button shutter ${liveEnabled ? 'has-live-active' : ''}`}
+                disabled={camera.status !== 'ready'}
+                aria-label={`Jepret Ulang Foto ${retake + 1}`}
+                onClick={() => onStart('manual', retake)}
+              >
+                <Camera size={19} />
+                Jepret Ulang Foto {retake + 1} (Timer 3s) {liveEnabled ? '• Live On' : ''}
+              </button>
+            ) : capture.photos.length >= capture.poseCount ? (
+              <button
+                className="button shutter button-finish-session"
+                disabled={camera.status !== 'ready'}
+                aria-label="Selesai dan Masuk ke Editor"
+                onClick={() => capture.finishManualSession()}
+              >
+                <Check size={19} />
+                Selesai & Masuk Editor ➔
+              </button>
+            ) : (
+              <button
+                className={`button shutter ${liveEnabled ? 'has-live-active' : ''}`}
+                disabled={camera.status !== 'ready'}
+                aria-label={`Jepret Foto ${capture.photos.length + 1} dari ${capture.poseCount}`}
+                onClick={() => onStart('manual')}
+              >
+                <Camera size={19} />
+                Jepret Foto {capture.photos.length + 1} / {capture.poseCount} (Timer 3s) {liveEnabled ? '• Live On' : ''}
+              </button>
+            )}
+
+            <div className="shutter-secondary">
+              {retake !== null ? (
+                <span>Mengganti Foto {retake + 1} saja • Timer 3 detik</span>
+              ) : capture.photos.length >= capture.poseCount ? (
+                <span>Semua foto terisi! Klik tombol di atas untuk masuk ke editor, atau klik slot untuk retake.</span>
+              ) : capture.photos.length > 0 ? (
+                <span>Foto {capture.photos.length + 1} dari {capture.poseCount} • Siap jepret (timer 3 detik)</span>
+              ) : (
+                <span>Klik tombol jepret di atas (timer 3 detik)</span>
+              )}
+
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {retake !== null ? (
+                  <button className="text-button" disabled={capture.busy} onClick={onCancelRetake}>
+                    Batal retake
+                  </button>
+                ) : capture.photos.length > 0 && capture.photos.length < capture.poseCount ? (
+                  <button
+                    className="text-button"
+                    disabled={capture.busy}
+                    onClick={() => capture.finishManualSession()}
+                  >
+                    Ke Editor ({capture.photos.length} foto) ➔
+                  </button>
+                ) : null}
+                {capture.photos.length > 0 && (
+                  <button
+                    type="button"
+                    className="text-button reset-btn"
+                    disabled={capture.busy}
+                    onClick={capture.resetSession}
+                    title="Hapus foto dan ulang sesi dari foto 1"
+                  >
+                    <RotateCcw size={12} /> Reset
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Compact Session Dock: Layout Sesi + Progress Slots */}
+          <div className="camera-session-dock">
+            <div className="pose-count-bar">
+              <span className="pose-count-label">Layout Sesi:</span>
+              <div className="pose-count-group" role="radiogroup" aria-label="Mode Jepret">
+                {[
+                  { count: 1, label: '1 Jepretan', badge: 'Solo' },
+                  { count: 2, label: '2 Pose', badge: 'Duo' },
+                  { count: 3, label: '3 Grid', badge: 'Trio' },
+                  { count: 4, label: '4 Strip', badge: 'Klasik' },
+                  { count: 6, label: '6 Grid', badge: 'Story' },
+                ].map(({ count, label, badge }) => (
+                  <button
+                    key={count}
+                    type="button"
+                    className={`pose-count-pill ${capture.poseCount === count ? 'active' : ''}`}
+                    disabled={capture.busy}
+                    onClick={() => {
+                      capture.setPoseCount(count);
+                      if (onPoseCountChange) onPoseCountChange(count);
+                    }}
+                  >
+                    <span className="pill-title">{label}</span>
+                    <span className="pill-badge">{badge}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="manual-session-tray">
+              <div className="manual-session-header">
+                <span>
+                  Progres Slot: <strong>{Math.min(capture.photos.length, capture.poseCount)} / {capture.poseCount}</strong>
+                  {capture.photos.length >= capture.poseCount && ' • Siap Cetak'}
+                </span>
+              </div>
+              <div className={`manual-slot-grid count-${capture.poseCount}`}>
+                {Array.from({ length: capture.poseCount }, (_, i) => {
+                  const photo = capture.photos[i];
+                  const isFilled = !!photo;
+                  const isCurrent = i === capture.photos.length && retake === null;
+                  const isTargetRetake = retake === i;
+
+                  return (
+                    <div
+                      key={i}
+                      className={`manual-slot-item ${isFilled ? 'filled' : ''} ${isCurrent ? 'current' : ''} ${isTargetRetake ? 'retaking' : ''}`}
+                      onClick={() => {
+                        if (isFilled && !capture.busy) {
+                          onStart('manual', i);
+                        }
+                      }}
+                      title={isFilled ? `Klik untuk jepret ulang Foto ${i + 1}` : `Slot Foto ${i + 1}`}
+                    >
+                      {isFilled ? (
+                        <>
+                          <img src={photo} alt={`Foto ${i + 1}`} className="slot-thumb-img" />
+                          <div className="slot-retake-overlay">
+                            <RotateCcw size={11} />
+                            <span>Ganti</span>
+                          </div>
+                          <span className="slot-check-badge">✓</span>
+                        </>
+                      ) : (
+                        <div className="slot-empty-content">
+                          <span className="slot-num">{i + 1}</span>
+                          {isCurrent && <span className="slot-next-indicator">NEXT</span>}
+                        </div>
+                      )}
+                      <span className="slot-card-label">P{i + 1}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="filter-heading">
+            <span>Filter Studio ({activeFilterObj.name})</span>
+            <span>{FILTERS.length} presets</span>
+          </div>
+          <FilterSelector value={filter} onChange={onFilter} disabled={capture.busy} sample={capture.photos[0]} />
+        </>
+      )}
     </section>
   );
 }

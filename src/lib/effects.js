@@ -284,6 +284,126 @@ export function applyPrivacy(ctx, width, height, privacyType, box = { x: 0.25, y
   }
 }
 
+export function applyLightLeak(ctx, width, height, intensity = 50) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const alpha = (intensity / 100) * 0.8;
+  const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(width, height) * 0.8);
+  gradient.addColorStop(0, `rgba(255, 120, 50, ${alpha})`);
+  gradient.addColorStop(0.5, `rgba(255, 210, 100, ${alpha * 0.5})`);
+  gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+  ctx.restore();
+}
+
+export function applyCrtScanlines(ctx, width, height, intensity = 50) {
+  ctx.save();
+  const alpha = 0.1 + (intensity / 100) * 0.3;
+  ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+  for (let y = 0; y < height; y += 4) {
+    ctx.fillRect(0, y, width, 1);
+  }
+  
+  const gradient = ctx.createRadialGradient(width / 2, height / 2, Math.max(width, height) * 0.3, width / 2, height / 2, Math.max(width, height) * 0.7);
+  gradient.addColorStop(0, 'rgba(0,0,0,0)');
+  gradient.addColorStop(1, `rgba(0,0,0,${alpha * 1.5})`);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+  ctx.restore();
+}
+
+export function applyLensFlare(ctx, width, height, intensity = 50) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const alpha = (intensity / 100) * 0.7;
+  const cx = width * 0.3;
+  const cy = height * 0.3;
+  
+  const orb = ctx.createRadialGradient(cx, cy, 0, cx, cy, width * 0.2);
+  orb.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+  orb.addColorStop(0.2, `rgba(255, 230, 180, ${alpha * 0.8})`);
+  orb.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = orb;
+  ctx.fillRect(0, 0, width, height);
+  
+  ctx.beginPath();
+  ctx.arc(width * 0.5, height * 0.5, width * 0.1, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(150, 200, 255, ${alpha * 0.3})`;
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.arc(width * 0.65, height * 0.65, width * 0.05, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(255, 150, 150, ${alpha * 0.2})`;
+  ctx.fill();
+  ctx.restore();
+}
+
+export function applyHalftone(ctx, width, height, intensity = 50) {
+  const gridSize = Math.max(6, Math.round(14 - (intensity / 100) * 8));
+  
+  const offscreen = makeCanvas(width, height);
+  const offCtx = offscreen.getContext('2d', { willReadFrequently: true });
+  offCtx.drawImage(ctx.canvas, 0, 0);
+  const imgData = offCtx.getImageData(0, 0, width, height);
+  const d = imgData.data;
+
+  const dotCanvas = makeCanvas(width, height);
+  const dotCtx = dotCanvas.getContext('2d');
+  dotCtx.fillStyle = '#f5f5f0';
+  dotCtx.fillRect(0, 0, width, height);
+  dotCtx.fillStyle = '#111';
+
+  for (let y = 0; y < height; y += gridSize) {
+    for (let x = 0; x < width; x += gridSize) {
+      const idx = (y * width + x) * 4;
+      const luma = 0.299 * d[idx] + 0.587 * d[idx + 1] + 0.114 * d[idx + 2];
+      const radius = (1 - luma / 255) * (gridSize / 2);
+      
+      if (radius > 0.5) {
+        dotCtx.beginPath();
+        dotCtx.arc(x, y, radius, 0, Math.PI * 2);
+        dotCtx.fill();
+      }
+    }
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.drawImage(dotCanvas, 0, 0);
+  ctx.restore();
+}
+
+export function applyRisograph(ctx, width, height, intensity = 50) {
+  const offscreen = makeCanvas(width, height);
+  const offCtx = offscreen.getContext('2d', { willReadFrequently: true });
+  offCtx.drawImage(ctx.canvas, 0, 0);
+  const imgData = offCtx.getImageData(0, 0, width, height);
+  const d = imgData.data;
+
+  const color1 = [0, 128, 128];
+  const color2 = [255, 127, 80];
+
+  const strength = (intensity / 100) * 40;
+
+  for (let i = 0; i < d.length; i += 4) {
+    const luma = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    const noise = (Math.random() - 0.5) * strength;
+    const val = Math.max(0, Math.min(255, luma + noise));
+
+    const factor = val / 255;
+    
+    d[i] = color1[0] * (1 - factor) + color2[0] * factor;
+    d[i + 1] = color1[1] * (1 - factor) + color2[1] * factor;
+    d[i + 2] = color1[2] * (1 - factor) + color2[2] * factor;
+  }
+  
+  offCtx.putImageData(imgData, 0, 0);
+  ctx.save();
+  ctx.drawImage(offscreen, 0, 0);
+  ctx.restore();
+}
+
 export function executeEffect(ctx, width, height, effectId, intensity = 50, privacyBox = null) {
   if (!effectId || effectId === 'none') return;
   switch (effectId) {
@@ -313,6 +433,21 @@ export function executeEffect(ctx, width, height, effectId, intensity = 50, priv
       break;
     case 'motion-blur':
       applyMotionBlur(ctx, width, height, intensity);
+      break;
+    case 'light-leak':
+      applyLightLeak(ctx, width, height, intensity);
+      break;
+    case 'crt-scanlines':
+      applyCrtScanlines(ctx, width, height, intensity);
+      break;
+    case 'lens-flare':
+      applyLensFlare(ctx, width, height, intensity);
+      break;
+    case 'halftone-print':
+      applyHalftone(ctx, width, height, intensity);
+      break;
+    case 'risograph':
+      applyRisograph(ctx, width, height, intensity);
       break;
     case 'pixel-face':
     case 'blur-face':

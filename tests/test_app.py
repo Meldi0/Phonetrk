@@ -58,6 +58,24 @@ class TrackerApiTests(unittest.TestCase):
         self.assertIn(b'id="map"', html.data)
         self.assertNotIn(self.config["TRACKER_TOKEN"].encode(), html.data)
 
+    def test_snapbooth_frames_and_assets(self):
+        # Built assets route
+        res = self.client.get("/assets/download-C2782e6Q.jpg")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.content_type, "image/jpeg")
+
+        # Static /frames route with exact .jfif
+        res_jfif = self.client.get("/frames/download.jfif")
+        self.assertEqual(res_jfif.status_code, 200)
+
+        # Static /frames route with .jpg fallback to .jfif
+        res_jpg = self.client.get("/frames/download.jpg")
+        self.assertEqual(res_jpg.status_code, 200)
+
+        # 404 for missing frame
+        res_404 = self.client.get("/frames/missing_random_frame.jpg")
+        self.assertEqual(res_404.status_code, 404)
+
     def test_token_is_required_before_parsing_body(self):
         for header in (None, "Bearer invalid", "Basic bad", "Bearer", "Bearer token extra"):
             headers = {} if header is None else {"Authorization": header}

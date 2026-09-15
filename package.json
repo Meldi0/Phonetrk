@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "vite build && node -e \"import('fs').then(fs => fs.cpSync('dist/snapbooth/assets', 'public/assets', {recursive: true}))\"",
+    "build": "vite build && node -e \"import('fs').then(fs => { fs.cpSync('dist/snapbooth/assets', 'public/assets', {recursive: true}); fs.cpSync('src/assets/frames', 'public/frames', {recursive: true}); fs.cpSync('src/assets/frames', 'dist/snapbooth/frames', {recursive: true}); })\"",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --test tests/snapbooth.test.mjs",
+    "test": "node --test tests/snapbooth.test.mjs tests/photo-slots.test.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": { "react": "19.2.4", "react-dom": "19.2.4", "lucide-react": "^0.468.0" },

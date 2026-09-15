@@ -9,6 +9,48 @@ import { ARTISTIC_TEMPLATES } from './artisticTemplates.js';
 import { drawPolaroidFrame, drawStitches } from './canvasTextures.js';
 import { STRIP_TEMPLATES, RECOMMENDED_TEMPLATES } from './presets.js';
 import { renderPlacedStickers } from './stickers.js';
+import { checkAbort, decodedImage } from './renderResources.js';
+import { getThemedPhotoSlots } from './themedTemplates.js';
+import { IMAGE_FRAMES } from './imageFrames.js';
+import { drawPhotoInSlot, coverCrop } from './photoSlots.js';
+
+/**
+ * The aperture matte retains the source artwork everywhere outside the visible
+ * photo opening, including foreground decorations crossing a slot. This is the
+ * same background → photo → cutout-overlay composition without making / resizing
+ * a second full-frame bitmap. JPEG black/white is never treated as transparency.
+ */
+export async function renderImageFrame(photos, frameDef, style = {}, timestamp = null, { maxDimension, signal } = {}) {
+  const { frameW, frameH, slots } = frameDef;
+  checkAbort(signal);
+  const frameImage = await decodedImage(frameDef.src);
+  checkAbort(signal);
+  if (frameImage.naturalWidth !== frameW || frameImage.naturalHeight !== frameH) {
+    throw new Error(`Ukuran aset ${frameDef.name} berubah. Kalibrasi slot perlu diperbarui.`);
+  }
+  const scale = maxDimension ? maxDimension / Math.max(frameW, frameH) : 1;
+  const canvas = makeCanvas(Math.round(frameW * scale), Math.round(frameH * scale));
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.scale(canvas.width / frameW, canvas.height / frameH);
+  canvas.exportWidth = Math.round(frameW * 2400 / Math.max(frameW, frameH));
+  canvas.exportHeight = Math.round(frameH * 2400 / Math.max(frameW, frameH));
+
+  ctx.drawImage(frameImage, 0, 0, frameW, frameH);
+  // Keep photo index stable when layer order changes. Never repeat a missing pose.
+  slots.map((slot, index) => ({ slot, index }))
+    .sort((a, b) => (a.slot.zIndex || 0) - (b.slot.zIndex || 0))
+    .forEach(({ slot, index }) => {
+      checkAbort(signal);
+      if (photos[index]) drawPhotoInSlot(ctx, photos[index], slot);
+    });
+
+  checkAbort(signal);
+  if (style.userStickers?.length) renderPlacedStickers(ctx, style.userStickers, frameW, frameH);
+  if (style.userTexts?.length) renderPlacedTexts(ctx, style.userTexts, frameW, frameH);
+  return canvas;
+}
 
 /**
  * Fits an image into a destination rectangle using object-fit: cover
@@ -24,13 +66,30 @@ export function fitCover(srcW, srcH, destW, destH) {
 }
 
 /**
- * Renders a complete high-resolution artwork photostrip onto a Canvas
+ * Renders a complete high-resolution artwork photostrip onto a Canvas.
+ * For image-based frames (imageFrame: true), returns a Promise<HTMLCanvasElement>.
+ * For procedural templates, returns an HTMLCanvasElement directly.
  */
-export function renderArtworkStrip(processedPhotos, style, timestamp) {
+export function renderArtworkStrip(processedPhotos, style, timestamp, { maxDimension, signal } = {}) {
   const templateId = style.template || style.frame || 'airmail-love';
 
+  // Route image-based frames to async compositing pipeline
+  const imgFrame = IMAGE_FRAMES.find(f => f.id === templateId);
+  if (imgFrame) {
+    const photos = processedPhotos || [];
+    const photoCount = photos.length;
+    let chosenFrame = imgFrame;
+    if (photoCount > 0 && imgFrame.supportedPhotoCounts && !imgFrame.supportedPhotoCounts.includes(photoCount)) {
+      const familyAlt = IMAGE_FRAMES.find(
+        f => f.family === imgFrame.family && f.supportedPhotoCounts?.includes(photoCount)
+      );
+      if (familyAlt) chosenFrame = familyAlt;
+    }
+    return renderImageFrame(photos, chosenFrame, style, timestamp, { maxDimension, signal });
+  }
+
   // 1. Locate artistic template or fallback
-  let tpl = ARTISTIC_TEMPLATES.find(t => t.id === templateId);
+  let tpl = STRIP_TEMPLATES.find(t => t.id === templateId);
 
   // If not found in artistic templates, check legacy STRIP_TEMPLATES
   if (!tpl) {
@@ -42,12 +101,13 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
     }
   }
 
+
   // Auto-resolve template variant to match actual photo count if provided
   const photos = processedPhotos || [];
   const photoCount = photos.length;
   if (photoCount > 0 && tpl.supportedPhotoCounts && !tpl.supportedPhotoCounts.includes(photoCount)) {
     const family = tpl.family || tpl.id.replace(/-\d+$/, '');
-    const familyVariant = ARTISTIC_TEMPLATES.find(
+    const familyVariant = STRIP_TEMPLATES.find(
       t => (t.family === family || (family && t.id.startsWith(family + '-'))) &&
            t.supportedPhotoCounts?.includes(photoCount)
     );
@@ -59,15 +119,27 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
   const canvasWidth = tpl.canvas?.width || 800;
   const canvasHeight = tpl.canvas?.height || 2000;
 
-  const canvas = makeCanvas(canvasWidth, canvasHeight);
+  const scale = maxDimension ? maxDimension / Math.max(canvasWidth, canvasHeight) : 1;
+  const canvas = makeCanvas(Math.round(canvasWidth * scale), Math.round(canvasHeight * scale));
   const ctx = canvas.getContext('2d');
+  if (scale !== 1) {
+    ctx.scale(canvas.width / canvasWidth, canvas.height / canvasHeight);
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  const logicalCanvas = { width: canvasWidth, height: canvasHeight };
+  canvas.exportWidth = Math.round(canvasWidth * 2400 / Math.max(canvasWidth, canvasHeight));
+  canvas.exportHeight = Math.round(canvasHeight * 2400 / Math.max(canvasWidth, canvasHeight));
 
   // 2. Render Background Material & Layering
   if (style?.customBg) {
     ctx.fillStyle = style.customBg;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   } else if (tpl.renderBackground) {
-    tpl.renderBackground(ctx, canvas, style);
+    ctx.save();
+    try { tpl.renderBackground(ctx, logicalCanvas, style); }
+    catch (error) { console.warn('Template background unavailable:', tpl.id, error.message); ctx.fillStyle = tpl.background?.[0] || '#F4F3EF'; ctx.fillRect(0, 0, canvasWidth, canvasHeight); }
+    finally { ctx.restore(); }
   } else if (tpl.background) {
     if (tpl.background.length > 1) {
       const grad = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
@@ -80,11 +152,14 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
   }
 
   // 3. Render Photo Slots
-  const slots = tpl.photoSlots || [];
+  checkAbort(signal);
+  const slots = (photoCount > 0 && (!tpl.photoSlots?.length || tpl.photoSlots.length < photoCount))
+    ? getThemedPhotoSlots(photoCount, tpl.photoSlots?.[0]?.frameStyle || 'white-thin')
+    : (tpl.photoSlots || []);
 
   slots.forEach((slot, idx) => {
     const photo = photos[idx];
-    const isPlaceholder = !photo;
+    if (!photo) return;
 
     ctx.save();
 
@@ -102,13 +177,13 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
     const r = slot.borderRadius || 0;
 
     // A. Frame Styles (Outer Decorations)
-    if (slot.frameStyle === 'polaroid' || slot.frameStyle === 'polaroid-maroon') {
+    if (slot.frameStyle === 'polaroid' || slot.frameStyle === 'polaroid-maroon' || slot.frameStyle === 'polaroid-pink') {
       const chin = slot.chinHeight || 60;
       const padSide = 22;
       const padTop = 22;
       const frameW = sw + padSide * 2;
       const frameH = sh + padTop + chin;
-      const bgColor = slot.frameStyle === 'polaroid-maroon' ? '#7A1C28' : '#FDFCFA';
+      const bgColor = slot.frameStyle === 'polaroid-maroon' ? '#7A1C28' : slot.frameStyle === 'polaroid-pink' ? '#FBCFE8' : '#FDFCFA';
 
       // Draw Polaroid Paper Card
       drawPolaroidFrame(ctx, 0, (chin - padTop) / 2, frameW, frameH, chin, {
@@ -156,26 +231,24 @@ export function renderArtworkStrip(processedPhotos, style, timestamp) {
 
     // C. Draw Photo with object-fit: cover algorithm
     if (photo) {
-      const cover = fitCover(photo.width, photo.height, sw, sh);
-      ctx.drawImage(
-        photo,
-        0, 0, photo.width, photo.height,
-        -sw / 2 + cover.drawX,
-        -sh / 2 + cover.drawY,
-        cover.drawW,
-        cover.drawH
-      );
+      const crop = coverCrop(photo.width, photo.height, sw, sh, slot.crop?.position);
+      ctx.drawImage(photo, crop.x, crop.y, crop.width, crop.height, -sw / 2, -sh / 2, sw, sh);
     }
 
     ctx.restore();
   });
 
   // 4. Render Foreground Material, Stamps, Typography & Decorations
+  checkAbort(signal);
   if (tpl.renderForeground) {
-    tpl.renderForeground(ctx, canvas, style, timestamp);
+    ctx.save();
+    try { tpl.renderForeground(ctx, logicalCanvas, style, timestamp); }
+    catch (error) { console.warn('Template decoration unavailable:', tpl.id, error.message); }
+    finally { ctx.restore(); }
   }
 
   // 5. Render Placed User Stickers (Ordered by zIndex)
+  checkAbort(signal);
   if (Array.isArray(style?.userStickers) && style.userStickers.length > 0) {
     renderPlacedStickers(ctx, style.userStickers, canvasWidth, canvasHeight);
   }

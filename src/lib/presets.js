@@ -1,42 +1,89 @@
 export const FILTERS = [
-  { id: 'natural', name: 'Natural Glow', brightness: 1.04, contrast: 1.02, saturation: 1.04 },
-  { id: 'korean', name: 'Soft Korean', brightness: 1.07, contrast: 0.92, saturation: 0.96, warmth: 0.12 },
-  { id: 'warm-studio', name: 'Warm Studio', brightness: 1.03, contrast: 1.04, saturation: 1.06, warmth: 0.28 },
-  { id: 'cool-studio', name: 'Cool Studio', brightness: 1.02, contrast: 1.06, saturation: 0.94, warmth: -0.2 },
-  { id: 'sakura', name: 'Sakura Film', brightness: 1.04, contrast: 0.93, saturation: 0.9, tint: [0.024, -0.008, 0.013] },
-  { id: 'vintage', name: 'Vintage Film', brightness: 1.01, contrast: 0.88, saturation: 0.72, warmth: 0.32 },
-  { id: 'retro', name: 'Retro Camera', brightness: 1.02, contrast: 0.94, saturation: 0.85, warmth: 0.18, tint: [0.01, 0.005, -0.01] },
-  { id: 'disposable', name: 'Disposable Camera', brightness: 1.06, contrast: 1.15, saturation: 1.18, warmth: 0.15, tint: [-0.01, 0.02, -0.01] },
-  { id: 'dreamy', name: 'Dreamy', brightness: 1.08, contrast: 0.88, saturation: 0.92, warmth: 0.08, tint: [0.015, -0.005, 0.02] },
-  { id: 'faded', name: 'Faded Film', brightness: 1.04, contrast: 0.82, saturation: 0.65, warmth: 0.05 },
-  { id: 'y2k', name: 'Y2K Digital', brightness: 1.08, contrast: 1.04, saturation: 1.12, tint: [0.015, -0.015, 0.035] },
-  { id: 'blue-hour', name: 'Blue Hour', brightness: 0.98, contrast: 1.08, saturation: 1.1, warmth: -0.35, tint: [-0.02, 0.01, 0.04] },
-  { id: 'golden-hour', name: 'Golden Hour', brightness: 1.05, contrast: 1.06, saturation: 1.15, warmth: 0.42, tint: [0.03, 0.01, -0.03] },
-  { id: 'bw', name: 'B&W Classic', brightness: 1.02, contrast: 1.04, saturation: 0 },
-  { id: 'noir', name: 'B&W Contrast', brightness: 1, contrast: 1.34, saturation: 0 },
-  { id: 'sepia', name: 'Sepia Film', brightness: 1.02, contrast: 0.96, saturation: 0.25, warmth: 0.55, tint: [0.04, 0.02, -0.03] },
+  // Natural
+  { id: 'natural', name: 'Natural Glow', category: 'Natural', brightness: 1.04, contrast: 1.02, saturation: 1.04 },
+  { id: 'clean-bright', name: 'Clean Bright', category: 'Natural', brightness: 1.08, contrast: 1.05, saturation: 1.02, warmth: 0.05 },
+  { id: 'sun-kissed', name: 'Sun Kissed', category: 'Natural', brightness: 1.05, contrast: 1.03, saturation: 1.08, warmth: 0.18 },
+  { id: 'fresh-air', name: 'Fresh Air', category: 'Natural', brightness: 1.04, contrast: 1.02, saturation: 0.96, warmth: -0.08, tint: [-0.01, 0.015, -0.005] },
+
+  // Korean
+  { id: 'korean', name: 'Soft Korean', category: 'Korean', brightness: 1.07, contrast: 0.92, saturation: 0.96, warmth: 0.12 },
+  { id: 'sakura', name: 'Sakura Film', category: 'Korean', brightness: 1.04, contrast: 0.93, saturation: 0.9, tint: [0.024, -0.008, 0.013] },
+  { id: 'milk-skin', name: 'Milk Skin', category: 'Korean', brightness: 1.10, contrast: 0.88, saturation: 0.90, warmth: 0.08, tint: [0.01, 0.005, 0.01] },
+  { id: 'peach-tone', name: 'Peach Tone', category: 'Korean', brightness: 1.06, contrast: 0.95, saturation: 1.04, warmth: 0.22, tint: [0.025, -0.01, 0.015] },
+
+  // Film
+  { id: 'vintage', name: 'Vintage Film', category: 'Film', brightness: 1.01, contrast: 0.88, saturation: 0.72, warmth: 0.32 },
+  { id: 'retro', name: 'Retro Camera', category: 'Film', brightness: 1.02, contrast: 0.94, saturation: 0.85, warmth: 0.18, tint: [0.01, 0.005, -0.01] },
+  { id: 'disposable', name: 'Disposable Camera', category: 'Film', brightness: 1.06, contrast: 1.15, saturation: 1.18, warmth: 0.15, tint: [-0.01, 0.02, -0.01] },
+  { id: 'faded', name: 'Faded Film', category: 'Film', brightness: 1.04, contrast: 0.82, saturation: 0.65, warmth: 0.05 },
+  { id: 'portra', name: 'Portra 400', category: 'Film', brightness: 1.03, contrast: 0.96, saturation: 0.92, warmth: 0.16, tint: [0.015, -0.005, -0.01] },
+
+  // Y2K
+  { id: 'y2k', name: 'Y2K Digital', category: 'Y2K', brightness: 1.08, contrast: 1.04, saturation: 1.12, tint: [0.015, -0.015, 0.035] },
+  { id: 'cyber-flash', name: 'Cyber Flash', category: 'Y2K', brightness: 1.12, contrast: 1.18, saturation: 1.20, warmth: -0.05, tint: [0.02, -0.02, 0.04] },
+
+  // Moody
+  { id: 'blue-hour', name: 'Blue Hour', category: 'Moody', brightness: 0.98, contrast: 1.08, saturation: 1.1, warmth: -0.35, tint: [-0.02, 0.01, 0.04] },
+  { id: 'cool-studio', name: 'Cool Studio', category: 'Moody', brightness: 1.02, contrast: 1.06, saturation: 0.94, warmth: -0.2 },
+  { id: 'midnight', name: 'Midnight', category: 'Moody', brightness: 0.94, contrast: 1.20, saturation: 0.88, warmth: -0.25, tint: [-0.03, 0.01, 0.05] },
+
+  // Warm
+  { id: 'warm-studio', name: 'Warm Studio', category: 'Warm', brightness: 1.03, contrast: 1.04, saturation: 1.06, warmth: 0.28 },
+  { id: 'golden-hour', name: 'Golden Hour', category: 'Warm', brightness: 1.05, contrast: 1.06, saturation: 1.15, warmth: 0.42, tint: [0.03, 0.01, -0.03] },
+
+  // Monochrome
+  { id: 'bw', name: 'B&W Classic', category: 'Monochrome', brightness: 1.02, contrast: 1.04, saturation: 0 },
+  { id: 'noir', name: 'B&W Contrast', category: 'Monochrome', brightness: 1, contrast: 1.34, saturation: 0 },
+  { id: 'sepia', name: 'Sepia Film', category: 'Monochrome', brightness: 1.02, contrast: 0.96, saturation: 0.25, warmth: 0.55, tint: [0.04, 0.02, -0.03] },
+
+  // Fun
+  { id: 'dreamy', name: 'Dreamy', category: 'Fun', brightness: 1.08, contrast: 0.88, saturation: 0.92, warmth: 0.08, tint: [0.015, -0.005, 0.02] },
+  { id: 'pop-candy', name: 'Pop Candy', category: 'Fun', brightness: 1.07, contrast: 1.12, saturation: 1.35, warmth: 0.05, tint: [0.02, -0.01, 0.02] },
 ];
 
+export const FILTER_CATEGORIES = ['All', 'Favorites', 'Natural', 'Korean', 'Film', 'Y2K', 'Moody', 'Warm', 'Monochrome', 'Fun'];
+
 export const EFFECTS = [
-  { id: 'none', name: 'Normal', category: 'Creative', description: 'No visual effect' },
-  { id: 'pixel-blur', name: 'Pixel Blur', category: 'Creative', description: 'True canvas mosaic pixelation', defaultIntensity: 50 },
-  { id: 'eight-bit', name: '8-Bit Art', category: 'Creative', description: 'Low-res retro pixelated palette', defaultIntensity: 50 },
-  { id: 'dream-glow', name: 'Dream Glow', category: 'Creative', description: 'Soft Korean photobooth bloom', defaultIntensity: 55 },
-  { id: 'film-grain', name: 'Film Grain', category: 'Creative', description: 'Subtle procedural film texture', defaultIntensity: 45 },
-  { id: 'rgb-shift', name: 'RGB Shift', category: 'Creative', description: 'Y2K digital chromatic separation', defaultIntensity: 40 },
-  { id: 'vhs', name: 'VHS Tape', category: 'Creative', description: 'Subtle scanlines & video noise', defaultIntensity: 45 },
-  { id: 'low-res', name: 'Low-Res Cam', category: 'Creative', description: 'Vintage digicam sensor feel', defaultIntensity: 50 },
-  { id: 'soft-blur', name: 'Soft Blur', category: 'Creative', description: 'Gentle whole-image softening', defaultIntensity: 35 },
-  { id: 'motion-blur', name: 'Motion Blur', category: 'Creative', description: 'Subtle dynamic camera motion', defaultIntensity: 40 },
+  { id: 'none', name: 'Normal', category: 'All', description: 'No visual effect' },
+  
+  // Soft
+  { id: 'dream-glow', name: 'Dream Glow', category: 'Soft', description: 'Soft Korean photobooth bloom', defaultIntensity: 55 },
+  { id: 'soft-blur', name: 'Soft Blur', category: 'Soft', description: 'Gentle whole-image softening', defaultIntensity: 35 },
+  { id: 'light-leak', name: 'Light Leak', category: 'Soft', description: 'Warm vintage lens light leak', defaultIntensity: 50 },
+
+  // Pixel/Digital
+  { id: 'pixel-blur', name: 'Pixel Blur', category: 'Pixel/Digital', description: 'True canvas mosaic pixelation', defaultIntensity: 50 },
+  { id: 'eight-bit', name: '8-Bit Art', category: 'Pixel/Digital', description: 'Low-res retro pixelated palette', defaultIntensity: 50 },
+  { id: 'low-res', name: 'Low-Res Cam', category: 'Pixel/Digital', description: 'Vintage digicam sensor feel', defaultIntensity: 50 },
+
+  // Retro Digital
+  { id: 'vhs', name: 'VHS Tape', category: 'Retro Digital', description: 'Subtle scanlines & video noise', defaultIntensity: 45 },
+  { id: 'rgb-shift', name: 'RGB Shift', category: 'Retro Digital', description: 'Y2K digital chromatic separation', defaultIntensity: 40 },
+  { id: 'crt-scanlines', name: 'CRT Scanlines', category: 'Retro Digital', description: 'Analog CRT monitor effect', defaultIntensity: 40 },
+
+  // Camera
+  { id: 'motion-blur', name: 'Motion Blur', category: 'Camera', description: 'Subtle dynamic camera motion', defaultIntensity: 40 },
+  { id: 'film-grain', name: 'Film Grain', category: 'Camera', description: 'Subtle procedural film texture', defaultIntensity: 45 },
+  { id: 'lens-flare', name: 'Lens Flare', category: 'Camera', description: 'Optical camera lens artifact', defaultIntensity: 40 },
+
+  // Print/Analog
+  { id: 'halftone-print', name: 'Halftone Print', category: 'Print/Analog', description: 'Comic book style dotted printing', defaultIntensity: 60 },
+  { id: 'risograph', name: 'Risograph', category: 'Print/Analog', description: 'Vibrant analog stencil print', defaultIntensity: 55 },
+
+  // Privacy
   { id: 'pixel-face', name: 'Pixel Face', category: 'Privacy', description: 'Pixel mosaic face censor', defaultIntensity: 65 },
   { id: 'blur-face', name: 'Blur Face', category: 'Privacy', description: 'Smooth face blur censor', defaultIntensity: 60 },
   { id: 'black-bar', name: 'Black Bar', category: 'Privacy', description: 'Aesthetic censor bar across eyes', defaultIntensity: 100 },
 ];
 
+export const EFFECT_CATEGORIES = ['All', 'Soft', 'Pixel/Digital', 'Retro Digital', 'Camera', 'Print/Analog', 'Privacy'];
+
 export const LAYOUT_OPTIONS = [
   { id: '1-single', name: '1-Cut Single', poses: 1, cols: 1, rows: 1, label: '1 Hero Portrait' },
   { id: '2-vertical', name: '2-Cut Duo', poses: 2, cols: 1, rows: 2, label: '2 Poses Vertical' },
   { id: '2-grid', name: '2-Cut Wide', poses: 2, cols: 2, rows: 1, label: '2 Poses Side-by-side' },
+  { id: '3-vertical', name: '3-Cut Strip', poses: 3, cols: 1, rows: 3, label: 'Classic 3-Cut Strip' },
+  { id: '3-grid', name: '3-Cut Wide', poses: 3, cols: 3, rows: 1, label: '3 Poses Side-by-side' },
   { id: '4-vertical', name: '4-Cut Strip', poses: 4, cols: 1, rows: 4, label: 'Classic 4-Cut Strip' },
   { id: '4-grid', name: '4-Cut Grid', poses: 4, cols: 2, rows: 2, label: '2 × 2 Grid' },
   { id: '4-wide', name: '4-Cut Wide', poses: 4, cols: 4, rows: 1, label: 'Wide 4-Cut' },
@@ -45,6 +92,7 @@ export const LAYOUT_OPTIONS = [
 ];
 
 import { ARTISTIC_TEMPLATES } from './artisticTemplates.js';
+import { getImageFrameTemplates } from './imageFrames.js';
 
 const RAW_STRIP_TEMPLATES = [
   // CLEAN
@@ -539,6 +587,7 @@ const RAW_STRIP_TEMPLATES = [
     ],
   },
   ...ARTISTIC_TEMPLATES,
+  ...getImageFrameTemplates(),
 ];
 
 export const STRIP_TEMPLATES = Array.from(
@@ -564,26 +613,34 @@ export const STRIP_TEMPLATES = Array.from(
 export const TEMPLATE_CATEGORIES = [
   'All',
   'Favorites',
-  'Y2K',
-  'Motorsport',
-  'Cute',
-  'Clean',
-  'Scrapbook',
-  'Denim',
+  'Spidey',
+  'Kawaii',
+  'Coquette',
+  'Disney',
+  'Aesthetic',
   'Vintage',
   'Film',
-  'Polaroid',
-  'Minimal',
-  'Playful',
+  'Denim',
+  'Scrapbook',
+  'Y2K',
+  'Cute',
   'Retro',
 ];
 
 export const RECOMMENDED_TEMPLATES = {
-  1: 'polaroid-hero-1',
-  2: 'denim-lace-2',
-  3: 'digicam-trio-3',
-  4: 'airmail-love-4',
-  6: 'contact-sheet-6',
+  1: 'spider-gwen-punk-1',
+  2: 'coquette-pearl-2',
+  3: 'spider-comic-scrapbook',
+  4: 'spider-gwen-punk-4',
+  6: 'spider-gwen-punk-6',
+};
+
+export const RECOMMENDED_FRAME_TEMPLATES = {
+  1: 'frame-snoopy-1cut',
+  2: 'frame-vintage-2cut',
+  3: 'frame-spiderman-3cut',
+  4: 'frame-buzztoy-4cut',
+  6: 'frame-minions-6cut',
 };
 
 export function getCompatibleTemplates(count = 4, category = 'All') {
